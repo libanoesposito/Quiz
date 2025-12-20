@@ -1,25 +1,25 @@
 const quizDB = {
     Python: [
-        { q: "Cosa stampa print(type([]))?", options: ["list", "tuple", "dict"], correct: 0, exp: "Le parentesi quadre definiscono una lista.", code: "print(type([])) # Output: <class 'list'>" }
+        { q: "Cosa stampa print(type([]))?", options: ["list", "tuple", "dict"], correct: 0, exp: "Le parentesi quadre definiscono una lista.", code: "print(type([]))" }
     ],
     JavaScript: [
-        { q: "Quale metodo unisce array?", options: ["concat()", "join()", "merge()"], correct: 0, exp: "concat() crea un nuovo array unendo gli esistenti.", code: "arr1.concat(arr2);" }
+        { q: "Uguaglianza stretta?", options: ["===", "==", "="], correct: 0, exp: "=== controlla valore e tipo.", code: "5 === '5' // false" }
     ],
     Java: [
-        { q: "Tipo per un carattere singolo?", options: ["char", "String", "byte"], correct: 0, exp: "char memorizza un singolo carattere Unicode.", code: "char grade = 'A';" }
+        { q: "Tipo per numeri interi?", options: ["int", "float", "String"], correct: 0, exp: "int è il tipo standard per gli interi.", code: "int x = 10;" }
     ],
     MySQL: [
-        { q: "Comando per ordinare i risultati?", options: ["ORDER BY", "SORT BY", "GROUP BY"], correct: 0, exp: "ORDER BY ordina in modo ASC o DESC.", code: "SELECT * FROM users ORDER BY name;" }
+        { q: "Comando per leggere dati?", options: ["SELECT", "GET", "READ"], correct: 0, exp: "SELECT recupera righe dal database.", code: "SELECT * FROM users;" }
     ],
     HTML: [
-        { q: "Tag per lista numerata?", options: ["<ol>", "<ul>", "<li>"], correct: 0, exp: "<ol> sta per Ordered List.", code: "<ol>\n <li>Uno</li>\n</ol>" }
+        { q: "Tag per i link?", options: ["<a>", "<link>", "<href>"], correct: 0, exp: "Il tag 'a' definisce un hyperlink.", code: "<a href='...'>Link</a>" }
     ]
 };
 
 const challenges5 = {
-    Python: { task: "Stampa 'Hello'", target: "print('Hello')", color: "#4B8BBE" },
-    JavaScript: { task: "Usa console.log('Ciao')", target: "console.log('Ciao')", color: "#F7DF1E" },
+    Python: { task: "Stampa 'Ciao'", target: "print('Ciao')", color: "#4B8BBE" },
+    JavaScript: { task: "Usa console.log('Hi')", target: "console.log('Hi')", color: "#F7DF1E" },
     Java: { task: "Dichiara int x = 5;", target: "int x = 5;", color: "#f89820" },
-    MySQL: { task: "Seleziona tutto da 'tab'", target: "SELECT * FROM tab", color: "#00758f" },
-    HTML: { task: "Crea tag <a></a>", target: "<a></a>", color: "#E34C26" }
+    MySQL: { task: "Seleziona tutto da users", target: "SELECT * FROM users", color: "#00758f" },
+    HTML: { task: "Crea un tag <a></a>", target: "<a></a>", color: "#E34C26" }
 };
