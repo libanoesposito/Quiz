@@ -3,66 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>DevMaster Pro</title>
+    <title>DevMaster Premium</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="liquid-bg"></div>
 
     <div id="home-screen" class="app-container">
-        <header class="top-bar">
-            <h1 class="main-question">Percorsi</h1>
-            <label class="ios-switch">
-                <input type="checkbox" id="theme-slider">
-                <span class="ios-slider"></span>
-            </label>
+        <header class="header-apple">
+            <h1 class="title-large">Percorsi</h1>
+            <div class="theme-toggle">
+                <label class="ios-switch">
+                    <input type="checkbox" id="theme-slider">
+                    <span class="ios-slider"></span>
+                </label>
+            </div>
         </header>
         <div class="lang-grid" id="lang-menu">
             </div>
     </div>
 
     <div id="level-screen" class="app-container hidden">
-        <header class="top-bar">
-            <button class="back-btn" onclick="showHome()">← Indietro</button>
+        <header class="header-apple-mini">
+            <button class="btn-back" onclick="showHome()">Indietro</button>
             <div id="current-lang-icon"></div>
         </header>
-        <h1 id="selected-lang-title" class="main-question">Livelli</h1>
-        <div class="level-list" id="level-menu">
-            </div>
+        <h2 id="selected-lang-title" class="title-medium">Seleziona Livello</h2>
+        <div class="level-stack" id="level-menu"></div>
     </div>
 
     <div id="quiz-screen" class="app-container hidden">
-        <div class="progress-bar-container"><div id="progress-fill"></div></div>
-        <main class="content-wrapper">
-            <span id="quiz-meta" class="caps-label"></span>
-            <h1 id="question-text" class="main-question"></h1>
-            <div id="options-container" class="options-stack"></div>
-        </main>
+        <div class="progress-track"><div id="progress-bar"></div></div>
+        <div class="glass-card main-quiz-card">
+            <span id="quiz-meta" class="badge-apple"></span>
+            <h1 id="question-text" class="question-display"></h1>
+            <div id="options-container" class="options-grid"></div>
+            <button class="btn-text-only" onclick="handleStudyLater()">Non l'ho studiato</button>
+        </div>
     </div>
 
     <div id="coding-screen" class="app-container hidden">
-        <main class="content-wrapper">
-            <span class="caps-label">Livello 5: Expert Challenge</span>
-            <h1 id="challenge-text" class="main-question"></h1>
-            <div class="vscode-editor">
-                <div class="vscode-header">
-                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
-                    <span class="file-name">script.js</span>
+        <div class="glass-card full-height">
+            <h2 class="title-small">Challenge Esperto</h2>
+            <p id="challenge-text" class="challenge-desc"></p>
+            <div class="vscode-frame">
+                <div class="vscode-dots"><span></span><span></span><span></span></div>
+                <div class="editor-container">
+                    <textarea id="code-input" spellcheck="false" oninput="syncCode()"></textarea>
+                    <pre id="code-highlight"><code class="language-js"></code></pre>
                 </div>
-                <textarea id="code-input" spellcheck="false" oninput="highlightCode()"></textarea>
-                <pre id="code-output"><code></code></pre>
             </div>
-            <button class="apple-btn-primary" onclick="checkCodingChallenge()">Verifica Codice</button>
-        </main>
+            <button class="btn-apple-primary" onclick="checkCode()">Verifica Soluzione</button>
+        </div>
     </div>
 
     <div id="feedback-screen" class="app-container hidden">
-        <div id="feedback-content" class="content-wrapper">
-            <div id="status-icon"></div>
-            <div class="apple-glass-inner">
-                <p id="exp-text"></p>
+        <div class="glass-card feedback-card">
+            <div id="status-icon-box"></div>
+            <div class="apple-inner-box">
+                <p id="feedback-explanation"></p>
+                <pre class="mini-code"><code id="feedback-code"></code></pre>
             </div>
-            <button class="apple-btn-primary" onclick="handleNextStep()">Continua</button>
+            <div class="button-group-v">
+                <button class="btn-apple-primary" onclick="proceed()">Continua</button>
+                <button id="add-end-btn" class="btn-apple-secondary hidden" onclick="addToEnd()">Ripeti alla fine</button>
+            </div>
         </div>
     </div>
 
