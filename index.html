@@ -2,20 +2,62 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz di Programmazione</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Learning Path</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="quiz-container">
-        <h1>Quiz di Programmazione</h1>
-        <div id="question-container">
-            <p id="question-text"></p>
-            <div id="answers"></div>
-        </div>
-        <button id="next-btn">Prossima domanda</button>
-        <p id="explanation"></p>
+    <div class="liquid-bg"></div>
+
+    <div class="app-container">
+        <header class="top-bar">
+            <div id="language-icon-container" class="lang-icon"></div>
+            <div class="controls">
+                <label class="ios-switch">
+                    <input type="checkbox" id="theme-slider">
+                    <span class="ios-slider"></span>
+                </label>
+            </div>
+        </header>
+
+        <main id="main-stage">
+            <div id="quiz-content" class="content-wrapper">
+                <div class="meta-info">
+                    <span id="category-label" class="caps-label">Caricamento</span>
+                </div>
+                
+                <h1 id="question-text" class="main-question">Preparazione quiz...</h1>
+                
+                <div id="options-container" class="options-stack"></div>
+
+                <div class="bottom-actions">
+                    <button class="secondary-link" onclick="handleStudyLater()">Non l'ho studiato</button>
+                </div>
+            </div>
+
+            <div id="feedback-stage" class="content-wrapper hidden">
+                <div id="status-indicator"></div>
+                <div class="apple-glass-inner">
+                    <p id="explanation-text"></p>
+                    <div class="code-block">
+                        <div class="code-dot-row"><span></span><span></span><span></span></div>
+                        <pre><code id="code-display"></code></pre>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="apple-btn-primary" onclick="nextQuestion()">Continua</button>
+                    <button id="add-end-btn" class="apple-btn-secondary hidden" onclick="addToEnd()">Ripeti alla fine</button>
+                </div>
+            </div>
+        </main>
+
+        <section id="results-stage" class="content-wrapper hidden">
+            <h1 class="main-question">Recap Studio</h1>
+            <div id="review-scroll-area"></div>
+            <button class="apple-btn-primary" onclick="location.reload()">Ricomincia Percorso</button>
+        </section>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
