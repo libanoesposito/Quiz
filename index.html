@@ -10,13 +10,12 @@
     <div class="glass-bg"></div>
 
     <header class="header-main">
-        <h1 id="app-title">DevMaster</h1>
+        <div id="back-nav"></div> <h1 id="app-title">DevMaster</h1>
         <button id="btn-review" class="icon-btn hidden" onclick="showReviewSession()">📚</button>
     </header>
 
     <main id="quiz-container" class="glass-card">
-        <div id="content-area">
-            </div>
+        <div id="content-area"></div>
     </main>
 
     <footer class="theme-footer" id="theme-footer">
@@ -24,8 +23,16 @@
             <input type="checkbox" id="theme-slider">
             <span class="ios-slider"></span>
         </label>
-        <span class="theme-label">Tema</span>
+        <span class="theme-label">Modalità</span>
     </footer>
+
+    <div id="apple-modal" class="modal-overlay hidden">
+        <div class="apple-alert">
+            <h3 id="modal-title">Titolo</h3>
+            <p id="modal-body">Messaggio</p>
+            <div class="modal-actions" id="modal-actions"></div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
