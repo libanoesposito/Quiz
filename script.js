@@ -1,115 +1,120 @@
-const questionsData = [
-    { cat: "Python", q: "Come dichiari una funzione?", options: ["def funzione():", "function funzione()", "void funzione()", "func funzione()"], correct: 0, exp: "Si usa la parola chiave 'def'.", code: "def mia_funzione():\n  print('Ciao')", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" },
-    { cat: "JavaScript", q: "Quale keyword definisce una costante?", options: ["let", "var", "const", "fix"], correct: 2, exp: "Const impedisce la riassegnazione.", code: "const x = 5;", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" },
-    { cat: "MySQL", q: "Quale comando estrae dati?", options: ["GET", "SELECT", "FETCH", "EXTRACT"], correct: 1, exp: "SELECT è il comando standard SQL.", code: "SELECT * FROM users;", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original-wordmark.svg" },
-    { cat: "Java", q: "Qual è la classe base di tutte le classi?", options: ["Main", "System", "Object", "Class"], correct: 2, exp: "In Java ogni classe eredita da Object.", code: "public class Test extends Object { }", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg" },
-    { cat: "HTML", q: "Quale tag definisce il corpo della pagina?", options: ["<head>", "<body>", "<html>", "<main>"], correct: 1, exp: "Il body contiene il contenuto visibile.", code: "<body>\n  <h1>Titolo</h1>\n</body>", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" }
-];
+// DATABASE ESEMPIO (Espandibile fino a 50 per categoria)
+const database = {
+    Python: {
+        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
+        levels: {
+            1: [
+                { q: "Quale simbolo si usa per i commenti?", options: ["//", "#", "/*", "--"], correct: 1, exp: "In Python si usa il cancelletto." },
+                // ... aggiungi altre 49 domande qui
+            ],
+            2: [{ q: "Come si crea una lista?", options: ["[]", "{}", "()", "<>"], correct: 0, exp: "Le liste usano le parentesi quadre." }],
+            5: { challenge: "Scrivi un ciclo che stampa i numeri da 0 a 4", target: "for i in range(5):" }
+        }
+    },
+    JavaScript: {
+        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg",
+        levels: {
+            1: [{ q: "Come dichiari una variabile?", options: ["var", "let", "const", "Tutte"], correct: 3, exp: "Tutte e tre sono valide." }],
+            5: { challenge: "Dichiara una costante chiamata 'pi' con valore 3.14", target: "const pi = 3.14;" }
+        }
+    }
+    // Aggiungi MySQL, Java, HTML seguendo lo stesso schema
+};
 
-let currentQuestions = [];
-let currentIndex = 0;
-let studyLaterList = [];
-let currentQObj = null;
+let state = {
+    currentLang: null,
+    currentLevel: null,
+    questions: [],
+    index: 0,
+    score: 0
+};
 
-function initQuiz() {
-    const order = ["Python", "JavaScript", "MySQL", "Java", "HTML"];
-    currentQuestions = [];
-    
-    // Logica: Segue l'ordine degli argomenti, ma randomizza le domande dentro l'argomento
-    order.forEach(cat => {
-        let catGroup = questionsData.filter(q => q.cat === cat);
-        catGroup.sort(() => Math.random() - 0.5);
-        currentQuestions.push(...catGroup);
-    });
-    
-    showQuestion();
+function init() {
+    renderHome();
+    document.getElementById('theme-slider').onchange = (e) => 
+        document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
 }
 
-function updateIcon(url) {
-    const container = document.getElementById('language-icon-container');
-    container.innerHTML = `<img src="${url}" alt="lang">`;
+function renderHome() {
+    const menu = document.getElementById('lang-menu');
+    menu.innerHTML = Object.keys(database).map(lang => `
+        <div class="lang-card" onclick="selectLang('${lang}')">
+            <img src="${database[lang].icon}">
+            <h3>${lang}</h3>
+        </div>
+    `).join('');
+    showScreen('home-screen');
+}
+
+function selectLang(lang) {
+    state.currentLang = lang;
+    const menu = document.getElementById('level-menu');
+    menu.innerHTML = [1,2,3,4,5].map(lvl => `
+        <div class="option-btn" onclick="startLevel(${lvl})">
+            Livello ${lvl} ${lvl === 5 ? '(Expert)' : ''}
+        </div>
+    `).join('');
+    document.getElementById('current-lang-icon').innerHTML = `<img src="${database[lang].icon}" width="30">`;
+    showScreen('level-screen');
+}
+
+function startLevel(lvl) {
+    state.currentLevel = lvl;
+    state.index = 0;
+    if(lvl < 5) {
+        // Prende 10 domande casuali da un pool (es. di 50)
+        let pool = database[state.currentLang].levels[lvl] || [];
+        state.questions = pool.sort(() => 0.5 - Math.random()).slice(0, 10);
+        showQuestion();
+    } else {
+        startCodingChallenge();
+    }
 }
 
 function showQuestion() {
-    if (currentIndex >= currentQuestions.length) return showResults();
-    
-    currentQObj = currentQuestions[currentIndex];
-    updateIcon(currentQObj.icon);
-    
-    document.getElementById('feedback-stage').classList.add('hidden');
-    document.getElementById('quiz-content').classList.remove('hidden');
-    
-    document.getElementById('category-label').innerText = currentQObj.cat;
-    document.getElementById('question-text').innerText = currentQObj.q;
-    
+    const q = state.questions[state.index];
+    document.getElementById('question-text').innerText = q.q;
     const container = document.getElementById('options-container');
-    container.innerHTML = '';
-    
-    currentQObj.options.forEach((opt, i) => {
-        const btn = document.createElement('button');
-        btn.className = 'option-btn';
-        btn.innerText = opt;
-        btn.onclick = () => checkAnswer(i);
-        container.appendChild(btn);
-    });
+    container.innerHTML = q.options.map((opt, i) => `
+        <button class="option-btn" onclick="checkAnswer(${i})">${opt}</button>
+    `).join('');
+    showScreen('quiz-screen');
 }
 
-function checkAnswer(selected) {
-    const isCorrect = selected === currentQObj.correct;
-    document.getElementById('quiz-content').classList.add('hidden');
-    document.getElementById('feedback-stage').classList.remove('hidden');
-    
-    const status = document.getElementById('status-indicator');
-    const addBtn = document.getElementById('add-end-btn');
-    
-    if (isCorrect) {
-        status.innerHTML = `<h2 style="color:#34c759; font-size: 28px; margin-bottom:10px;">Corretto</h2>`;
-        addBtn.classList.add('hidden');
+// LIVELLO 5: CODING CHALLENGE
+function startCodingChallenge() {
+    const chall = database[state.currentLang].levels[5];
+    document.getElementById('challenge-text').innerText = chall.challenge;
+    showScreen('coding-screen');
+}
+
+function highlightCode() {
+    const input = document.getElementById('code-input').value;
+    const output = document.getElementById('code-output').querySelector('code');
+    // Semplice regex per colorazione
+    let html = input
+        .replace(/\b(const|let|var|def|for|in|return|function)\b/g, '<span class="token-keyword">$1</span>')
+        .replace(/(\".*?\"|\'.*?\')/g, '<span class="token-string">$1</span>')
+        .replace(/\b(\d+)\b/g, '<span class="token-number">$1</span>');
+    output.innerHTML = html;
+}
+
+function checkCodingChallenge() {
+    const input = document.getElementById('code-input').value.trim();
+    const target = database[state.currentLang].levels[5].target;
+    if(input === target) {
+        alert("Perfetto! Codice corretto.");
+        showHome();
     } else {
-        status.innerHTML = `<h2 style="color:#ff3b30; font-size: 28px; margin-bottom:10px;">Riprova</h2><p style="margin-bottom:10px; opacity:0.7;">La risposta esatta era: ${currentQObj.options[currentQObj.correct]}</p>`;
-        addBtn.classList.remove('hidden');
-    }
-    
-    document.getElementById('explanation-text').innerText = currentQObj.exp;
-    document.getElementById('code-display').innerText = currentQObj.code;
-}
-
-function handleStudyLater() {
-    studyLaterList.push(currentQObj);
-    nextQuestion();
-}
-
-function addToEnd() {
-    currentQuestions.push(currentQObj);
-    nextQuestion();
-}
-
-function nextQuestion() {
-    currentIndex++;
-    showQuestion();
-}
-
-function showResults() {
-    document.getElementById('main-stage').classList.add('hidden');
-    document.getElementById('results-stage').classList.remove('hidden');
-    const list = document.getElementById('review-scroll-area');
-    list.innerHTML = "";
-    
-    if(studyLaterList.length === 0) {
-        list.innerHTML = "<p>Nessun argomento aggiunto al ripasso.</p>";
-    } else {
-        studyLaterList.forEach(item => {
-            list.innerHTML += `<div class="apple-glass-inner" style="margin-bottom:15px">
-                <span class="caps-label">${item.cat}</span>
-                <p style="margin-top:10px">${item.exp}</p>
-            </div>`;
-        });
+        alert("Il codice non corrisponde alla richiesta. Riprova.");
     }
 }
 
-// Tema
-document.getElementById('theme-slider').addEventListener('change', (e) => {
-    document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
-});
+function showScreen(id) {
+    document.querySelectorAll('.app-container').forEach(s => s.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+}
 
-window.onload = initQuiz;
+function showHome() { renderHome(); }
+
+window.onload = init;
