@@ -1,36 +1,27 @@
-/* ... (Mantieni le basi del CSS precedente) ... */
+/* ... (Basi precedenti confermate) ... */
 
-/* Popup Apple Style */
-.modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.3);
-    display: flex; align-items: center; justify-content: center; z-index: 2000;
-    backdrop-filter: blur(5px);
-}
-.apple-alert {
-    background: var(--card-bg); backdrop-filter: blur(30px);
-    width: 270px; border-radius: 14px; text-align: center; padding: 20px 0 0;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 1px solid var(--border);
-}
-.apple-alert h3 { margin: 0 15px 5px; font-size: 17px; }
-.apple-alert p { margin: 0 15px 15px; font-size: 13px; opacity: 0.8; }
-.modal-actions { display: flex; border-top: 1px solid var(--border); }
-.modal-btn {
-    flex: 1; padding: 12px; background: none; border: none;
-    color: var(--accent); font-size: 17px; font-weight: 600; cursor: pointer;
-}
-.modal-btn:first-child { border-right: 1px solid var(--border); font-weight: 400; }
-
-/* Tasto Indietro Apple */
 .back-link { 
-    color: var(--accent); text-decoration: none; font-size: 17px; 
-    display: flex; align-items: center; cursor: pointer;
+    color: var(--accent); font-size: 17px; cursor: pointer; 
+    display: flex; align-items: center; min-width: 80px;
 }
-.back-link::before { content: "〈 "; font-weight: bold; margin-right: 5px; }
 
-/* Tema Footer Invisibile */
-.theme-footer { 
-    position: fixed; bottom: 30px; opacity: 1; transition: 0.5s; cursor: pointer;
-    padding: 20px; /* Area di click maggiorata */
+.auth-container { 
+    display: flex; flex-direction: column; align-items: center; 
+    justify-content: center; height: 100%; gap: 10px;
 }
-.theme-footer.invisible { opacity: 0.05; }
-.theme-footer:hover { opacity: 1; }
+
+.theme-footer { 
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; 
+    transition: opacity 0.5s; cursor: pointer; padding: 20px;
+}
+.theme-footer.invisible { opacity: 0.02; } /* Quasi invisibile ma cliccabile */
+
+/* Fix per allineamento testo guest */
+.auth-container h2, .auth-container p { width: 100%; text-align: center; }
+
+/* Stile Codice */
+pre { 
+    background: #1e1e1e; color: #d4d4d4; padding: 15px; 
+    border-radius: 12px; font-size: 12px; overflow-x: auto; text-align: left;
+}
