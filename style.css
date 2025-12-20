@@ -56,12 +56,12 @@ h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; margin: 0; }
 .btn-apple {
     display: block; width: 100%; padding: 18px; margin-bottom: 12px;
     background: rgba(120, 120, 128, 0.08); border: none; border-radius: 16px;
-    color: var(--text); font-size: 17px; font-weight: 500; text-align: left; cursor: pointer;
+    color: var(--text); font-size: 17px; font-weight: 600; text-align: left; cursor: pointer;
 }
 
-.btn-apple:disabled { opacity: 0.3; cursor: not-allowed; }
-.btn-primary { background: var(--accent); color: white; font-weight: 600; text-align: center; }
-.btn-danger { color: var(--danger); background: none; text-align: center; font-size: 14px; margin-top: 20px; }
+.btn-apple:disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
+.btn-primary { background: var(--accent); color: white; text-align: center; }
+.btn-danger { color: var(--danger); background: none; text-align: center; margin-top: 10px; font-size: 14px; width: 100%; border: none; cursor: pointer; }
 
 .ios-switch { position: relative; width: 51px; height: 31px; }
 .ios-switch input { opacity: 0; width: 0; height: 0; }
