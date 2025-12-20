@@ -1,201 +1,66 @@
-/* 1. RESET E VARIABILI */
 :root {
-    --bg: #f5f5f7; 
-    --text: #1d1d1f; 
-    --accent: #0071e3;
-    --card-bg: rgba(255, 255, 255, 0.45); 
-    --border: rgba(255, 255, 255, 0.6);
-    --glass-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    --bg: #f5f5f7; --text: #1d1d1f; --accent: #0071e3;
+    --card-bg: rgba(255, 255, 255, 0.45); --border: rgba(255, 255, 255, 0.6);
 }
-
 [data-theme="dark"] {
-    --bg: #000000; 
-    --text: #ffffff; 
-    --card-bg: rgba(28, 28, 30, 0.6); 
-    --border: rgba(255, 255, 255, 0.1);
+    --bg: #000; --text: #fff; --card-bg: rgba(28, 28, 30, 0.6); --border: rgba(255, 255, 255, 0.1);
 }
-
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 body { 
-    margin: 0; 
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; 
-    background: var(--bg); 
-    color: var(--text); 
-    height: 100vh; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    overflow: hidden; 
+    margin: 0; font-family: -apple-system, sans-serif; 
+    background: var(--bg); color: var(--text); height: 100vh; 
+    display: flex; flex-direction: column; align-items: center; overflow: hidden; 
 }
 
-/* 2. BACKGROUND ANIMATO */
 .glass-bg { 
-    position: fixed; 
-    inset: 0; 
-    z-index: -1; 
+    position: fixed; inset: 0; z-index: -1; 
     background: radial-gradient(circle at 20% 30%, rgba(0, 113, 227, 0.18), transparent 45%), 
                 radial-gradient(circle at 80% 70%, rgba(162, 0, 255, 0.15), transparent 45%); 
 }
 
-/* 3. HEADER */
-.header-main { 
-    width: 100%; 
-    max-width: 500px; 
-    padding: 60px 25px 20px; 
-    display: flex; 
-    align-items: center; 
-    justify-content: space-between;
-}
-.nav-slot { flex: 1; min-width: 80px; }
-h1 { font-size: 22px; font-weight: 700; margin: 0; text-align: center; flex: 2; letter-spacing: -0.5px; }
+.header-main { width: 100%; max-width: 500px; padding: 60px 25px 20px; display: flex; align-items: center; }
+.nav-slot { flex: 1; }
+h1 { font-size: 20px; font-weight: 700; margin: 0; flex: 2; text-align: center; }
 
-/* 4. CONTENITORE PRINCIPALE (LA CARD) */
 .glass-card { 
-    background: var(--card-bg); 
-    backdrop-filter: blur(50px) saturate(190%); 
+    background: var(--card-bg); backdrop-filter: blur(50px) saturate(190%); 
     -webkit-backdrop-filter: blur(50px) saturate(190%); 
-    border: 1px solid var(--border); 
-    border-radius: 38px; 
-    padding: 25px; 
-    width: calc(100% - 40px); 
-    max-width: 420px; 
-    flex: 1; 
-    margin-bottom: 120px; 
-    display: flex; 
-    flex-direction: column; 
-    box-shadow: var(--glass-shadow);
+    border: 1px solid var(--border); border-radius: 38px; padding: 25px; 
+    width: calc(100% - 40px); max-width: 420px; flex: 1; margin-bottom: 120px; 
+    display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
     overflow-y: auto;
 }
 
-/* 5. SCHERMATE DI ACCESSO E GRIGLIA */
-.auth-container { 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: center; 
-    height: 100%; 
-    text-align: center; 
-}
-
-.lang-grid { 
-    display: grid; 
-    grid-template-columns: 1fr 1fr; 
-    gap: 16px; 
-    width: 100%; 
-    padding: 10px 0;
-}
-
+.lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; }
 .lang-item { 
-    background: rgba(120, 120, 128, 0.12); 
-    border-radius: 24px; 
-    padding: 20px; 
-    text-align: center; 
-    cursor: pointer; 
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(120, 120, 128, 0.1); border-radius: 22px; padding: 20px; 
+    text-align: center; cursor: pointer; transition: 0.2s;
 }
-.lang-item:active { transform: scale(0.92); }
-.lang-item img { margin-bottom: 8px; pointer-events: none; }
+.lang-item:active { transform: scale(0.95); }
 
-/* 6. BOTTONI APPLE STYLE */
 .btn-apple { 
-    width: 100%; 
-    padding: 18px; 
-    margin-bottom: 12px; 
-    border: none; 
-    border-radius: 18px; 
-    background: rgba(120, 120, 128, 0.12); 
-    color: var(--text); 
-    font-size: 17px; 
-    font-weight: 600; 
-    cursor: pointer; 
-    transition: 0.2s;
+    width: 100%; padding: 18px; margin-bottom: 12px; border: none; border-radius: 18px; 
+    background: rgba(120, 120, 128, 0.12); color: var(--text); font-size: 16px; font-weight: 600; cursor: pointer;
 }
 .btn-primary { background: var(--accent); color: white; }
-.btn-apple:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* 7. FEEDBACK E CODICE */
-.feedback-box { 
-    margin-top: 20px; 
-    padding: 20px; 
-    border-radius: 22px; 
-    animation: slideIn 0.4s ease forwards; 
-}
+.feedback-box { margin-top: 15px; padding: 20px; border-radius: 20px; animation: slideIn 0.3s; }
 .correct { background: rgba(52, 199, 89, 0.2); border: 1px solid #34c759; }
 .wrong { background: rgba(255, 59, 48, 0.2); border: 1px solid #ff3b30; }
+pre { background: #1e1e1e; color: #9cdcfe; padding: 12px; border-radius: 10px; font-size: 12px; overflow-x: auto; text-align: left; }
 
-pre { 
-    background: #1e1e1e; 
-    color: #d4d4d4; 
-    padding: 15px; 
-    border-radius: 12px; 
-    font-size: 13px; 
-    overflow-x: auto; 
-    margin: 10px 0;
-    text-align: left;
-}
+.code-editor { width: 100%; height: 120px; background: #1e1e1e; color: #9cdcfe; border-radius: 15px; padding: 12px; font-family: monospace; border: none; margin-top: 10px; }
+.console-terminal { background: #000; color: #34c759; padding: 12px; border-radius: 10px; margin-top: 10px; font-family: monospace; font-size: 12px; min-height: 40px; }
 
-/* 8. LIVELLO 5: VS CODE EDITOR & CONSOLE */
-.code-editor {
-    width: 100%; 
-    height: 140px; 
-    background: #1e1e1e; 
-    color: #9cdcfe; 
-    border-radius: 15px; 
-    padding: 15px; 
-    font-family: 'Fira Code', 'Menlo', 'Monaco', monospace; 
-    border: 1px solid #333; 
-    margin-top: 15px; 
-    outline: none; 
-    resize: none;
-}
-.console-terminal {
-    background: #000000; 
-    color: #34c759; 
-    padding: 15px; 
-    border-radius: 12px; 
-    margin-top: 12px; 
-    font-family: 'Courier New', monospace; 
-    font-size: 13px; 
-    border: 1px solid #333; 
-    min-height: 50px;
-    line-height: 1.4;
-}
-
-/* 9. MODALITÀ SWITCH (INVISIBILE) */
-.theme-footer { 
-    position: fixed; 
-    bottom: 30px; 
-    opacity: 0.05; 
-    transition: opacity 0.5s; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    z-index: 100;
-}
+.theme-footer { position: fixed; bottom: 30px; opacity: 0.1; transition: 0.5s; display: flex; flex-direction: column; align-items: center; }
 .theme-footer:hover { opacity: 1; }
-
 .ios-switch { scale: 0.7; position: relative; width: 51px; height: 31px; display: block; }
 .ios-switch input { opacity: 0; width: 0; height: 0; }
-.ios-slider { position: absolute; inset: 0; background: rgba(120,120,128,0.3); border-radius: 31px; transition: .3s; }
+.ios-slider { position: absolute; inset: 0; background: rgba(120,120,128,0.3); border-radius: 31px; cursor: pointer; }
 .ios-slider:before { position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: .3s; }
 input:checked + .ios-slider { background: #34c759; }
 input:checked + .ios-slider:before { transform: translateX(20px); }
 
-/* 10. MODAL & UTILS */
-.modal-overlay { 
-    position: fixed; inset: 0; background: rgba(0,0,0,0.3); 
-    backdrop-filter: blur(10px); display: flex; align-items: center; 
-    justify-content: center; z-index: 2000; 
-}
-.apple-alert { 
-    background: var(--card-bg); backdrop-filter: blur(30px); width: 270px; 
-    border-radius: 14px; text-align: center; border: 1px solid var(--border); 
-}
-.modal-actions { border-top: 1px solid var(--border); }
-.modal-btn { width: 100%; padding: 12px; background: none; border: none; color: var(--accent); font-weight: 600; font-size: 17px; cursor: pointer; }
-
-.back-link { color: var(--accent); cursor: pointer; font-size: 17px; display: flex; align-items: center; }
-.hidden { display: none !important; }
-
-@keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+.apple-alert { background: var(--card-bg); width: 270px; border-radius: 14px; text-align: center; border: 1px solid var(--border); overflow: hidden; }
+.modal-btn { width: 100%; padding: 12px; border: none; border-top: 1px solid var(--border); background
