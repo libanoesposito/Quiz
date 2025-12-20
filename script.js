@@ -1,174 +1,153 @@
-// DATABASE ESEMPIO (Puoi aggiungere fino a 50 domande per array)
 const quizData = {
     Python: [
-        { q: "Come si definisce una funzione in Python?", options: ["function x()", "def x():", "void x()"], correct: 1, exp: "In Python si usa 'def' seguito dal nome e i due punti.", code: "def mia_funzione():\n    print('Ciao')" },
-        { q: "Quale di questi è un dizionario?", options: ["[]", "{}", "()"], correct: 1, exp: "Le parentesi graffe definiscono i dizionari (chiave-valore).", code: "mio_dict = {'id': 1}" }
+        { q: "Quale simbolo si usa per i commenti?", options: ["//", "/*", "#"], correct: 2, exp: "Python usa il cancelletto.", code: "# Questo è un commento" },
+        { q: "Come si crea una lista?", options: ["(1,2)", "{1,2}", "[1,2]"], correct: 2, exp: "Le liste usano parentesi quadre.", code: "mia_lista = [1, 2, 3]" }
     ],
-    JavaScript: [
-        { q: "Quale keyword dichiara una costante?", options: ["let", "var", "const"], correct: 2, exp: "const crea una variabile che non può essere riassegnata.", code: "const PI = 3.14;" }
-    ],
-    MySQL: [
-        { q: "Quale comando estrae dati?", options: ["GET", "SELECT", "EXTRACT"], correct: 1, exp: "SELECT è l'operazione base per interrogare tabelle.", code: "SELECT * FROM utenti;" }
-    ],
-    Java: [
-        { q: "Tipo di dato per un numero intero?", options: ["int", "String", "boolean"], correct: 0, exp: "int è il tipo primitivo per i numeri interi.", code: "int x = 10;" }
-    ],
-    HTML: [
-        { q: "Tag per il titolo più importante?", options: ["<p>", "<h6>", "<h1>"], correct: 2, exp: "h1 definisce l'intestazione di primo livello.", code: "<h1>Titolo Pagina</h1>" }
-    ]
+    JavaScript: [{ q: "Come dichiari una costante?", options: ["let", "const", "var"], correct: 1, exp: "const impedisce la riassegnazione.", code: "const x = 10;" }],
+    MySQL: [{ q: "Comando per eliminare dati?", options: ["REMOVE", "DELETE", "DROP"], correct: 1, exp: "DELETE rimuove righe da una tabella.", code: "DELETE FROM tabella WHERE id=1;" }],
+    Java: [{ q: "Metodo principale?", options: ["start()", "main()", "init()"], correct: 1, exp: "Java parte dal metodo main.", code: "public static void main(String[] args)" }],
+    HTML: [{ q: "Tag per un link?", options: ["<link>", "<a>", "<href>"], correct: 1, exp: "Il tag 'a' definisce un hyperlink.", code: "<a href='url'>Link</a>" }]
 };
 
-let state = {
-    userMode: localStorage.getItem('devUserMode'),
-    progress: JSON.parse(localStorage.getItem('devProgress')) || {},
-    toStudy: JSON.parse(localStorage.getItem('devToStudy')) || [],
-    currentLang: null,
-    currentLvl: null,
-    currentQuestions: [],
-    idx: 0
-};
+let user = { id: localStorage.getItem('devUserId'), mode: localStorage.getItem('devUserMode'), progress: JSON.parse(localStorage.getItem('devProgress')) || {}, toStudy: JSON.parse(localStorage.getItem('devToStudy')) || [] };
+let currentQuiz = { lang: "", lvl: 0, questions: [], idx: 0 };
 
 function init() {
     updateReviewIcon();
-    if (!state.userMode) showAuth(); else showHome();
+    if (!user.mode) showAuth(); else showHome();
 }
 
-// --- NAVIGAZIONE ---
-function setAuth(mode) {
-    state.userMode = mode;
-    localStorage.setItem('devUserMode', mode);
+function showAuth() {
+    const area = document.getElementById('content-area');
+    area.innerHTML = `
+        <h2 style="text-align:center;">Benvenuto</h2>
+        <button class="btn-apple btn-primary" onclick="setupUser()">Accedi come Utente</button>
+        <button class="btn-apple" onclick="setGuest()">Modalità Guest</button>
+    `;
+}
+
+function setupUser() {
+    const area = document.getElementById('content-area');
+    area.innerHTML = `
+        <h3>Crea il tuo PIN</h3>
+        <p style="font-size:13px; opacity:0.7;">Inserisci 4 cifre per salvare i progressi.</p>
+        <input type="password" id="pin" class="pin-input" maxlength="4" placeholder="0000">
+        <button class="btn-apple btn-primary" onclick="validatePin()">Salva e Accedi</button>
+        <button class="btn-apple" onclick="showAuth()" style="background:none; text-align:center;">Annulla</button>
+    `;
+}
+
+function validatePin() {
+    const pin = document.getElementById('pin').value;
+    const forbidden = ["1234","4567","7890","1111","2222","3333","4444","5555","6666","7777","8888","9999","0000"];
+    if(pin.length < 4 || forbidden.includes(pin)) {
+        alert("PIN non valido o troppo semplice!");
+        return;
+    }
+    user.id = pin; user.mode = 'user';
+    localStorage.setItem('devUserId', pin);
+    localStorage.setItem('devUserMode', 'user');
+    showHome();
+}
+
+function setGuest() {
+    user.mode = 'guest';
+    localStorage.setItem('devUserMode', 'guest');
     showHome();
 }
 
 function showHome() {
     document.getElementById('app-title').innerText = "Percorsi";
     const area = document.getElementById('content-area');
-    let html = `<div class="lang-grid">`;
-    ["Python", "JavaScript", "MySQL", "Java", "HTML"].forEach(lang => {
-        html += `
-            <div class="lang-item" onclick="showLevels('${lang}')">
-                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${lang.toLowerCase()}/${lang.toLowerCase()}-original.svg">
-                <div style="font-weight:600; font-size:14px;">${lang}</div>
-            </div>`;
-    });
-    html += `</div>`;
+    let html = `<div class="lang-grid">` + Object.keys(quizData).map(l => `
+        <div class="lang-item" onclick="showLevels('${l}')">
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${l.toLowerCase()}/${l.toLowerCase()}-original.svg" width="40">
+            <div style="font-weight:600; margin-top:5px;">${l}</div>
+        </div>`).join('') + `</div>
+        <button class="btn-apple" onclick="logout()" style="margin-top:30px; background:none; text-align:center; color:var(--accent);">Esci (${user.mode === 'user' ? 'ID:'+user.id : 'Guest'})</button>`;
     area.innerHTML = html;
 }
 
-function showLevels(langId) {
-    state.currentLang = langId;
-    document.getElementById('app-title').innerText = langId;
-    const completed = state.progress[langId] || 0;
+function showLevels(lang) {
+    currentQuiz.lang = lang;
+    document.getElementById('app-title').innerText = lang;
+    const completed = user.progress[lang] || 0;
     let html = `<button class="btn-apple" onclick="showHome()" style="background:none; color:var(--accent);">← Indietro</button>`;
-    
     for(let i=1; i<=5; i++) {
-        const isLocked = i === 5 && completed < 4;
-        html += `<button class="btn-apple" ${isLocked ? 'disabled' : ''} onclick="startQuiz('${langId}', ${i})">Livello ${i} ${isLocked ? '🔒' : (i <= completed ? '✅' : '🚀')}</button>`;
+        const locked = i === 5 && completed < 4;
+        html += `<button class="btn-apple" ${locked ? 'disabled' : ''} onclick="startQuiz('${lang}', ${i})">Livello ${i} ${locked ? '🔒' : (i <= completed ? '✅' : '🚀')}</button>`;
     }
     document.getElementById('content-area').innerHTML = html;
 }
 
-// --- LOGICA QUIZ ---
-function startQuiz(langId, lvl) {
-    state.currentLvl = lvl;
-    state.idx = 0;
-    // Peschiamo 10 domande casuali dal database (qui ne usiamo quante ce ne sono)
-    state.currentQuestions = [...quizData[langId]].sort(() => 0.5 - Math.random()).slice(0, 10);
+function startQuiz(lang, lvl) {
+    currentQuiz = { lang, lvl, idx: 0, questions: [...quizData[lang]].sort(() => 0.5 - Math.random()).slice(0, 10) };
     renderQuestion();
 }
 
 function renderQuestion() {
-    const q = state.currentQuestions[state.idx];
-    const area = document.getElementById('content-area');
-    area.innerHTML = `
-        <div class="badge-cat">${state.currentLang} • LVL ${state.currentLvl}</div>
-        <div class="question-text">${q.q}</div>
+    const q = currentQuiz.questions[currentQuiz.idx];
+    document.getElementById('content-area').innerHTML = `
+        <p style="font-size:12px; color:var(--accent); font-weight:700;">LIVELLO ${currentQuiz.lvl}</p>
+        <h2 style="margin-bottom:25px;">${q.q}</h2>
         ${q.options.map((opt, i) => `<button class="btn-apple" onclick="checkAnswer(${i})">${opt}</button>`).join('')}
-        <button class="btn-danger" onclick="addToStudy()">Non l'ho studiato</button>
+        <button class="btn-danger" onclick="saveToStudy()">Non l'ho studiato</button>
     `;
 }
 
-function checkAnswer(selected) {
-    const q = state.currentQuestions[state.idx];
-    const isCorrect = selected === q.correct;
-    
-    if(!isCorrect) addToStudy(false);
-
-    const area = document.getElementById('content-area');
-    area.innerHTML = `
-        <h2 class="${isCorrect ? 'success' : 'error'}">${isCorrect ? 'Corretto!' : 'Sbagliato'}</h2>
-        <div class="explanation-card">
+function checkAnswer(i) {
+    const q = currentQuiz.questions[currentQuiz.idx];
+    const win = i === q.correct;
+    if(!win) saveToStudy(false);
+    document.getElementById('content-area').innerHTML = `
+        <h2 style="color:${win ? '#34c759' : '#ff3b30'}">${win ? 'Corretto!' : 'Sbagliato'}</h2>
+        <div style="background:rgba(120,120,128,0.1); padding:15px; border-radius:15px; margin:20px 0;">
             <strong>Spiegazione:</strong><br>${q.exp}
+            <div class="code-block">${q.code}</div>
         </div>
-        <div class="code-block">${q.code}</div>
-        <button class="btn-apple btn-primary" style="margin-top:20px" onclick="nextStep()">Continua</button>
+        <button class="btn-apple btn-primary" onclick="next()">Continua</button>
     `;
 }
 
-function nextStep() {
-    state.idx++;
-    if(state.idx < state.currentQuestions.length) {
-        renderQuestion();
-    } else {
-        completeLevel();
-    }
-}
-
-function completeLevel() {
-    if(state.userMode === 'user' && state.currentLvl < 5) {
-        state.progress[state.currentLang] = Math.max(state.progress[state.currentLang] || 0, state.currentLvl);
-        localStorage.setItem('devProgress', JSON.stringify(state.progress));
-    }
-    showLevels(state.currentLang);
-}
-
-// --- AREA RIPASSO ---
-function addToStudy(isNew = true) {
-    const q = state.currentQuestions[state.idx];
-    // Evita duplicati nel ripasso
-    if(!state.toStudy.some(item => item.q === q.q)) {
-        state.toStudy.push(q);
-        localStorage.setItem('devToStudy', JSON.stringify(state.toStudy));
+function saveToStudy(moveNext = true) {
+    const q = currentQuiz.questions[currentQuiz.idx];
+    if(!user.toStudy.some(x => x.q === q.q)) {
+        user.toStudy.push(q);
+        localStorage.setItem('devToStudy', JSON.stringify(user.toStudy));
         updateReviewIcon();
     }
-    if(isNew) nextStep(); // Se clicca "Non studiato" passa oltre
+    if(moveNext) next();
 }
 
-function updateReviewIcon() {
-    const btn = document.getElementById('btn-review');
-    if(state.toStudy.length > 0) btn.classList.remove('hidden');
-    else btn.classList.add('hidden');
+function next() {
+    currentQuiz.idx++;
+    if(currentQuiz.idx < currentQuiz.questions.length) renderQuestion();
+    else finish();
+}
+
+function finish() {
+    if(user.mode === 'user' && currentQuiz.lvl < 5) {
+        user.progress[currentQuiz.lang] = Math.max(user.progress[currentQuiz.lang] || 0, currentQuiz.lvl);
+        localStorage.setItem('devProgress', JSON.stringify(user.progress));
+    }
+    showLevels(currentQuiz.lang);
 }
 
 function showReviewSession() {
-    document.getElementById('app-title').innerText = "Area Ripasso";
-    const area = document.getElementById('content-area');
-    let html = `<button class="btn-apple" onclick="showHome()" style="background:none; color:var(--accent);">← Esci</button>
-                <p style="margin-bottom:20px; opacity:0.7;">Qui trovi gli argomenti che hai saltato o sbagliato:</p>`;
-    
-    state.toStudy.forEach((item, i) => {
-        html += `
-            <div class="review-item">
-                <div class="badge-cat">Argomento Quiz</div>
-                <div style="font-weight:600; margin:5px 0;">${item.q}</div>
-                <div class="explanation-card" style="font-size:14px;">${item.exp}</div>
-                <div class="code-block">${item.code}</div>
-                <button class="btn-danger" style="text-align:left; padding:0;" onclick="removeFromReview(${i})">Rimosso (L'ho capito)</button>
-            </div>`;
+    document.getElementById('app-title').innerText = "Area Studio";
+    let html = `<button class="btn-apple" onclick="showHome()" style="background:none; color:var(--accent);">← Chiudi</button>`;
+    user.toStudy.forEach((q, i) => {
+        html += `<div style="border-bottom:1px solid var(--border); padding:15px 0;">
+            <strong>${q.q}</strong><p style="font-size:14px; opacity:0.8;">${q.exp}</p>
+            <div class="code-block">${q.code}</div>
+            <button onclick="removeStudy(${i})" style="color:#ff3b30; background:none; border:none; cursor:pointer;">L'ho imparato ✓</button>
+        </div>`;
     });
-    area.innerHTML = html;
+    document.getElementById('content-area').innerHTML = html || "<p>Nulla da studiare!</p>";
 }
 
-function removeFromReview(index) {
-    state.toStudy.splice(index, 1);
-    localStorage.setItem('devToStudy', JSON.stringify(state.toStudy));
-    if(state.toStudy.length === 0) showHome(); else showReviewSession();
-    updateReviewIcon();
-}
-
-// --- TEMA ---
-document.getElementById('theme-slider').addEventListener('change', (e) => {
-    document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
-});
-
+function removeStudy(i) { user.toStudy.splice(i, 1); localStorage.setItem('devToStudy', JSON.stringify(user.toStudy)); showReviewSession(); updateReviewIcon(); }
+function updateReviewIcon() { document.getElementById('btn-review').classList.toggle('hidden', user.toStudy.length === 0); }
+function logout() { localStorage.clear(); location.reload(); }
+document.getElementById('theme-slider').onchange = (e) => document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
 window.onload = init;
