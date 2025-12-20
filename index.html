@@ -3,26 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>DevMaster Pro</title>
+    <title>QUIZ Pro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="glass-bg"></div>
     <header class="header-main">
         <div id="back-nav" class="nav-slot"></div>
-        <h1 id="app-title">DevMaster</h1>
+        <h1 id="app-title">QUIZ</h1>
         <div class="nav-slot"></div>
     </header>
+
     <main class="glass-card">
         <div id="content-area"></div>
     </main>
-    <footer class="theme-footer">
-        <label class="ios-switch">
-            <input type="checkbox" id="theme-slider">
-            <span class="ios-slider"></span>
-        </label>
-        <span class="theme-label">Modalità</span>
-    </footer>
+
+    <div class="theme-toggle" onclick="toggleTheme()" id="theme-btn">🌙</div>
+
     <script src="database.js"></script>
     <script src="script.js"></script>
 </body>
