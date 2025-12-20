@@ -2,7 +2,7 @@ let state = {
     mode: null,
     userId: localStorage.getItem('devUserId') || null,
     progress: JSON.parse(localStorage.getItem('devProgress')) || {},
-    history: JSON.parse(localStorage.getItem('devHistory')) || {} // { "Python": [{q: "...", correct: true}] }
+    history: JSON.parse(localStorage.getItem('devHistory')) || {} 
 };
 let session = null;
 
@@ -12,7 +12,7 @@ function renderLogin() {
     state.mode = null; updateNav(false);
     document.getElementById('app-title').innerText = "QUIZ";
     document.getElementById('content-area').innerHTML = `
-        <div style="display:flex; flex-direction:column; gap:15px; padding-top:20px">
+        <div style="display:flex; flex-direction:column; gap:12px; padding-top:10px">
             <button class="btn-apple btn-primary" onclick="uiPin('login')">Accedi con PIN</button>
             <button class="btn-apple" onclick="uiPin('register')">Nuovo Utente</button>
             <button class="btn-apple" style="background:none; color:var(--accent); text-align:center" onclick="setGuest()">Entra come Guest</button>
@@ -23,15 +23,15 @@ function uiPin(type) {
     updateNav(true, "renderLogin()");
     document.getElementById('content-area').innerHTML = `
         <div style="text-align:center">
-            <h3 style="margin-bottom:20px">${type === 'login' ? 'Inserisci PIN' : 'Crea PIN (4 cifre)'}</h3>
-            <input type="password" id="pin-field" class="btn-apple" style="text-align:center; font-size:24px; letter-spacing:10px" maxlength="4" inputmode="numeric">
+            <h3 style="margin-bottom:20px">${type === 'login' ? 'Bentornato' : 'Crea il tuo PIN'}</h3>
+            <input type="password" id="pin-field" class="btn-apple" style="text-align:center; font-size:24px; letter-spacing:8px" maxlength="4" inputmode="numeric">
             <button class="btn-apple btn-primary" style="margin-top:20px" onclick="validatePin('${type}')">Conferma</button>
         </div>`;
 }
 
 function validatePin(type) {
     const pin = document.getElementById('pin-field').value;
-    const easy = ['1111','2222','3333','4444','5555','6666','7777','8888','9999','0000','1234','2345','3456','4567','5678','6789'];
+    const easy = ['1111','2222','3333','1234','4567','6789'];
     if(pin.length !== 4) return alert("Inserisci 4 cifre");
     if(easy.includes(pin)) return alert("PIN troppo semplice!");
     if(type === 'register') { localStorage.setItem('devUserId', pin); state.userId = pin; } 
@@ -44,13 +44,52 @@ function setGuest() { state.mode = 'guest'; showHome(); }
 function showHome() {
     updateNav(true, "renderLogin()");
     document.getElementById('app-title').innerText = "PERCORSI";
-    let html = (state.mode === 'guest') ? `<div class="history-item" style="background:rgba(0,113,227,0.05); border:none; border-radius:10px; margin-bottom:20px"><span>Progresso Guest: <b>${Object.values(state.progress).reduce((a,b)=>a+b,0)} livelli</b></span></div>` : "";
-    html += `<div class="lang-grid">` + Object.keys(quizDB).map(l => {
+    let html = `<div class="lang-grid">`;
+    
+    // Slot Argomenti
+    Object.keys(quizDB).forEach(l => {
         const icon = (l === 'HTML') ? 'html5' : l.toLowerCase();
-        return `<div class="lang-item" onclick="showLevels('${l}')">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${icon}/${icon}-original.svg" width="40" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1005/1005141.png'">
-            <div style="margin-top:15px; font-weight:700; font-size:14px">${l}</div>
-        </div>`}).join('') + `</div>`;
+        html += `
+        <div class="lang-item" onclick="showLevels('${l}')">
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${icon}/${icon}-original.svg" width="35">
+            <div style="margin-top:10px; font-weight:700; font-size:13px">${l}</div>
+        </div>`;
+    });
+
+    // NUOVO SLOT: IL MIO PROFILO (Solo per utenti loggati)
+    if(state.mode === 'user') {
+        html += `
+        <div class="lang-item profile-slot" onclick="renderProfile()">
+            <div style="font-weight:700">IL MIO PROFILO & RIPASSO</div>
+        </div>`;
+    }
+    
+    html += `</div>`;
+    document.getElementById('content-area').innerHTML = html;
+}
+
+function renderProfile() {
+    updateNav(true, "showHome()");
+    document.getElementById('app-title').innerText = "PROFILO";
+    let html = `<h3>Il tuo riepilogo</h3>`;
+    
+    const langs = Object.keys(state.history);
+    if(langs.length === 0) html += `<p>Inizia un percorso per vedere qui i tuoi progressi.</p>`;
+    
+    langs.forEach(lang => {
+        html += `<h4 style="margin-top:20px; color:var(--accent)">${lang}</h4>`;
+        state.history[lang].forEach(item => {
+            html += `
+            <div class="review-card ${item.ok ? 'is-ok' : 'is-err'}">
+                <div style="font-weight:bold; margin-bottom:5px">
+                    <span class="dot" style="background:${item.ok?'#34c759':'#ff3b30'}"></span>${item.q}
+                </div>
+                <div style="font-size:12px; opacity:0.8; margin-bottom:8px">${item.exp}</div>
+                <pre style="font-size:10px">${item.code}</pre>
+            </div>`;
+        });
+    });
+    
     document.getElementById('content-area').innerHTML = html;
 }
 
@@ -71,8 +110,8 @@ function startStep(lang, lvl) {
     if(lvl === 5) renderL5(lang);
     else {
         const key = "L"+lvl;
-        if(!quizDB[lang][key] || quizDB[lang][key].length === 0) return alert("Livello vuoto");
-        session = { lang, lvl, q: [...quizDB[lang][key]].sort(()=>0.5-Math.random()), idx: 0 };
+        if(!quizDB[lang][key] || quizDB[lang][key].length === 0) return alert("Livello in arrivo!");
+        session = { lang, lvl, q: [...quizDB[lang][key]], idx: 0 };
         renderQ();
     }
 }
@@ -80,8 +119,8 @@ function startStep(lang, lvl) {
 function renderQ() {
     const data = session.q[session.idx];
     document.getElementById('content-area').innerHTML = `
-        <div style="margin-bottom:15px; font-weight:bold; opacity:0.6">LIVELLO ${session.lvl}</div>
-        <h2 style="margin-bottom:25px; font-size:20px">${data.q}</h2>
+        <div style="margin-bottom:10px; font-weight:bold; opacity:0.5">LIVELLO ${session.lvl}</div>
+        <h2 style="margin-bottom:20px; font-size:18px">${data.q}</h2>
         <div id="opts">${data.options.map((o,i)=>`<button class="btn-apple" onclick="check(${i===data.correct})">${o}</button>`).join('')}</div>
         <div id="fb"></div>`;
 }
@@ -90,13 +129,16 @@ function check(isOk) {
     const data = session.q[session.idx];
     if(state.mode === 'user') {
         if(!state.history[session.lang]) state.history[session.lang] = [];
-        state.history[session.lang].push({ q: data.q, ok: isOk });
-        localStorage.setItem('devHistory', JSON.stringify(state.history));
+        // Evita duplicati nello storico per non intasare il profilo
+        if(!state.history[session.lang].some(h => h.q === data.q)) {
+            state.history[session.lang].push({ q: data.q, ok: isOk, exp: data.exp, code: data.code });
+            localStorage.setItem('devHistory', JSON.stringify(state.history));
+        }
     }
     document.getElementById('opts').style.pointerEvents = "none";
     document.getElementById('fb').innerHTML = `<div class="feedback-box ${isOk?'correct':'wrong'}">
-        <strong>${isOk?'Ottimo!':'Riprova'}</strong><p style="font-size:14px; margin:10px 0">${data.exp}</p><pre>${data.code}</pre>
-        <button class="btn-apple btn-primary" onclick="next()">Continua</button>
+        <strong>${isOk?'Eccellente!':'Riguarda bene'}</strong><p>${data.exp}</p><pre>${data.code}</pre>
+        <button class="btn-apple btn-primary" style="margin-top:10px" onclick="next()">Continua</button>
     </div>`;
 }
 
@@ -111,31 +153,38 @@ function next() {
 
 function renderL5(lang) {
     const c = challenges5[lang];
-    const history = state.history[lang] || [];
-    let historyHtml = history.map(h => `
-        <div class="history-item">
-            <div class="dot ${h.ok ? 'dot-green' : 'dot-red'}"></div>
-            <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${h.q}</span>
-        </div>`).join('');
-
     document.getElementById('content-area').innerHTML = `
-        <h3 style="margin-bottom:10px">Riepilogo e Sfida</h3>
-        <div style="max-height:150px; overflow-y:auto; margin-bottom:20px; border:1px solid var(--border); border-radius:12px; padding:10px">
-            ${historyHtml || '<small>Nessun dato registrato</small>'}
-        </div>
-        <p style="font-size:14px; color:var(--accent); font-weight:600">${c.task}</p>
-        <textarea id="ed" class="code-editor" spellcheck="false" placeholder="Digita il codice..."></textarea>
+        <h3>Livello Finale</h3>
+        <p style="font-size:14px; margin-bottom:15px">${c.task}</p>
+        <div id="inline-error" class="error-inline">Sintassi o logica errata. Riprova!</div>
+        <textarea id="ed" class="code-editor" spellcheck="false" oninput="hideError()"></textarea>
         <div id="con" class="console-terminal" style="display:none"></div>
-        <button class="btn-apple btn-primary" style="margin-top:15px" onclick="runL5('${lang}')">Verifica Codice</button>`;
+        <button id="verify-btn" class="btn-apple btn-primary" style="margin-top:15px" onclick="runL5('${lang}')">Verifica Codice</button>`;
 }
 
+function hideError() { document.getElementById('inline-error').style.display = "none"; }
+
 function runL5(l) {
-    const v = document.getElementById('ed').value.trim(); const c = challenges5[l];
+    const v = document.getElementById('ed').value.trim();
+    const c = challenges5[l];
+    const err = document.getElementById('inline-error');
     const con = document.getElementById('con');
+
     if(v.includes(c.logic)) {
-        con.style.display="block"; con.innerHTML = `> Analisi logica superata...\n> Output:\n${c.output}`;
-        setTimeout(()=>showHome(), 3000);
-    } else { alert("Logica errata nel codice. Riprova!"); }
+        err.style.display = "none";
+        con.style.display = "block";
+        con.innerHTML = `> Test superati.\n> Output:\n${c.output}`;
+        document.getElementById('verify-btn').disabled = true;
+        setTimeout(() => {
+            state.progress[l] = 5;
+            localStorage.setItem('devProgress', JSON.stringify(state.progress));
+            showHome();
+        }, 2500);
+    } else {
+        err.style.display = "block";
+        // Vibrazione feedback se supportata (stile Apple)
+        if(window.navigator.vibrate) window.navigator.vibrate(50);
+    }
 }
 
 function toggleTheme() {
