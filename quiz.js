@@ -1,20 +1,86 @@
-let questions = [];
+let questions = [
+    {
+        "question": "In Python, come si stampa un messaggio sulla console?",
+        "options": ["console.log()", "System.out.println()", "print()", "echo()"],
+        "correct": 2,
+        "explanation": "In Python si usa la funzione integrata print() per mostrare output."
+    },
+    {
+        "question": "In Python, come si dichiara una variabile?",
+        "options": ["var x = 10;", "let x = 10;", "x = 10;", "int x = 10;"],
+        "correct": 2,
+        "explanation": "Python è dinamicamente tipizzato: basta assegnare un valore senza dichiarare il tipo."
+    },
+    {
+        "question": "In Python, quale parola chiave definisce una funzione?",
+        "options": ["function", "def", "fun", "define"],
+        "correct": 1,
+        "explanation": "La parola chiave 'def' viene usata per definire una funzione in Python."
+    },
+    {
+        "question": "In JavaScript, come si dichiara una costante?",
+        "options": ["var", "let", "const", "final"],
+        "correct": 2,
+        "explanation": "const dichiara una variabile che non può essere riassegnata."
+    },
+    {
+        "question": "In JavaScript, qual è l'operatore di uguaglianza stretta (controlla anche il tipo)?",
+        "options": ["==", "===", "=", "!=="],
+        "correct": 1,
+        "explanation": "=== confronta valore e tipo senza conversioni automatiche."
+    },
+    {
+        "question": "In HTML, quale tag crea una tabella?",
+        "options": ["<tab>", "<grid>", "<table>", "<tbl>"],
+        "correct": 2,
+        "explanation": "Il tag <table> definisce l'inizio di una tabella HTML."
+    },
+    {
+        "question": "In HTML, quale tag crea una riga in una tabella?",
+        "options": ["<td>", "<th>", "<tr>", "<row>"],
+        "correct": 2,
+        "explanation": "<tr> significa 'table row' e definisce una riga."
+    },
+    {
+        "question": "In HTML, quale tag crea una cella normale in una tabella?",
+        "options": ["<tr>", "<th>", "<td>", "<cell>"],
+        "correct": 2,
+        "explanation": "<td> significa 'table data' e crea una cella standard."
+    },
+    {
+        "question": "In Java, come si implementa l'ereditarietà tra classi?",
+        "options": ["implements", "inherits", "extends", ":"],
+        "correct": 2,
+        "explanation": "Una classe figlia usa la parola chiave 'extends' per ereditare da una classe padre."
+    },
+    {
+        "question": "In Git, quale comando inizializza un nuovo repository?",
+        "options": ["git start", "git create", "git init", "git new"],
+        "correct": 2,
+        "explanation": "git init crea una nuova cartella .git e inizializza il repository."
+    },
+    {
+        "question": "In MySQL, quale comando seleziona tutti i dati da una tabella chiamata 'studenti'?",
+        "options": ["GET * FROM studenti", "SELECT * FROM studenti", "FETCH * FROM studenti", "QUERY studenti"],
+        "correct": 1,
+        "explanation": "SELECT è il comando SQL standard per interrogare i dati."
+    },
+    {
+        "question": "In JavaScript, come si aggiunge un evento click a un bottone con id 'btn'?",
+        "options": ["btn.onclick = function()", "btn.addEvent('click')", "btn.listen('click')", "btn.on('click')"],
+        "correct": 0,
+        "explanation": "La proprietà onclick è il modo base per assegnare una funzione a un evento click."
+    }
+];
+
 let currentQuestion = 0;
 let correctCount = 0;
 let wrong = [];
 let skipped = [];
 
-fetch('questions.json')
-    .then(response => response.json())
-    .then(data => {
-        questions = data;
-        document.getElementById('total').textContent = questions.length;
-        loadQuestion();
-    })
-    .catch(err => {
-        document.getElementById('question').textContent = 'Errore nel caricamento delle domande. Controlla il file questions.json.';
-        console.error(err);
-    });
+// Imposta il totale e avvia il quiz
+document.getElementById('total').textContent = questions.length;
+loadQuestion();
 
 function loadQuestion() {
     if (currentQuestion >= questions.length) {
