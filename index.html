@@ -3,8 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Programmazione</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Quiz di Programmazione</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+
+        h1, h2, h3 {
+            text-align: center;
+            color: #333;
+        }
+
+        #progress {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+
+        #question {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        #options label {
+            display: block;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+
+        #options label:hover {
+            background: #eef;
+        }
+
+        #feedback {
+            margin: 30px 0;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            text-align: center;
+        }
+
+        #buttons {
+            text-align: center;
+        }
+
+        button {
+            padding: 12px 25px;
+            margin: 10px;
+            font-size: 1.1em;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #wrong p, #skipped p {
+            background: #fff3cd;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 5px solid #ffc107;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            button {
+                width: 100%;
+                margin: 10px 0;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -32,7 +127,206 @@
             <button onclick="location.reload()">Riprova il Quiz</button>
         </div>
     </div>
-    
-    <script src="quiz.js"></script>
+
+    <script>
+        const questions = [
+            {
+                "question": "In Python, come si stampa un messaggio sulla console?",
+                "options": ["console.log()", "System.out.println()", "print()", "echo()"],
+                "correct": 2,
+                "explanation": "In Python si usa la funzione integrata print() per mostrare output."
+            },
+            {
+                "question": "In Python, come si dichiara una variabile?",
+                "options": ["var x = 10;", "let x = 10;", "x = 10;", "int x = 10;"],
+                "correct": 2,
+                "explanation": "Python è dinamicamente tipizzato: basta assegnare un valore senza dichiarare il tipo."
+            },
+            {
+                "question": "In Python, quale parola chiave definisce una funzione?",
+                "options": ["function", "def", "fun", "define"],
+                "correct": 1,
+                "explanation": "La parola chiave 'def' viene usata per definire una funzione in Python."
+            },
+            {
+                "question": "In JavaScript, come si dichiara una costante?",
+                "options": ["var", "let", "const", "final"],
+                "correct": 2,
+                "explanation": "const dichiara una variabile che non può essere riassegnata."
+            },
+            {
+                "question": "In JavaScript, qual è l'operatore di uguaglianza stretta (controlla anche il tipo)?",
+                "options": ["==", "===", "=", "!=="],
+                "correct": 1,
+                "explanation": "=== confronta valore e tipo senza conversioni automatiche."
+            },
+            {
+                "question": "In HTML, quale tag crea una tabella?",
+                "options": ["<tab>", "<grid>", "<table>", "<tbl>"],
+                "correct": 2,
+                "explanation": "Il tag <table> definisce l'inizio di una tabella HTML."
+            },
+            {
+                "question": "In HTML, quale tag crea una riga in una tabella?",
+                "options": ["<td>", "<th>", "<tr>", "<row>"],
+                "correct": 2,
+                "explanation": "<tr> significa 'table row' e definisce una riga."
+            },
+            {
+                "question": "In HTML, quale tag crea una cella normale in una tabella?",
+                "options": ["<tr>", "<th>", "<td>", "<cell>"],
+                "correct": 2,
+                "explanation": "<td> significa 'table data' e crea una cella standard."
+            },
+            {
+                "question": "In Java, come si implementa l'ereditarietà tra classi?",
+                "options": ["implements", "inherits", "extends", ":"],
+                "correct": 2,
+                "explanation": "Una classe figlia usa la parola chiave 'extends' per ereditare da una classe padre."
+            },
+            {
+                "question": "In Git, quale comando inizializza un nuovo repository?",
+                "options": ["git start", "git create", "git init", "git new"],
+                "correct": 2,
+                "explanation": "git init crea una nuova cartella .git e inizializza il repository."
+            },
+            {
+                "question": "In MySQL, quale comando seleziona tutti i dati da una tabella chiamata 'studenti'?",
+                "options": ["GET * FROM studenti", "SELECT * FROM studenti", "FETCH * FROM studenti", "QUERY studenti"],
+                "correct": 1,
+                "explanation": "SELECT è il comando SQL standard per interrogare i dati."
+            },
+            {
+                "question": "In JavaScript, come si aggiunge un evento click a un bottone con id 'btn'?",
+                "options": ["btn.onclick = function()", "btn.addEvent('click')", "btn.listen('click')", "btn.on('click')"],
+                "correct": 0,
+                "explanation": "La proprietà onclick è il modo base per assegnare una funzione a un evento click."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let correctCount = 0;
+        let wrong = [];
+        let skipped = [];
+
+        document.getElementById('total').textContent = questions.length;
+        loadQuestion();
+
+        function loadQuestion() {
+            if (currentQuestion >= questions.length) {
+                showSummary();
+                return;
+            }
+
+            const q = questions[currentQuestion];
+            document.getElementById('current').textContent = currentQuestion + 1;
+            document.getElementById('question').textContent = q.question;
+
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            q.options.forEach((opt, i) => {
+                const label = document.createElement('label');
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.name = 'option';
+                input.value = i;
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(' ' + opt));
+                optionsDiv.appendChild(label);
+                optionsDiv.appendChild(document.createElement('br'));
+            });
+
+            document.getElementById('feedback').innerHTML = '';
+            document.getElementById('submit').style.display = 'inline-block';
+            document.getElementById('skip').style.display = 'inline-block';
+            document.getElementById('next').style.display = 'none';
+        }
+
+        document.getElementById('submit').onclick = () => {
+            const selected = document.querySelector('input[name="option"]:checked');
+            if (!selected) {
+                alert('Seleziona una risposta prima di continuare!');
+                return;
+            }
+
+            const answer = parseInt(selected.value);
+            const q = questions[currentQuestion];
+
+            document.getElementById('submit').style.display = 'none';
+            document.getElementById('skip').style.display = 'none';
+            document.getElementById('next').style.display = 'inline-block';
+
+            if (answer === q.correct) {
+                correctCount++;
+                document.getElementById('feedback').innerHTML = `
+                    <p style="color:green; font-weight:bold;">Corretto! ✅</p>
+                    <p><strong>Spiegazione:</strong> ${q.explanation}</p>
+                `;
+            } else {
+                wrong.push({
+                    question: q.question,
+                    chosen: q.options[answer],
+                    correct: q.options[q.correct],
+                    explanation: q.explanation
+                });
+                document.getElementById('feedback').innerHTML = `
+                    <p style="color:red; font-weight:bold;">Sbagliato ❌</p>
+                    <p><strong>Risposta corretta:</strong> ${q.options[q.correct]}</p>
+                    <p><strong>Spiegazione:</strong> ${q.explanation}</p>
+                `;
+            }
+        };
+
+        document.getElementById('skip').onclick = () => {
+            const q = questions[currentQuestion];
+            skipped.push({
+                question: q.question,
+                explanation: q.explanation
+            });
+
+            document.getElementById('feedback').innerHTML = '<p style="color:orange;">Hai saltato questa domanda. La troverai nel riassunto finale con la spiegazione per studiarla.</p>';
+            document.getElementById('submit').style.display = 'none';
+            document.getElementById('skip').style.display = 'none';
+            document.getElementById('next').style.display = 'inline-block';
+        };
+
+        document.getElementById('next').onclick = () => {
+            currentQuestion++;
+            loadQuestion();
+        };
+
+        function showSummary() {
+            document.getElementById('quiz').style.display = 'none';
+            document.getElementById('summary').style.display = 'block';
+
+            const attempted = questions.length - skipped.length;
+            document.getElementById('score').textContent = 
+                `Hai risposto correttamente a ${correctCount} domande su ${attempted} tentate (saltate: ${skipped.length}).`;
+
+            const wrongDiv = document.getElementById('wrong');
+            if (wrong.length === 0) wrongDiv.innerHTML = '<p>Bravo! Nessuna sbagliata 🎉</p>';
+            wrong.forEach(w => {
+                const p = document.createElement('p');
+                p.innerHTML = `
+                    <strong>Domanda:</strong> ${w.question}<br>
+                    <strong>Hai risposto:</strong> ${w.chosen}<br>
+                    <strong>Risposta corretta:</strong> ${w.correct}<br>
+                    <strong>Spiegazione:</strong> ${w.explanation}
+                `;
+                wrongDiv.appendChild(p);
+            });
+
+            const skippedDiv = document.getElementById('skipped');
+            if (skipped.length === 0) skippedDiv.innerHTML = '<p>Nessuna saltata!</p>';
+            skipped.forEach(s => {
+                const p = document.createElement('p');
+                p.innerHTML = `
+                    <strong>Domanda:</strong> ${s.question}<br>
+                    <strong>Spiegazione (per studiare):</strong> ${s.explanation}
+                `;
+                skippedDiv.appendChild(p);
+            });
+        }
+    </script>
 </body>
 </html>
