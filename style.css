@@ -7,84 +7,64 @@
 }
 
 body { 
-    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+    margin: 0; font-family: -apple-system, system-ui, sans-serif; 
     background: var(--bg); color: var(--text); height: 100vh; 
     display: flex; flex-direction: column; align-items: center; overflow: hidden; 
 }
 
 .glass-bg { 
     position: fixed; inset: 0; z-index: -1; 
-    background: radial-gradient(circle at 20% 30%, rgba(0, 113, 227, 0.18), transparent 45%), 
-                radial-gradient(circle at 80% 70%, rgba(162, 0, 255, 0.15), transparent 45%); 
+    background: radial-gradient(circle at 20% 30%, rgba(0, 113, 227, 0.15), transparent 40%), 
+                radial-gradient(circle at 80% 70%, rgba(162, 0, 255, 0.12), transparent 40%); 
 }
 
 .header-main { 
-    width: 100%; max-width: 500px; padding: 50px 25px 20px; 
+    width: 100%; max-width: 500px; padding: 50px 20px 20px; 
     display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;
 }
 
 .nav-slot { flex: 1; }
-h1 { font-size: 20px; font-weight: 700; margin: 0; flex: 2; text-align: center; letter-spacing: -0.5px; }
+h1 { font-size: 20px; font-weight: 700; margin: 0; text-align: center; flex: 2; }
 
 .glass-card { 
-    background: var(--card-bg); backdrop-filter: blur(50px) saturate(190%); 
-    -webkit-backdrop-filter: blur(50px) saturate(190%); 
-    border: 1px solid var(--border); border-radius: 38px; padding: 30px; 
+    background: var(--card-bg); backdrop-filter: blur(40px) saturate(180%); 
+    -webkit-backdrop-filter: blur(40px) saturate(180%); 
+    border: 1px solid var(--border); border-radius: 35px; padding: 25px; 
     width: calc(100% - 40px); max-width: 440px; flex: 1; 
-    margin-bottom: 110px; overflow-y: auto; display: flex; flex-direction: column;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    margin-bottom: 100px; overflow-y: auto; display: flex; flex-direction: column;
 }
 
-.auth-container { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-align: center; }
+.auth-container { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-align: center; width: 100%; }
 
-.lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; }
+.lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; }
 .lang-item { 
-    background: rgba(120, 120, 128, 0.12); border-radius: 24px; 
-    padding: 25px 10px; text-align: center; cursor: pointer; transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(120, 120, 128, 0.1); border-radius: 20px; 
+    padding: 20px; text-align: center; cursor: pointer; transition: 0.2s;
 }
-.lang-item:active { transform: scale(0.92); background: rgba(120, 120, 128, 0.2); }
 
 .btn-apple { 
-    display: block; width: 100%; padding: 18px; margin-bottom: 12px; 
-    background: rgba(120, 120, 128, 0.1); border: none; border-radius: 18px; 
-    color: var(--text); font-size: 17px; font-weight: 600; cursor: pointer; transition: 0.2s;
+    display: block; width: 100%; padding: 16px; margin-bottom: 10px; 
+    background: rgba(120, 120, 128, 0.1); border: none; border-radius: 15px; 
+    color: var(--text); font-size: 16px; font-weight: 600; cursor: pointer;
 }
 .btn-primary { background: var(--accent); color: white; }
-.btn-primary:active { background: #005bb5; }
 
-.progress-card { 
-    background: var(--accent); color: white; border-radius: 22px; 
-    padding: 20px; margin-bottom: 25px; width: 100%; box-sizing: border-box;
-}
+.progress-card { background: var(--accent); color: white; border-radius: 20px; padding: 18px; margin-bottom: 20px; width: 100%; box-sizing: border-box; }
 
-.back-link { color: var(--accent); font-size: 17px; cursor: pointer; font-weight: 400; }
+.back-link { color: var(--accent); cursor: pointer; font-size: 17px; }
 
-.theme-footer { 
-    position: fixed; bottom: 35px; display: flex; flex-direction: column; 
-    align-items: center; transition: 0.6s ease; padding: 20px;
-}
-.theme-footer.invisible { opacity: 0; pointer-events: none; }
+/* Feedback Risposta */
+.feedback-box { margin-top: 20px; padding: 20px; border-radius: 20px; animation: fadeIn 0.3s; }
+.correct { background: rgba(52, 199, 89, 0.15); border: 1px solid #34c759; }
+.wrong { background: rgba(255, 59, 48, 0.15); border: 1px solid #ff3b30; }
+pre { background: #000; color: #fff; padding: 12px; border-radius: 10px; font-size: 12px; overflow-x: auto; margin-top: 10px; }
 
-.ios-switch { position: relative; width: 51px; height: 31px; }
+/* Livello 5 Editor */
+.code-editor { width: 100%; height: 100px; background: #1e1e1e; color: #34c759; border-radius: 12px; padding: 12px; font-family: monospace; border: none; margin: 15px 0; outline: none; }
+
+/* Switch Tema Minimale */
+.theme-footer { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; transition: 0.5s; opacity: 0.05; }
+.theme-footer:hover { opacity: 1; }
+.ios-switch { scale: 0.6; position: relative; width: 51px; height: 31px; display: block; }
 .ios-switch input { opacity: 0; width: 0; height: 0; }
-.ios-slider { position: absolute; inset: 0; background: rgba(120,120,128,0.3); border-radius: 31px; cursor: pointer; transition: .3s; }
-.ios-slider:before { position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: .3s; }
-input:checked + .ios-slider { background: #34c759; }
-input:checked + .ios-slider:before { transform: translateX(20px); }
-.theme-label { font-size: 11px; opacity: 0.5; margin-top: 8px; font-weight: 600; letter-spacing: 0.5px; }
-
-/* MODAL APPLE STYLE */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.2); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-.apple-alert { 
-    background: var(--card-bg); backdrop-filter: blur(40px); width: 270px; 
-    border-radius: 14px; text-align: center; padding-top: 20px; 
-    border: 1px solid var(--border); box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-}
-.apple-alert h3 { margin: 0 15px 5px; font-size: 17px; }
-.apple-alert p { margin: 0 15px 18px; font-size: 13px; line-height: 1.4; }
-.modal-actions { display: flex; border-top: 0.5px solid var(--border); }
-.modal-btn { 
-    flex: 1; padding: 12px; background: none; border: none; 
-    color: var(--accent); font-size: 17px; font-weight: 600; cursor: pointer;
-}
-.hidden { display: none !important; }
+.ios-slider { position: absolute; inset: 0;
