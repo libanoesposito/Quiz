@@ -1,25 +1,38 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quiz Analista Programmatore</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Programmazione</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<div class="app">
-  <h1>Quiz Analista</h1>
-
-  <div id="question"></div>
-  <div id="answers"></div>
-  <div id="feedback"></div>
-
-  <button id="skip">Non studiato</button>
-  <button id="next">Avanti</button>
-  <button id="download" style="display:none;">Scarica Non Studiati</button>
-</div>
-
-<script src="quiz.js"></script>
+    <div class="container">
+        <h1>Quiz di Programmazione</h1>
+        
+        <div id="quiz">
+            <div id="progress">Domanda <span id="current">1</span> di <span id="total">?</span></div>
+            <div id="question"></div>
+            <div id="options"></div>
+            <div id="feedback"></div>
+            <div id="buttons">
+                <button id="submit">Rispondi</button>
+                <button id="skip">Non l'ho studiato ancora</button>
+                <button id="next" style="display:none;">Prossima domanda</button>
+            </div>
+        </div>
+        
+        <div id="summary" style="display:none;">
+            <h2>Risultati del Quiz</h2>
+            <p id="score"></p>
+            <h3>Domande sbagliate</h3>
+            <div id="wrong"></div>
+            <h3>Domande non studiate (per ripassare)</h3>
+            <div id="skipped"></div>
+            <button onclick="location.reload()">Riprova il Quiz</button>
+        </div>
+    </div>
+    
+    <script src="quiz.js"></script>
 </body>
 </html>
