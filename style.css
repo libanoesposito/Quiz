@@ -1,20 +1,25 @@
-/* ... (Mantieni tutto il CSS precedente e aggiungi questi sotto) ... */
-
-.badge-cat { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
-.question-text { font-size: 24px; font-weight: 700; margin: 15px 0 25px; line-height: 1.2; }
-
-.code-block {
-    background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 12px;
-    font-family: 'SF Mono', monospace; font-size: 13px; margin-top: 15px;
-    overflow-x: auto; white-space: pre;
+:root {
+    --bg: #f5f5f7; --text: #1d1d1f; --accent: #0071e3;
+    --card-bg: rgba(255, 255, 255, 0.45); --border: rgba(255, 255, 255, 0.7);
 }
-
-.explanation-card { margin-top: 20px; padding: 15px; background: rgba(120,120,128,0.1); border-radius: 15px; line-height: 1.5; }
-
-.icon-btn { background: none; border: none; font-size: 24px; cursor: pointer; margin-right: 15px; }
-
-.review-item { border-bottom: 1px solid var(--border); padding: 15px 0; }
-.review-item:last-child { border: none; }
-
-.success { color: #34c759; }
-.error { color: #ff3b30; }
+[data-theme="dark"] {
+    --bg: #000; --text: #fff; --card-bg: rgba(28, 28, 30, 0.6); --border: rgba(255, 255, 255, 0.1);
+}
+body { margin: 0; font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; align-items: center; overflow: hidden; }
+.glass-bg { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at 20% 30%, rgba(0, 113, 227, 0.12), transparent 40%), radial-gradient(circle at 80% 70%, rgba(162, 0, 255, 0.12), transparent 40%); }
+.header-main { width: 100%; max-width: 500px; padding: 40px 20px 20px; display: flex; justify-content: space-between; align-items: center; }
+.glass-card { background: var(--card-bg); backdrop-filter: blur(40px) saturate(180%); border: 1px solid var(--border); border-radius: 30px; padding: 30px; width: calc(100% - 40px); max-width: 500px; flex: 1; margin-bottom: 40px; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.06); }
+.lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.lang-item { background: rgba(120, 120, 128, 0.08); border-radius: 20px; padding: 20px; text-align: center; cursor: pointer; transition: 0.2s; }
+.btn-apple { display: block; width: 100%; padding: 18px; margin-bottom: 12px; background: rgba(120, 120, 128, 0.08); border: none; border-radius: 16px; color: var(--text); font-size: 17px; font-weight: 600; text-align: left; cursor: pointer; }
+.btn-primary { background: var(--accent); color: white; text-align: center; }
+.btn-danger { color: #ff3b30; background: none; border: none; width: 100%; margin-top: 10px; cursor: pointer; font-weight: 600; }
+.code-block { background: #1e1e1e; color: #ce9178; padding: 15px; border-radius: 12px; font-family: monospace; font-size: 13px; margin: 15px 0; white-space: pre-wrap; }
+.ios-switch { position: relative; width: 51px; height: 31px; }
+.ios-switch input { opacity: 0; width: 0; }
+.ios-slider { position: absolute; inset: 0; background: rgba(120,120,128,0.2); border-radius: 31px; cursor: pointer; }
+.ios-slider:before { position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: .3s; }
+input:checked + .ios-slider { background: #34c759; }
+input:checked + .ios-slider:before { transform: translateX(20px); }
+.hidden { display: none; }
+.pin-input { width: 100%; padding: 15px; font-size: 24px; text-align: center; border-radius: 12px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text); margin-bottom: 20px; letter-spacing: 10px; }
