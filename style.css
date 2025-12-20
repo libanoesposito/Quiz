@@ -1,40 +1,81 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>DevMaster Pro</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="liquid-bg"></div>
+:root {
+    --bg: #f5f5f7;
+    --text: #1d1d1f;
+    --glass: rgba(255, 255, 255, 0.45);
+    --glass-border: rgba(255, 255, 255, 0.6);
+    --accent: #0071e3;
+}
+[data-theme="dark"] {
+    --bg: #000;
+    --text: #fff;
+    --glass: rgba(28, 28, 30, 0.5);
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
 
-    <div id="auth-screen" class="app-container">
-        <div class="glass-card central">
-            <h1 class="title-large">Benvenuto</h1>
-            <p class="subtitle">Scegli come iniziare per gestire i tuoi progressi</p>
-            <div class="button-group-v">
-                <button class="btn-apple-primary" onclick="startApp('user')">Accedi come Utente (Salva)</button>
-                <button class="btn-apple-secondary" onclick="startApp('guest')">Continua come Guest</button>
-            </div>
-        </div>
-    </div>
+body {
+    margin: 0; font-family: -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    height: 100vh; overflow: hidden;
+}
 
-    <div id="main-app" class="app-container hidden">
-        <header class="header-apple">
-            <h1 id="view-title" class="title-large">Percorsi</h1>
-            <label class="ios-switch">
-                <input type="checkbox" id="theme-slider">
-                <span class="ios-slider"></span>
-            </label>
-        </header>
+.liquid-bg {
+    position: fixed; inset: 0; z-index: -1;
+    background: radial-gradient(circle at 15% 15%, rgba(0, 113, 227, 0.12), transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(162, 0, 255, 0.12), transparent 40%);
+}
 
-        <div id="dynamic-content" class="glass-card main-stage">
-            </div>
-        
-        <div id="save-indicator" class="save-tag hidden">Progresso Salvato ✓</div>
-    </div>
+.app-container {
+    padding: 20px 24px; max-width: 500px; margin: 0 auto;
+    height: 100vh; display: flex; flex-direction: column;
+}
 
-    <script src="script.js"></script>
-</body>
-</html>
+.header-apple { margin: 30px 0 20px; display: flex; justify-content: space-between; align-items: center; }
+.title-large { font-size: 32px; font-weight: 700; letter-spacing: -1px; }
+
+.glass-card {
+    background: var(--glass);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    border-radius: 30px; padding: 25px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+    flex: 1; display: flex; flex-direction: column; overflow-y: auto;
+}
+
+/* Griglia Linguaggi */
+.lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.lang-card {
+    background: rgba(120, 120, 128, 0.1);
+    border-radius: 20px; padding: 20px; text-align: center;
+    cursor: pointer; transition: 0.2s;
+}
+.lang-card:active { transform: scale(0.95); }
+.lang-card img { width: 40px; height: 40px; margin-bottom: 10px; }
+
+/* Quiz & Selezioni */
+.option-btn {
+    background: rgba(120, 120, 128, 0.08); border: none;
+    padding: 18px; border-radius: 16px; color: var(--text);
+    font-size: 16px; font-weight: 500; text-align: left;
+    margin-bottom: 10px; cursor: pointer; width: 100%;
+}
+.option-btn:hover { background: var(--accent); color: white; }
+
+.ios-switch { position: relative; width: 51px; height: 31px; flex-shrink: 0; }
+.ios-switch input { opacity: 0; width: 0; height: 0; }
+.ios-slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background-color: rgba(120,120,128,0.2); border-radius: 31px; transition: .3s;
+}
+.ios-slider:before {
+    position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px;
+    background-color: white; border-radius: 50%; transition: .3s;
+}
+input:checked + .ios-slider { background-color: #34c759; }
+input:checked + .ios-slider:before { transform: translateX(20px); }
+
+.btn-apple-primary { background: var(--accent); color: white; border: none; padding: 18px; border-radius: 16px; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
+.btn-apple-secondary { background: rgba(120,120,128,0.15); color: var(--text); border: none; padding: 18px; border-radius: 16px; font-weight: 600; cursor: pointer; }
+
+.save-tag { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #34c759; color: white; padding: 8px 20px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.hidden { display: none !important; }
