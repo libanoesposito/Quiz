@@ -19,6 +19,11 @@ function saveAll(){
     localStorage.setItem(hKey(), JSON.stringify(state.history));
 }
 
+/* ====== FUNZIONE PER 15 DOMANDE RANDOM ====== */
+function pickRandom(arr, n) {
+    return [...arr].sort(() => Math.random() - 0.5).slice(0, n);
+}
+
 /* ====== TEMA ====== */
 const themeIconLuna = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
 const themeIconSole = '<circle cx="12" cy="12" r="5"></circle>';
@@ -155,16 +160,29 @@ function showLevels(lang){
         h+=`<button class="btn-apple" onclick="startStep('${lang}',${i})">Livello ${i}</button>`;
     document.getElementById('content-area').innerHTML=h;
 }
+
 function startStep(l,v){
-    session={lang:l,lvl:v,q:[...quizDB[l]['L'+v]],idx:0};
+    const key = 'L' + v;
+    const allQuestions = quizDB[l][key] || [];
+    if(allQuestions.length === 0) return alert("Livello non disponibile");
+    
+    // prende 15 domande random dal livello
+    session = {
+        lang: l,
+        lvl: v,
+        q: pickRandom(allQuestions, 15),
+        idx: 0
+    };
     renderQ();
 }
+
 function renderQ(){
     const d=session.q[session.idx];
     document.getElementById('content-area').innerHTML=
     `<h3>${d.q}</h3>`+
     d.options.map((o,i)=>`<button class="btn-apple" onclick="check(${i===d.correct})">${o}</button>`).join('');
 }
+
 function check(ok){
     if(state.mode==='user'){
         state.history[session.lang]=state.history[session.lang]||[];
@@ -173,6 +191,7 @@ function check(ok){
     }
     next();
 }
+
 function next(){
     session.idx++;
     if(session.idx<session.q.length) renderQ();
