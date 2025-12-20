@@ -1,0 +1,178 @@
+[
+  {
+    "argomento": "Python - base",
+    "domanda": "Cos'è una variabile in Python?",
+    "livello": "base",
+    "risposte": [
+      { "testo": "Uno spazio per memorizzare un valore", "corretta": true },
+      { "testo": "Un ciclo", "corretta": false },
+      { "testo": "Una funzione", "corretta": false }
+    ],
+    "spiegazione": "Una variabile serve a salvare dati da usare nel programma."
+  },
+  {
+    "argomento": "Python - condizioni",
+    "domanda": "A cosa serve if?",
+    "livello": "base",
+    "risposte": [
+      { "testo": "Eseguire codice se una condizione è vera", "corretta": true },
+      { "testo": "Ripetere codice", "corretta": false },
+      { "testo": "Gestire database", "corretta": false }
+    ],
+    "spiegazione": "if controlla una condizione e decide se eseguire il codice."
+  },
+  {
+    "argomento": "Python - cicli",
+    "domanda": "Il ciclo for viene usato quando:",
+    "livello": "base",
+    "risposte": [
+      { "testo": "Conosci il numero di iterazioni", "corretta": true },
+      { "testo": "Non conosci il numero di iterazioni", "corretta": false },
+      { "testo": "Crei classi", "corretta": false }
+    ],
+    "spiegazione": "for è ideale quando lavori su liste o range."
+  },
+  {
+    "argomento": "Python - funzioni",
+    "domanda": "Perché usare funzioni?",
+    "livello": "medio",
+    "risposte": [
+      { "testo": "Riutilizzare codice", "corretta": true },
+      { "testo": "Velocizzare il PC", "corretta": false },
+      { "testo": "Creare tabelle", "corretta": false }
+    ],
+    "spiegazione": "Le funzioni rendono il codice ordinato e riutilizzabile."
+  },
+  {
+    "argomento": "Python - OOP",
+    "domanda": "Cos'è un oggetto?",
+    "livello": "medio",
+    "risposte": [
+      { "testo": "Un'istanza di una classe", "corretta": true },
+      { "testo": "Una variabile globale", "corretta": false },
+      { "testo": "Un ciclo", "corretta": false }
+    ],
+    "spiegazione": "L'oggetto è creato a partire da una classe."
+  },
+  {
+    "argomento": "JavaScript - base",
+    "domanda": "A cosa serve JavaScript nel web?",
+    "livello": "base",
+    "risposte": [
+      { "testo": "Rendere le pagine interattive", "corretta": true },
+      { "testo": "Creare database", "corretta": false },
+      { "testo": "Stilizzare il testo", "corretta": false }
+    ],
+    "spiegazione": "JavaScript gestisce logica e interazioni lato browser."
+  },
+  {
+    "argomento": "JavaScript - condizioni",
+    "domanda": "Come funziona if in JavaScript?",
+    "livello": "base",
+    "risposte": [
+      { "testo": "Esegue codice se la condizione è vera", "corretta": true },
+      { "testo": "Ripete codice", "corretta": false },
+      { "testo": "Carica file", "corretta": false }
+    ],
+    "spiegazione": "Il funzionamento è simile a Python."
+  },
+  {
+    "argomento": "JavaScript - DOM",
+    "domanda": "Cos'è il DOM?",
+    "livello": "medio",
+    "risposte": [
+      { "testo": "La struttura della pagina HTML", "corretta": true },
+      { "testo": "Un database", "corretta": false },
+      { "testo": "Un server", "corretta": false }
+    ],
+    "spiegazione": "Il DOM permette a JS di modificare l'HTML."
+  },
+  {
+    "argomento": "MySQL - base",
+    "domanda": "Cos'è un database?",
+    "livello": "base",
+    "risposte": [
+      { "testo": "Una raccolta organizzata di dati", "corretta": true },
+      { "testo": "Un linguaggio", "corretta": false },
+      { "testo": "Un server web", "corretta": false }
+    ],
+    "spiegazione": "Serve per salvare e gestire informazioni."
+  },
+  {
+    "argomento": "MySQL - tabelle",
+    "domanda": "Cos'è una chiave primaria?",
+    "livello": "medio",
+    "risposte": [
+      { "testo": "Identifica in modo unico una riga", "corretta": true },
+      { "testo": "Collega due server", "corretta": false },
+      { "testo": "Ordina le colonne", "corretta": false }
+    ],
+    "spiegazione": "La primary key evita duplicati."
+  },
+  {
+    "argomento": "MySQL - CRUD",
+    "domanda": "A cosa serve INSERT?",
+    "livello": "base",
+    "risposte": [
+      { "testo": "Inserire dati", "corretta": true },
+      { "testo": "Leggere dati", "corretta": false },
+      { "testo": "Cancellare tabelle", "corretta": false }
+    ],
+    "spiegazione": "INSERT aggiunge nuove righe."
+  },
+  {
+    "argomento": "Java - base",
+    "domanda": "Cos'è Java?",
+    "livello": "base",
+    "risposte": [
+      { "testo": "Un linguaggio orientato agli oggetti", "corretta": true },
+      { "testo": "Un database", "corretta": false },
+      { "testo": "Un browser", "corretta": false }
+    ],
+    "spiegazione": "Java è fortemente OOP."
+  },
+  {
+    "argomento": "Java - OOP",
+    "domanda": "A cosa serve l'ereditarietà?",
+    "livello": "medio",
+    "risposte": [
+      { "testo": "Riutilizzare codice tra classi", "corretta": true },
+      { "testo": "Creare cicli", "corretta": false },
+      { "testo": "Gestire file", "corretta": false }
+    ],
+    "spiegazione": "Una classe può estendere un'altra."
+  },
+  {
+    "argomento": "Java - database",
+    "domanda": "JDBC serve per:",
+    "livello": "medio",
+    "risposte": [
+      { "testo": "Collegare Java a un database", "corretta": true },
+      { "testo": "Creare interfacce grafiche", "corretta": false },
+      { "testo": "Scrivere HTML", "corretta": false }
+    ],
+    "spiegazione": "JDBC permette query SQL da Java."
+  },
+  {
+    "argomento": "HTML - tabelle",
+    "domanda": "A cosa serve <table>?",
+    "livello": "base",
+    "risposte": [
+      { "testo": "Mostrare dati tabellari", "corretta": true },
+      { "testo": "Creare form", "corretta": false },
+      { "testo": "Gestire logica", "corretta": false }
+    ],
+    "spiegazione": "Le tabelle mostrano dati strutturati."
+  },
+  {
+    "argomento": "HTML - tabelle",
+    "domanda": "A cosa serve <th>?",
+    "livello": "base",
+    "risposte": [
+      { "testo": "Intestazione della tabella", "corretta": true },
+      { "testo": "Riga normale", "corretta": false },
+      { "testo": "Colonna invisibile", "corretta": false }
+    ],
+    "spiegazione": "th definisce le intestazioni."
+  }
+]
