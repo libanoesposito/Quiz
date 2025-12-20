@@ -1,25 +1,21 @@
 const quizDB = {
-    Python: [
-        { q: "Cosa stampa print(type([]))?", options: ["list", "tuple", "dict"], correct: 0, exp: "Le parentesi quadre definiscono una lista.", code: "print(type([]))" }
-    ],
-    JavaScript: [
-        { q: "Uguaglianza stretta?", options: ["===", "==", "="], correct: 0, exp: "=== controlla valore e tipo.", code: "5 === '5' // false" }
-    ],
-    Java: [
-        { q: "Tipo per numeri interi?", options: ["int", "float", "String"], correct: 0, exp: "int è il tipo standard per gli interi.", code: "int x = 10;" }
-    ],
-    MySQL: [
-        { q: "Comando per leggere dati?", options: ["SELECT", "GET", "READ"], correct: 0, exp: "SELECT recupera righe dal database.", code: "SELECT * FROM users;" }
-    ],
-    HTML: [
-        { q: "Tag per i link?", options: ["<a>", "<link>", "<href>"], correct: 0, exp: "Il tag 'a' definisce un hyperlink.", code: "<a href='...'>Link</a>" }
-    ]
+    Python: {
+        L1: [{ q: "Come stampi 'Ciao'?", options: ["print('Ciao')", "echo 'Ciao'", "log('Ciao')"], correct: 0, exp: "print() è la funzione di output standard.", code: "print('Ciao')" }],
+        L2: [{ q: "Definisci una lista", options: ["x = []", "x = {}", "x = ()"], correct: 0, exp: "Le parentesi quadre creano liste.", code: "my_list = [1, 2]" }],
+        L3: [{ q: "Cosa fa len()?", options: ["Lunghezza", "Somma", "Tipo"], correct: 0, exp: "len() restituisce il numero di elementi.", code: "len([1, 2]) # 2" }],
+        L4: [{ q: "Metodo per chiavi dict?", options: ["keys()", "get()", "items()"], correct: 0, exp: "keys() restituisce le chiavi del dizionario.", code: "d.keys()" }]
+    },
+    Java: {
+        L1: [{ q: "Tipo per interi?", options: ["int", "String", "bool"], correct: 0, exp: "int memorizza interi a 32 bit.", code: "int x = 5;" }],
+        L2: [], L3: [], L4: []
+    },
+    MySQL: {
+        L1: [{ q: "Comando per dati?", options: ["SELECT", "TAKE", "READ"], correct: 0, exp: "SELECT recupera record.", code: "SELECT * FROM tab;" }],
+        L2: [], L3: [], L4: []
+    }
 };
 
 const challenges5 = {
-    Python: { task: "Stampa 'Ciao'", target: "print('Ciao')", color: "#4B8BBE" },
-    JavaScript: { task: "Usa console.log('Hi')", target: "console.log('Hi')", color: "#F7DF1E" },
-    Java: { task: "Dichiara int x = 5;", target: "int x = 5;", color: "#f89820" },
-    MySQL: { task: "Seleziona tutto da users", target: "SELECT * FROM users", color: "#00758f" },
-    HTML: { task: "Crea un tag <a></a>", target: "<a></a>", color: "#E34C26" }
+    Python: { task: "Scrivi un ciclo for che stampi i numeri da 1 a 3", target: "for i in range(1, 4):\n    print(i)", logic: "range(1,4)", output: "1\n2\n3", color: "#4B8BBE" },
+    JavaScript: { task: "Scrivi un ciclo for che stampi da 1 a 3", target: "for(let i=1; i<=3; i++){\n  console.log(i)\n}", logic: "i<=3", output: "1\n2\n3", color: "#F7DF1E" }
 };
