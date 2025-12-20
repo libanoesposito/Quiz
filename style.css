@@ -1,27 +1,90 @@
-/* ... (Basi precedenti confermate) ... */
-
-.back-link { 
-    color: var(--accent); font-size: 17px; cursor: pointer; 
-    display: flex; align-items: center; min-width: 80px;
+:root {
+    --bg: #f5f5f7; --text: #1d1d1f; --accent: #0071e3;
+    --card-bg: rgba(255, 255, 255, 0.45); --border: rgba(255, 255, 255, 0.7);
+}
+[data-theme="dark"] {
+    --bg: #000; --text: #fff; --card-bg: rgba(28, 28, 30, 0.6); --border: rgba(255, 255, 255, 0.1);
 }
 
-.auth-container { 
-    display: flex; flex-direction: column; align-items: center; 
-    justify-content: center; height: 100%; gap: 10px;
+body { 
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+    background: var(--bg); color: var(--text); height: 100vh; 
+    display: flex; flex-direction: column; align-items: center; overflow: hidden; 
 }
+
+.glass-bg { 
+    position: fixed; inset: 0; z-index: -1; 
+    background: radial-gradient(circle at 20% 30%, rgba(0, 113, 227, 0.18), transparent 45%), 
+                radial-gradient(circle at 80% 70%, rgba(162, 0, 255, 0.15), transparent 45%); 
+}
+
+.header-main { 
+    width: 100%; max-width: 500px; padding: 50px 25px 20px; 
+    display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;
+}
+
+.nav-slot { flex: 1; }
+h1 { font-size: 20px; font-weight: 700; margin: 0; flex: 2; text-align: center; letter-spacing: -0.5px; }
+
+.glass-card { 
+    background: var(--card-bg); backdrop-filter: blur(50px) saturate(190%); 
+    -webkit-backdrop-filter: blur(50px) saturate(190%); 
+    border: 1px solid var(--border); border-radius: 38px; padding: 30px; 
+    width: calc(100% - 40px); max-width: 440px; flex: 1; 
+    margin-bottom: 110px; overflow-y: auto; display: flex; flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+.auth-container { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-align: center; }
+
+.lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; }
+.lang-item { 
+    background: rgba(120, 120, 128, 0.12); border-radius: 24px; 
+    padding: 25px 10px; text-align: center; cursor: pointer; transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.lang-item:active { transform: scale(0.92); background: rgba(120, 120, 128, 0.2); }
+
+.btn-apple { 
+    display: block; width: 100%; padding: 18px; margin-bottom: 12px; 
+    background: rgba(120, 120, 128, 0.1); border: none; border-radius: 18px; 
+    color: var(--text); font-size: 17px; font-weight: 600; cursor: pointer; transition: 0.2s;
+}
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:active { background: #005bb5; }
+
+.progress-card { 
+    background: var(--accent); color: white; border-radius: 22px; 
+    padding: 20px; margin-bottom: 25px; width: 100%; box-sizing: border-box;
+}
+
+.back-link { color: var(--accent); font-size: 17px; cursor: pointer; font-weight: 400; }
 
 .theme-footer { 
-    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-    display: flex; flex-direction: column; align-items: center; 
-    transition: opacity 0.5s; cursor: pointer; padding: 20px;
+    position: fixed; bottom: 35px; display: flex; flex-direction: column; 
+    align-items: center; transition: 0.6s ease; padding: 20px;
 }
-.theme-footer.invisible { opacity: 0.02; } /* Quasi invisibile ma cliccabile */
+.theme-footer.invisible { opacity: 0; pointer-events: none; }
 
-/* Fix per allineamento testo guest */
-.auth-container h2, .auth-container p { width: 100%; text-align: center; }
+.ios-switch { position: relative; width: 51px; height: 31px; }
+.ios-switch input { opacity: 0; width: 0; height: 0; }
+.ios-slider { position: absolute; inset: 0; background: rgba(120,120,128,0.3); border-radius: 31px; cursor: pointer; transition: .3s; }
+.ios-slider:before { position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: .3s; }
+input:checked + .ios-slider { background: #34c759; }
+input:checked + .ios-slider:before { transform: translateX(20px); }
+.theme-label { font-size: 11px; opacity: 0.5; margin-top: 8px; font-weight: 600; letter-spacing: 0.5px; }
 
-/* Stile Codice */
-pre { 
-    background: #1e1e1e; color: #d4d4d4; padding: 15px; 
-    border-radius: 12px; font-size: 12px; overflow-x: auto; text-align: left;
+/* MODAL APPLE STYLE */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.2); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+.apple-alert { 
+    background: var(--card-bg); backdrop-filter: blur(40px); width: 270px; 
+    border-radius: 14px; text-align: center; padding-top: 20px; 
+    border: 1px solid var(--border); box-shadow: 0 15px 35px rgba(0,0,0,0.2);
 }
+.apple-alert h3 { margin: 0 15px 5px; font-size: 17px; }
+.apple-alert p { margin: 0 15px 18px; font-size: 13px; line-height: 1.4; }
+.modal-actions { display: flex; border-top: 0.5px solid var(--border); }
+.modal-btn { 
+    flex: 1; padding: 12px; background: none; border: none; 
+    color: var(--accent); font-size: 17px; font-weight: 600; cursor: pointer;
+}
+.hidden { display: none !important; }
