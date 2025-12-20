@@ -1,81 +1,28 @@
 <!DOCTYPE html>
-<html lang="it"><!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>DevMaster Pro</title>
+    <title>DevQuiz Pro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="liquid-bg"></div>
+    <div class="glass-bg"></div>
 
-    <div id="auth-screen" class="app-container">
-        <div class="glass-card central-auth">
-            <h1 class="title-large">DevMaster</h1>
-            <p class="subtitle">Scegli la modalità di studio</p>
-            <div class="button-group-v">
-                <button class="btn-apple-primary" onclick="startApp('user')">Accedi come Utente</button>
-                <button class="btn-apple-secondary" onclick="startApp('guest')">Modalità Guest</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="main-app" class="app-container hidden">
-        <header class="header-apple">
-            <h1 id="view-title" class="title-large">Percorsi</h1>
+    <div class="header-main">
+        <h1 id="app-title">Percorsi</h1>
+        <div class="controls">
             <label class="ios-switch">
                 <input type="checkbox" id="theme-slider">
                 <span class="ios-slider"></span>
             </label>
-        </header>
-
-        <div class="glass-card" id="main-glass-container">
-            <div id="dynamic-content">
-                </div>
         </div>
+    </div>
+
+    <div id="quiz-container" class="glass-card">
+        <div id="content-area"></div>
     </div>
 
     <script src="script.js"></script>
 </body>
 </html>
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>DevMaster Pro</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="liquid-bg"></div>
-
-    <div id="auth-screen" class="app-container">
-        <div class="glass-card central">
-            <h1 class="title-large">Benvenuto</h1>
-            <p class="subtitle">Scegli come iniziare per gestire i tuoi progressi</p>
-            <div class="button-group-v">
-                <button class="btn-apple-primary" onclick="startApp('user')">Accedi come Utente (Salva)</button>
-                <button class="btn-apple-secondary" onclick="startApp('guest')">Continua come Guest</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="main-app" class="app-container hidden">
-        <header class="header-apple">
-            <h1 id="view-title" class="title-large">Percorsi</h1>
-            <label class="ios-switch">
-                <input type="checkbox" id="theme-slider">
-                <span class="ios-slider"></span>
-            </label>
-        </header>
-
-        <div id="dynamic-content" class="glass-card main-stage">
-            </div>
-        
-        <div id="save-indicator" class="save-tag hidden">Progresso Salvato ✓</div>
-    </div>
-
-    <script src="script.js"></script>
-</body>
-</html>
-
