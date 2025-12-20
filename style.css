@@ -1,71 +1,63 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>DevMaster Pro</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="liquid-bg"></div>
+:root {
+    --system-bg: #f5f5f7;
+    --text: #1d1d1f;
+    --accent: #0071e3;
+    --card: rgba(255, 255, 255, 0.6);
+}
+[data-theme="dark"] {
+    --system-bg: #000;
+    --text: #fff;
+    --card: rgba(28, 28, 30, 0.6);
+}
 
-    <div id="home-screen" class="app-container">
-        <header class="top-bar">
-            <h1 class="main-question">Percorsi</h1>
-            <label class="ios-switch">
-                <input type="checkbox" id="theme-slider">
-                <span class="ios-slider"></span>
-            </label>
-        </header>
-        <div class="lang-grid" id="lang-menu">
-            </div>
-    </div>
+body {
+    margin: 0; font-family: -apple-system, sans-serif;
+    background: var(--system-bg); color: var(--text);
+    overflow: hidden; height: 100vh;
+}
 
-    <div id="level-screen" class="app-container hidden">
-        <header class="top-bar">
-            <button class="back-btn" onclick="showHome()">← Indietro</button>
-            <div id="current-lang-icon"></div>
-        </header>
-        <h1 id="selected-lang-title" class="main-question">Livelli</h1>
-        <div class="level-list" id="level-menu">
-            </div>
-    </div>
+.app-container {
+    padding: 20px 24px; max-width: 500px; margin: 0 auto;
+    height: 100vh; display: flex; flex-direction: column;
+}
 
-    <div id="quiz-screen" class="app-container hidden">
-        <div class="progress-bar-container"><div id="progress-fill"></div></div>
-        <main class="content-wrapper">
-            <span id="quiz-meta" class="caps-label"></span>
-            <h1 id="question-text" class="main-question"></h1>
-            <div id="options-container" class="options-stack"></div>
-        </main>
-    </div>
+.top-bar { display: flex; justify-content: space-between; align-items: center; min-height: 60px; }
 
-    <div id="coding-screen" class="app-container hidden">
-        <main class="content-wrapper">
-            <span class="caps-label">Livello 5: Expert Challenge</span>
-            <h1 id="challenge-text" class="main-question"></h1>
-            <div class="vscode-editor">
-                <div class="vscode-header">
-                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
-                    <span class="file-name">script.js</span>
-                </div>
-                <textarea id="code-input" spellcheck="false" oninput="highlightCode()"></textarea>
-                <pre id="code-output"><code></code></pre>
-            </div>
-            <button class="apple-btn-primary" onclick="checkCodingChallenge()">Verifica Codice</button>
-        </main>
-    </div>
+/* Grid Linguaggi */
+.lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+.lang-card {
+    background: var(--card); backdrop-filter: blur(20px);
+    border-radius: 20px; padding: 20px; text-align: center; cursor: pointer;
+    border: 1px solid rgba(120,120,128,0.1);
+}
+.lang-card img { width: 50px; margin-bottom: 10px; }
 
-    <div id="feedback-screen" class="app-container hidden">
-        <div id="feedback-content" class="content-wrapper">
-            <div id="status-icon"></div>
-            <div class="apple-glass-inner">
-                <p id="exp-text"></p>
-            </div>
-            <button class="apple-btn-primary" onclick="handleNextStep()">Continua</button>
-        </div>
-    </div>
+/* VS CODE EDITOR */
+.vscode-editor {
+    background: #1e1e1e; border-radius: 12px; overflow: hidden;
+    position: relative; height: 250px; margin-bottom: 20px;
+}
+.vscode-header { background: #333; padding: 8px; display: flex; gap: 5px; align-items: center; }
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.red { background: #ff5f56; } .yellow { background: #ffbd2e; } .green { background: #27c93f; }
+.file-name { color: #888; font-size: 12px; margin-left: 10px; font-family: monospace; }
 
-    <script src="script.js"></script>
-</body>
-</html>
+#code-input, #code-output {
+    position: absolute; top: 40px; left: 0; width: 100%; height: calc(100% - 40px);
+    padding: 15px; font-family: 'SF Mono', monospace; font-size: 14px;
+    background: transparent; border: none; outline: none; line-height: 1.5;
+}
+#code-input { color: transparent; caret-color: white; z-index: 2; resize: none; }
+#code-output { color: #d4d4d4; z-index: 1; white-space: pre-wrap; }
+
+/* Highlight Colors (VS Code Style) */
+.token-keyword { color: #569cd6; }
+.token-string { color: #ce9178; }
+.token-number { color: #b5cea8; }
+
+.hidden { display: none !important; }
+.apple-btn-primary { 
+    background: var(--accent); color: white; border: none; 
+    padding: 18px; border-radius: 16px; font-size: 17px; font-weight: 600; 
+}
+/* Altri stili ereditati dai precedenti... */
