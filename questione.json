@@ -1,0 +1,32 @@
+[
+    {
+        "question": "In Python, quale comando stampa una stringa?",
+        "answers": ["print()", "echo()", "console.log()", "System.out.println()"],
+        "correct": 0,
+        "explanation": "In Python si usa print() per mostrare un output.\nEsempio:\nprint('Ciao mondo')"
+    },
+    {
+        "question": "Quale tag HTML definisce un paragrafo?",
+        "answers": ["<p>", "<div>", "<span>", "<h1>"],
+        "correct": 0,
+        "explanation": "Il tag <p> definisce un paragrafo in HTML.\nEsempio:\n<p>Testo del paragrafo</p>"
+    },
+    {
+        "question": "In JavaScript, come si dichiara una variabile?",
+        "answers": ["var x;", "int x;", "let x;", "both A and C"],
+        "correct": 3,
+        "explanation": "In JS moderno si usa let o var.\nEsempio:\nlet nome = 'Mario';"
+    },
+    {
+        "question": "In Java, come si stampa su console?",
+        "answers": ["System.out.println()", "print()", "console.log()", "echo()"],
+        "correct": 0,
+        "explanation": "In Java si usa System.out.println().\nEsempio:\nSystem.out.println('Ciao');"
+    },
+    {
+        "question": "Quale comando MySQL mostra tutte le tabelle di un database?",
+        "answers": ["SHOW TABLES;", "SELECT * FROM tables;", "LIST TABLES;", "DESCRIBE ALL;"],
+        "correct": 0,
+        "explanation": "SHOW TABLES; elenca tutte le tabelle nel database corrente."
+    }
+]
