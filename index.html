@@ -9,24 +9,23 @@
 <body>
     <div class="glass-bg"></div>
 
-    <div class="header-main">
+    <header class="header-main">
         <h1 id="app-title">DevMaster</h1>
-        <div class="controls">
-            <button id="btn-review" class="icon-btn hidden" onclick="showReviewSession()">📚</button>
-        </div>
-    </div>
+        <button id="btn-review" class="icon-btn hidden" onclick="showReviewSession()">📚</button>
+    </header>
 
-    <div id="quiz-container" class="glass-card">
-        <div id="content-area"></div>
-    </div>
+    <main id="quiz-container" class="glass-card">
+        <div id="content-area">
+            </div>
+    </main>
 
-    <div class="theme-footer" id="theme-footer">
+    <footer class="theme-footer" id="theme-footer">
         <label class="ios-switch">
             <input type="checkbox" id="theme-slider">
             <span class="ios-slider"></span>
         </label>
-        <span style="font-size: 10px; opacity: 0.6; margin-top: 5px;">Tema</span>
-    </div>
+        <span class="theme-label">Tema</span>
+    </footer>
 
     <script src="script.js"></script>
 </body>
