@@ -1,40 +1,87 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>DevMaster Pro</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="liquid-bg"></div>
+const database = {
+    Python: { icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" },
+    JavaScript: { icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" },
+    MySQL: { icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg" },
+    Java: { icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg" },
+    HTML: { icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" }
+};
 
-    <div id="auth-screen" class="app-container">
-        <div class="glass-card central">
-            <h1 class="title-large">Benvenuto</h1>
-            <p class="subtitle">Scegli come iniziare per gestire i tuoi progressi</p>
-            <div class="button-group-v">
-                <button class="btn-apple-primary" onclick="startApp('user')">Accedi come Utente (Salva)</button>
-                <button class="btn-apple-secondary" onclick="startApp('guest')">Continua come Guest</button>
+let userMode = 'guest';
+let progress = JSON.parse(localStorage.getItem('devQuizProgress')) || {};
+
+function startApp(mode) {
+    userMode = mode;
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('main-app').classList.remove('hidden');
+    renderLangs();
+}
+
+function renderLangs() {
+    document.getElementById('view-title').innerText = "Percorsi";
+    const container = document.getElementById('dynamic-content');
+    container.innerHTML = `<div class="lang-grid">${Object.keys(database).map(lang => `
+        <div class="lang-card" onclick="selectLang('${lang}')">
+            <img src="${database[lang].icon}">
+            <p style="font-weight:600; margin:0; font-size:14px;">${lang}</p>
+            <small style="opacity:0.6">${progress[lang] || 0}% completato</small>
+        </div>
+    `).join('')}</div>`;
+}
+
+function selectLang(lang) {
+    document.getElementById('view-title').innerText = lang;
+    const container = document.getElementById('dynamic-content');
+    container.innerHTML = `
+        <button class="btn-apple-secondary" style="margin-bottom:20px" onclick="renderLangs()">← Torna ai percorsi</button>
+        <div class="level-list">
+            ${[1, 2, 3, 4, 5].map(lvl => `
+                <button class="option-btn" onclick="startLevel('${lang}', ${lvl})">
+                    Livello ${lvl} ${lvl === 5 ? '🚀' : ''}
+                </button>
+            `).join('')}
+        </div>
+    `;
+}
+
+function startLevel(lang, lvl) {
+    const container = document.getElementById('dynamic-content');
+    container.innerHTML = `
+        <div class="quiz-view">
+            <span class="badge-apple" style="color:var(--accent); font-weight:700; font-size:11px;">LIVELLO ${lvl}</span>
+            <h2 style="margin: 15px 0 25px; font-size:22px;">Qual è il comando per... ?</h2>
+            <div class="options-stack">
+                <button class="option-btn" onclick="showFeedback(true, '${lang}')">Opzione Corretta</button>
+                <button class="option-btn" onclick="showFeedback(false, '${lang}')">Opzione Errata</button>
             </div>
         </div>
-    </div>
+    `;
+}
 
-    <div id="main-app" class="app-container hidden">
-        <header class="header-apple">
-            <h1 id="view-title" class="title-large">Percorsi</h1>
-            <label class="ios-switch">
-                <input type="checkbox" id="theme-slider">
-                <span class="ios-slider"></span>
-            </label>
-        </header>
+function showFeedback(isCorrect, lang) {
+    if(isCorrect && userMode === 'user') {
+        saveProgress(lang);
+    }
+    const container = document.getElementById('dynamic-content');
+    container.innerHTML = `
+        <div style="text-align:center">
+            <h1 style="color:${isCorrect ? '#34c759' : '#ff3b30'}">${isCorrect ? 'Ottimo!' : 'Riprova'}</h1>
+            <p>La spiegazione del linguaggio apparirà qui.</p>
+            <button class="btn-apple-primary" style="width:100%" onclick="selectLang('${lang}')">Continua</button>
+        </div>
+    `;
+}
 
-        <div id="dynamic-content" class="glass-card main-stage">
-            </div>
-        
-        <div id="save-indicator" class="save-tag hidden">Progresso Salvato ✓</div>
-    </div>
+function saveProgress(lang) {
+    if(!progress[lang]) progress[lang] = 0;
+    progress[lang] = Math.min(progress[lang] + 5, 100);
+    localStorage.setItem('devQuizProgress', JSON.stringify(progress));
+    
+    const indicator = document.getElementById('save-indicator');
+    indicator.classList.remove('hidden');
+    setTimeout(() => indicator.classList.add('hidden'), 2000);
+}
 
-    <script src="script.js"></script>
-</body>
-</html>
+// Tema
+document.getElementById('theme-slider').addEventListener('change', (e) => {
+    document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
+});
