@@ -1,141 +1,71 @@
-:root {
-    --system-bg: #ffffff;
-    --label-main: #000000;
-    --label-sec: #86868b;
-    --glass-card: rgba(255, 255, 255, 0.7);
-    --accent: #0071e3;
-    --border-thin: rgba(0, 0, 0, 0.1);
-}
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>DevMaster Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="liquid-bg"></div>
 
-[data-theme="dark"] {
-    --system-bg: #000000;
-    --label-main: #ffffff;
-    --label-sec: #a1a1a6;
-    --glass-card: rgba(28, 28, 30, 0.7);
-    --border-thin: rgba(255, 255, 255, 0.15);
-}
+    <div id="home-screen" class="app-container">
+        <header class="top-bar">
+            <h1 class="main-question">Percorsi</h1>
+            <label class="ios-switch">
+                <input type="checkbox" id="theme-slider">
+                <span class="ios-slider"></span>
+            </label>
+        </header>
+        <div class="lang-grid" id="lang-menu">
+            </div>
+    </div>
 
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+    <div id="level-screen" class="app-container hidden">
+        <header class="top-bar">
+            <button class="back-btn" onclick="showHome()">← Indietro</button>
+            <div id="current-lang-icon"></div>
+        </header>
+        <h1 id="selected-lang-title" class="main-question">Livelli</h1>
+        <div class="level-list" id="level-menu">
+            </div>
+    </div>
 
-body {
-    background-color: var(--system-bg);
-    color: var(--label-main);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
+    <div id="quiz-screen" class="app-container hidden">
+        <div class="progress-bar-container"><div id="progress-fill"></div></div>
+        <main class="content-wrapper">
+            <span id="quiz-meta" class="caps-label"></span>
+            <h1 id="question-text" class="main-question"></h1>
+            <div id="options-container" class="options-stack"></div>
+        </main>
+    </div>
 
-.liquid-bg {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(circle at 0% 0%, rgba(0, 113, 227, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 100% 100%, rgba(162, 0, 255, 0.1) 0%, transparent 50%);
-    z-index: -1;
-}
+    <div id="coding-screen" class="app-container hidden">
+        <main class="content-wrapper">
+            <span class="caps-label">Livello 5: Expert Challenge</span>
+            <h1 id="challenge-text" class="main-question"></h1>
+            <div class="vscode-editor">
+                <div class="vscode-header">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                    <span class="file-name">script.js</span>
+                </div>
+                <textarea id="code-input" spellcheck="false" oninput="highlightCode()"></textarea>
+                <pre id="code-output"><code></code></pre>
+            </div>
+            <button class="apple-btn-primary" onclick="checkCodingChallenge()">Verifica Codice</button>
+        </main>
+    </div>
 
-.app-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: env(safe-area-inset-top) 24px env(safe-area-inset-bottom);
-    max-width: 600px;
-    margin: 0 auto;
-    width: 100%;
-}
+    <div id="feedback-screen" class="app-container hidden">
+        <div id="feedback-content" class="content-wrapper">
+            <div id="status-icon"></div>
+            <div class="apple-glass-inner">
+                <p id="exp-text"></p>
+            </div>
+            <button class="apple-btn-primary" onclick="handleNextStep()">Continua</button>
+        </div>
+    </div>
 
-.top-bar {
-    height: 80px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.lang-icon img {
-    width: 40px; height: 40px; object-fit: contain;
-}
-
-/* Question Styling */
-.content-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding-bottom: 40px;
-}
-
-.caps-label {
-    font-size: 13px; font-weight: 700; color: var(--accent);
-    text-transform: uppercase; letter-spacing: 1px;
-}
-
-.main-question {
-    font-size: 34px; font-weight: 700; letter-spacing: -1px;
-    margin: 16px 0 40px; line-height: 1.1;
-}
-
-/* Options */
-.options-stack { display: flex; flex-direction: column; gap: 12px; }
-
-.option-btn {
-    background: var(--glass-card);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid var(--border-thin);
-    padding: 20px 24px;
-    border-radius: 20px;
-    color: var(--label-main);
-    font-size: 18px; font-weight: 500;
-    text-align: left; cursor: pointer;
-    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
-}
-
-.option-btn:active { transform: scale(0.97); }
-
-/* Feedback Area */
-.apple-glass-inner {
-    background: var(--glass-card);
-    border-radius: 24px; padding: 24px; margin: 24px 0;
-}
-
-.code-block {
-    background: #000; color: #fff; border-radius: 14px;
-    padding: 16px; margin-top: 16px; font-family: "SF Mono", monospace;
-}
-
-.code-dot-row { display: flex; gap: 6px; margin-bottom: 12px; }
-.code-dot-row span { width: 8px; height: 8px; border-radius: 50%; background: #333; }
-
-/* Buttons */
-.apple-btn-primary {
-    background: var(--accent); color: white; border: none;
-    padding: 20px; border-radius: 18px; font-size: 17px;
-    font-weight: 600; cursor: pointer; width: 100%;
-}
-
-.apple-btn-secondary {
-    background: rgba(120, 120, 128, 0.15); color: var(--label-main);
-    border: none; padding: 20px; border-radius: 18px;
-    font-weight: 600; width: 100%; margin-top: 12px;
-}
-
-.secondary-link {
-    background: none; border: none; color: var(--accent);
-    font-size: 16px; font-weight: 500; margin-top: 30px; cursor: pointer;
-}
-
-.hidden { display: none !important; }
-
-/* Switch Style */
-.ios-switch { position: relative; width: 51px; height: 31px; }
-.ios-switch input { opacity: 0; width: 0; height: 0; }
-.ios-slider {
-    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(120,120,128,0.2); border-radius: 31px; transition: .4s;
-}
-.ios-slider:before {
-    position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px;
-    background-color: white; border-radius: 50%; transition: .4s; box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-}
-input:checked + .ios-slider { background-color: #34c759; }
-input:checked + .ios-slider:before { transform: translateX(20px); }
+    <script src="script.js"></script>
+</body>
+</html>
