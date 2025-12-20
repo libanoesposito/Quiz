@@ -1,15 +1,16 @@
 :root {
     --bg: #f5f5f7;
     --text: #1d1d1f;
-    --card-bg: rgba(255, 255, 255, 0.4);
+    --card-bg: rgba(255, 255, 255, 0.45);
     --border: rgba(255, 255, 255, 0.7);
     --accent: #0071e3;
+    --danger: #ff3b30;
 }
 
 [data-theme="dark"] {
     --bg: #000;
     --text: #fff;
-    --card-bg: rgba(28, 28, 30, 0.5);
+    --card-bg: rgba(28, 28, 30, 0.6);
     --border: rgba(255, 255, 255, 0.1);
 }
 
@@ -44,7 +45,6 @@ h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; margin: 0; }
     flex: 1; margin-bottom: 40px; overflow-y: auto;
 }
 
-/* Griglia Linguaggi */
 .lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 .lang-item {
     background: rgba(120, 120, 128, 0.08); border-radius: 20px; padding: 20px;
@@ -53,22 +53,19 @@ h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; margin: 0; }
 .lang-item:active { transform: scale(0.95); }
 .lang-item img { width: 40px; height: 40px; margin-bottom: 10px; }
 
-/* Bottoni Apple */
 .btn-apple {
     display: block; width: 100%; padding: 18px; margin-bottom: 12px;
     background: rgba(120, 120, 128, 0.08); border: none; border-radius: 16px;
     color: var(--text); font-size: 17px; font-weight: 500; text-align: left; cursor: pointer;
 }
-.btn-apple:hover { background: var(--accent); color: white; }
 
+.btn-apple:disabled { opacity: 0.3; cursor: not-allowed; }
 .btn-primary { background: var(--accent); color: white; font-weight: 600; text-align: center; }
+.btn-danger { color: var(--danger); background: none; text-align: center; font-size: 14px; margin-top: 20px; }
 
-/* Switch iOS */
 .ios-switch { position: relative; width: 51px; height: 31px; }
 .ios-switch input { opacity: 0; width: 0; height: 0; }
 .ios-slider { position: absolute; inset: 0; background: rgba(120,120,128,0.2); border-radius: 31px; cursor: pointer; transition: .3s; }
 .ios-slider:before { position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: .3s; }
 input:checked + .ios-slider { background: #34c759; }
 input:checked + .ios-slider:before { transform: translateX(20px); }
-
-.hidden { display: none; }
