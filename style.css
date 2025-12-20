@@ -1,7 +1,7 @@
 :root { --bg: #f5f5f7; --text: #1d1d1f; --accent: #0071e3; --card-bg: rgba(255, 255, 255, 0.45); --border: rgba(255, 255, 255, 0.6); }
 [data-theme="dark"] { --bg: #000; --text: #fff; --card-bg: rgba(28, 28, 30, 0.6); --border: rgba(255, 255, 255, 0.1); }
 
-body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; align-items: center; overflow: hidden; transition: background 0.5s ease; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; align-items: center; overflow: hidden; transition: background 0.5s ease; }
 .glass-bg { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at 20% 30%, rgba(0, 113, 227, 0.12), transparent 40%), radial-gradient(circle at 80% 70%, rgba(162, 0, 255, 0.08), transparent 40%); }
 
 .header-main { width: 100%; max-width: 800px; padding: 40px 25px 20px; display: flex; align-items: center; z-index: 10; }
@@ -9,27 +9,33 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Ro
 h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; letter-spacing: 1.5px; }
 
 .main-container { flex: 1; width: 100%; display: flex; justify-content: center; align-items: flex-start; padding-bottom: 40px; overflow: hidden; }
-.glass-card { background: var(--card-bg); backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%); border: 1px solid var(--border); border-radius: 30px; padding: 30px; width: calc(100% - 40px); max-width: 500px; max-height: 80vh; display: flex; flex-direction: column; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
+.glass-card { background: var(--card-bg); backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%); border: 1px solid var(--border); border-radius: 30px; padding: 25px; width: calc(100% - 40px); max-width: 500px; max-height: 85vh; display: flex; flex-direction: column; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
 
-/* Desktop Adjustment */
-@media (min-width: 768px) { .glass-card { max-width: 600px; padding: 40px; } }
+@media (min-width: 768px) { .glass-card { max-width: 600px; padding: 35px; } }
 
-.lang-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 20px; width: 100%; }
-.lang-item { background: rgba(120, 120, 128, 0.08); border-radius: 20px; padding: 25px; text-align: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; }
-.lang-item:hover { background: rgba(120, 120, 128, 0.15); transform: translateY(-5px); border-color: var(--border); }
+.lang-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; }
+.lang-item { background: rgba(120, 120, 128, 0.08); border-radius: 20px; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; border: 1px solid transparent; }
+.lang-item:hover { transform: translateY(-3px); background: rgba(120, 120, 128, 0.15); }
+.lang-item.profile-slot { grid-column: span 2; background: var(--accent); color: white; margin-top: 10px; }
 
-.btn-apple { width: 100%; padding: 16px; margin-bottom: 12px; border: none; border-radius: 14px; background: rgba(120, 120, 128, 0.12); color: var(--text); font-size: 16px; font-weight: 500; cursor: pointer; transition: 0.2s; text-align: left; }
+.btn-apple { width: 100%; padding: 16px; margin-bottom: 12px; border: none; border-radius: 14px; background: rgba(120, 120, 128, 0.12); color: var(--text); font-size: 16px; font-weight: 500; cursor: pointer; text-align: left; }
 .btn-primary { background: var(--accent); color: white; text-align: center; font-weight: 600; }
-.btn-apple:hover:not(:disabled) { background: rgba(120, 120, 128, 0.2); }
-.btn-apple:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-apple:disabled { opacity: 0.4; }
 
-.theme-toggle { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; transition: 0.3s; }
-.theme-toggle:hover { transform: scale(1.1); }
+.feedback-box { margin-top: 15px; padding: 15px; border-radius: 15px; animation: slideIn 0.3s; font-size: 14px; }
+.correct { background: rgba(52, 199, 89, 0.15); border: 1px solid #34c759; }
+.wrong { background: rgba(255, 59, 48, 0.15); border: 1px solid #ff3b30; }
 
-.history-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 14px; padding: 8px; border-bottom: 1px solid var(--border); }
-.dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.dot-green { background: #34c759; box-shadow: 0 0 8px #34c759; }
-.dot-red { background: #ff3b30; box-shadow: 0 0 8px #ff3b30; }
+.error-inline { color: #ff3b30; font-size: 13px; font-weight: 600; margin-bottom: 8px; display: none; padding-left: 5px; }
 
-.code-editor { width: 100%; height: 150px; background: #1c1c1e; color: #9cdcfe; border-radius: 12px; padding: 15px; font-family: 'SF Mono', Menlo, monospace; border: 1px solid #3a3a3c; margin-top: 10px; font-size: 14px; line-height: 1.5; resize: none; }
-.console-terminal { background: #000; color: #30d158; padding: 15px; border-radius: 12px; margin-top: 15px; font-family: monospace; font-size: 13px; border: 1px solid #1c1c1e; }
+.review-card { background: rgba(120, 120, 128, 0.05); border-radius: 15px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #ccc; }
+.review-card.is-ok { border-left-color: #34c759; }
+.review-card.is-err { border-left-color: #ff3b30; }
+
+.code-editor { width: 100%; height: 140px; background: #1c1c1e; color: #9cdcfe; border-radius: 12px; padding: 15px; font-family: 'SF Mono', monospace; border: 1px solid #3a3a3c; margin-top: 5px; font-size: 14px; resize: none; }
+.console-terminal { background: #000; color: #30d158; padding: 15px; border-radius: 12px; margin-top: 15px; font-family: monospace; font-size: 13px; }
+
+.theme-toggle { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+.back-link { color: var(--accent); cursor: pointer; font-size: 17px; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
