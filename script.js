@@ -526,3 +526,30 @@ function adminDelete(pin) {
 function adminRefresh() {
     renderProfile();
 }
+function showPopup(title, desc, confirmLabel, actionFn) {
+    const modal = document.getElementById('universal-modal'); // Controlla che l'ID sia questo
+    if (!modal) {
+        // Se il modale non esiste nell'HTML, usa il vecchio confirm come emergenza
+        if (confirm(desc)) actionFn();
+        return;
+    }
+    
+    document.getElementById('modal-title').innerText = title;
+    document.getElementById('modal-desc').innerText = desc;
+    
+    const btn = document.getElementById('modal-confirm-btn');
+    btn.innerText = confirmLabel;
+    
+    // Collega l'azione al tasto di conferma
+    btn.onclick = () => {
+        actionFn();
+        closeModal();
+    };
+    
+    modal.style.setProperty('display', 'flex', 'important');
+}
+
+function closeModal() {
+    const modal = document.getElementById('universal-modal');
+    if (modal) modal.style.setProperty('display', 'none', 'important');
+}
