@@ -280,3 +280,60 @@ function userChangePin() {
 }
 function userSelfDelete() { showPopup("Elimina", "Elimina il tuo profilo?", "Elimina", () => { delete dbUsers[state.currentPin]; saveMasterDB(); location.reload(); }); }
 function renderL5(lang) { document.getElementById('content-area').innerHTML = `<h3>Esame ${lang}</h3><button class="btn-apple" onclick="showLevels('${lang}')">Indietro</button>`; }
+
+function generateLevel5List(challenges) {
+    const container = document.createElement("div");
+    container.id = "level5-container";
+
+    for (const lang in challenges) {
+        const challenge = challenges[lang];
+
+        const div = document.createElement("div");
+        div.style.display = "flex";
+        div.style.alignItems = "center";
+        div.style.marginBottom = "5px";
+
+        const status = challenge.userStatus === "corretto" ? "🟢" : "🔴";
+        const pallino = document.createElement("span");
+        pallino.textContent = status;
+        pallino.style.marginRight = "8px";
+
+        const testo = document.createElement("span");
+        testo.textContent = `${lang}: ${challenge.task}`;
+
+        div.appendChild(pallino);
+        div.appendChild(testo);
+        container.appendChild(div);
+    }
+
+    document.body.appendChild(container);
+}
+
+function testLevel5(userCode, lang) {
+    const challenge = challenges5[lang];
+    if (!challenge) return alert("Lingua non trovata");
+
+    if (userCode.includes(challenge.logic)) {
+        challenge.userStatus = "corretto";
+        displayConsoleOutput(challenge.output);
+        alert("Logica corretta!");
+    } else {
+        challenge.userStatus = "sbagliato";
+        alert("Logica sbagliata, riprova!");
+    }
+
+    // Aggiorna la lista dei pallini
+    document.getElementById("level5-container").remove();
+    generateLevel5List(challenges5);
+}
+
+function displayConsoleOutput(output) {
+    const consoleDiv = document.getElementById("console-output");
+    consoleDiv.textContent = output;
+}
+
+document.getElementById("run-button").addEventListener("click", () => {
+    const code = document.getElementById("editor").value;
+    const lang = "Python"; // o rendilo dinamico se vuoi cambiare lingua
+    testLevel5(code, lang);
+});
