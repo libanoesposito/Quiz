@@ -165,7 +165,7 @@ function startQuiz(lang, lvl) {
     if(lvl === 5) { renderL5(lang); return; }
     const key = "L" + lvl;
     state.currentQuiz = { lang, level: lvl };
-    const savedIdx = (state.mode === 'user' && dbUsers[state.currentPin]?.activeProgress) ? (dbUsers[state.currentPin].activeProgress[`${lang}_${lvl}`] || 0) : 0;
+    const savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${lvl}`]) || 0;
     state.currentQuestionIndex = savedIdx;
     updateNav(true, `renderLevels('${lang}')`);
     renderQuestion();
@@ -214,7 +214,7 @@ function checkAnswer(isOk, exp) {
 function nextQuestion() {
     const { lang, level } = state.currentQuiz;
     state.currentQuestionIndex++;
-    if (state.mode === 'user' && dbUsers[state.currentPin]) {
+    if (dbUsers[state.currentPin]) {
         if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
         dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = state.currentQuestionIndex;
     }
@@ -223,8 +223,8 @@ function nextQuestion() {
 }
 
 function finishQuiz(lang, level) {
-    if (state.mode === 'user' && dbUsers[state.currentPin]?.activeProgress) dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = 0;
-    state.progress[lang] = Math.max(state.progress[lang] || 0, level);
+    if (dbUsers[state.currentPin]?.activeProgress) dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = 0;
+    state.progress[lang] = Math.max(state.progress[lang] || 1, level + 1);
     saveMasterDB();
     alert("Livello completato con successo!");
     renderLevels(lang);
@@ -260,7 +260,8 @@ function renderProfile() {
                     <button class="btn-apple" onclick="userChangePin()" style="margin-bottom:10px; background:var(--card)">Cambia PIN</button>
                     <button class="btn-apple" style="color:#ff3b30; background:none; border:none" onclick="userSelfDelete()">Elimina Profilo</button>
                 </div>
-            </div>`;
+            </div>
+            <h4 style="border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:15px">Attività Recente</h4>`;
         const entries = (state.history[Object.keys(state.history)[0]] || []).slice(-3).reverse();
         entries.forEach(h => {
             html += `<div class="review-card ${h.ok?'is-ok':'is-err'}" style="margin-bottom:8px; padding:12px; font-size:13px">${h.q}</div>`;
@@ -269,7 +270,7 @@ function renderProfile() {
     document.getElementById('content-area').innerHTML = html;
 }
 
-// 8. POPUP E AZIONI
+// 8. POPUP E AZIONI (RIMASTE INVARIATE)
 function showPopup(title, desc, confirmLabel, actionFn) {
     const modal = document.getElementById('universal-modal');
     if (!modal) { if (confirm(desc)) actionFn(); return; }
@@ -293,8 +294,6 @@ function userChangePin() {
     }
 }
 function userSelfDelete() { showPopup("Elimina", "Elimina il tuo profilo?", "Elimina", () => { delete dbUsers[state.currentPin]; saveMasterDB(); location.reload(); }); }
-
-// 9. LOGICA LIVELLO 5 (VS CODE STYLE)
 function renderL5(lang) {
     updateNav(true, `renderLevels('${lang}')`);
     const challenges = {
