@@ -316,14 +316,14 @@ function testLevel5(userCode, lang) {
     const challenge = challenges5[lang];
     if (!challenge) return alert("Lingua non trovata");
 
-    if (userCode.includes(challenge.logic)) {
-        challenge.userStatus = "corretto";
-        displayConsoleOutput(challenge.output);
-        alert("Logica corretta!");
-    } else {
-        challenge.userStatus = "sbagliato";
-        alert("Logica sbagliata, riprova!");
-    }
+    if(userCode.includes(challenge.logic)) {
+    if(state.mode !== 'guest') challenge.userStatus = "corretto";
+    displayConsoleOutput(challenge.output);
+    alert("Logica corretta!");
+} else {
+    if(state.mode !== 'guest') challenge.userStatus = "sbagliato";
+    alert("Logica sbagliata, riprova!");
+}
 
     // Aggiorna la lista dei pallini
     document.getElementById("level5-container").remove();
