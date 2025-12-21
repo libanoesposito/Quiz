@@ -1,9 +1,16 @@
+// Database globale degli utenti (caricato da memoria locale)
+let dbUsers = JSON.parse(localStorage.getItem('quiz_master_db')) || {};
+
 let state = {
-    mode: null,
-    userId: localStorage.getItem('devUserId') || null,
-    progress: JSON.parse(localStorage.getItem('devProgress')) || {},
-    history: JSON.parse(localStorage.getItem('devHistory')) || {}
+    mode: null,      // 'user', 'guest', o 'admin'
+    currentPin: null, // Il PIN dell'utente loggato
+    currentUser: null, // Il Nome dell'utente loggato
+    progress: {},    
+    history: {}
 };
+
+const ADMIN_PIN = "3473";
+
 
 let session = null;
 
