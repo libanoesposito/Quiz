@@ -250,7 +250,7 @@ const quizDB = {
       {"q":"Come si usa border in tabella?","options":["border=\"1\" (obsoleto) o CSS border","style=\"border:1px solid black\"","<table bordered>","border-style=\"solid\""],"correct":1,"exp":"Meglio con CSS","code":"<table style=\"border-collapse:collapse;\">\n    <tr><td style=\"border:1px solid black\">Cell</td></tr>\n</table>"},
       {"q":"Come si usa data attributes in tabella?","options":["data-id=\"123\"","custom-data=\"123\"","info=\"123\"","value=\"123\""],"correct":0,"exp":"data-* per dati custom","code":"<tr data-user-id=\"456\"><td>Mario</td></tr>"}
     ]
-  }
+  
   // ===== FUNZIONI PROFILO AGGIUNTIVE =====
 
 // Salva utente (per import/export o cambio PIN)
@@ -278,5 +278,6 @@ function resetCurrentUser() {
     state.userId = null;
     state.progress = {};
     state.history = {};
+}
 }
 }
