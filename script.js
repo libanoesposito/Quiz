@@ -33,8 +33,8 @@ function toggleTheme() {
 function updateNav(showBack, backTarget) {
     const b = document.getElementById('back-nav');
     const r = document.getElementById('right-nav');
-    b.innerHTML = showBack ? `<span class="back-link" onclick="${backTarget}">‹ Indietro</span>` : "";
-    r.innerHTML = state.mode ? `<span class="logout-link" onclick="logout()">Esci</span>` : "";
+    if(b) b.innerHTML = showBack ? `<span class="back-link" onclick="${backTarget}">‹ Indietro</span>` : "";
+    if(r) r.innerHTML = state.mode ? `<span class="logout-link" onclick="logout()">Esci</span>` : "";
 }
 
 function saveMasterDB() {
@@ -48,6 +48,7 @@ function saveMasterDB() {
 // 4. LOGIN E PIN
 function renderLogin() {
     state.mode = null;
+    state.currentPin = null;
     updateNav(false);
     document.getElementById('app-title').innerText = "QUIZ";
     document.getElementById('content-area').innerHTML = `
@@ -99,7 +100,13 @@ function validatePin(type) {
     showHome();
 }
 
-function setGuest() { state.mode = 'guest'; state.progress = {}; state.history = {}; showHome(); }
+function setGuest() { 
+    state.mode = 'guest'; 
+    state.progress = {}; 
+    state.history = {}; 
+    state.currentUser = "Guest";
+    showHome(); 
+}
 
 // 5. HOME E LIVELLI
 function showHome() {
@@ -131,7 +138,7 @@ function renderLevels(lang) {
         const totalQ = (domandaRepo[lang] && domandaRepo[lang][key]) ? domandaRepo[lang][key].length : 0;
         
         let isLocked = false;
-        // Solo per Utenti registrati: Blocca 4 e 5 se progresso < 3
+        // LOGICA BLOCCATA SOLO PER USER
         if (state.mode === 'user') {
             if ((i === 4 || i === 5) && comp < 3) isLocked = true;
         }
@@ -139,14 +146,14 @@ function renderLevels(lang) {
         let percentage = 0;
         let progDisplay = "∞";
         
-        if (state.mode !== 'guest') {
+        if (state.mode !== 'guest' && state.currentPin) {
             const savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${i}`]) || 0;
             percentage = totalQ > 0 ? (savedIdx / totalQ) * 100 : 0;
             progDisplay = `${savedIdx}/${totalQ}`;
         }
 
         html += `
-            <div class="level-card ${isLocked ? 'locked' : ''}" onclick="${isLocked ? '' : `startQuiz('${lang}', ${i})`}" style="margin-bottom:10px; padding:18px; position:relative">
+            <div class="level-card ${isLocked ? 'locked' : ''}" onclick="${isLocked ? '' : `startQuiz('${lang}', ${i})`}" style="margin-bottom:10px; padding:18px; position:relative; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; background: var(--card)">
                 <div style="display:flex; justify-content:space-between; align-items:center">
                     <span style="font-weight:600">${i === 5 ? 'ESAMINATI' : 'Livello ' + i} ${isLocked ? '🔒' : ''}</span>
                     <span style="font-size:12px; opacity:0.5">${progDisplay}</span>
@@ -163,9 +170,13 @@ function renderLevels(lang) {
 // 6. LOGICA QUIZ
 function startQuiz(lang, lvl) {
     if(lvl === 5) { renderL5(lang); return; }
-    const key = "L" + lvl;
     state.currentQuiz = { lang, level: lvl };
-    const savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${lvl}`]) || 0;
+    
+    let savedIdx = 0;
+    if (state.mode === 'user' && state.currentPin) {
+        savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${lvl}`]) || 0;
+    }
+    
     state.currentQuestionIndex = savedIdx;
     updateNav(true, `renderLevels('${lang}')`);
     renderQuestion();
@@ -206,7 +217,7 @@ function checkAnswer(isOk, exp) {
     document.getElementById('fb').innerHTML = `
         <div class="feedback-box ${isOk?'correct':'wrong'}" style="margin-top:25px; padding:20px; border-radius:15px; animation: slideUp 0.3s ease">
             <strong style="font-size:18px">${isOk?'Ottimo!':'Riprova'}</strong>
-            <p style="margin:10px 0; font-size:15px; line-height:1.4 opacity:0.9">${exp}</p>
+            <p style="margin:10px 0; font-size:15px; line-height:1.4; opacity:0.9">${exp}</p>
             <button class="btn-apple btn-primary" onclick="nextQuestion()">Continua</button>
         </div>`;
 }
@@ -214,23 +225,25 @@ function checkAnswer(isOk, exp) {
 function nextQuestion() {
     const { lang, level } = state.currentQuiz;
     state.currentQuestionIndex++;
-    if (dbUsers[state.currentPin]) {
+    if (state.mode === 'user' && dbUsers[state.currentPin]) {
         if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
         dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = state.currentQuestionIndex;
+        saveMasterDB();
     }
-    saveMasterDB();
     renderQuestion();
 }
 
 function finishQuiz(lang, level) {
-    if (dbUsers[state.currentPin]?.activeProgress) dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = 0;
-    state.progress[lang] = Math.max(state.progress[lang] || 1, level + 1);
-    saveMasterDB();
+    if (state.mode === 'user' && dbUsers[state.currentPin]) {
+        if (dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = 0;
+        state.progress[lang] = Math.max(state.progress[lang] || 0, level);
+        saveMasterDB();
+    }
     alert("Livello completato con successo!");
     renderLevels(lang);
 }
 
-// 7. PROFILO
+// 7. PROFILO E ALTRE FUNZIONI
 function renderProfile() {
     updateNav(true, "showHome()");
     let html = "";
@@ -260,17 +273,11 @@ function renderProfile() {
                     <button class="btn-apple" onclick="userChangePin()" style="margin-bottom:10px; background:var(--card)">Cambia PIN</button>
                     <button class="btn-apple" style="color:#ff3b30; background:none; border:none" onclick="userSelfDelete()">Elimina Profilo</button>
                 </div>
-            </div>
-            <h4 style="border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:15px">Attività Recente</h4>`;
-        const entries = (state.history[Object.keys(state.history)[0]] || []).slice(-3).reverse();
-        entries.forEach(h => {
-            html += `<div class="review-card ${h.ok?'is-ok':'is-err'}" style="margin-bottom:8px; padding:12px; font-size:13px">${h.q}</div>`;
-        });
+            </div>`;
     }
     document.getElementById('content-area').innerHTML = html;
 }
 
-// 8. POPUP E AZIONI (RIMASTE INVARIATE)
 function showPopup(title, desc, confirmLabel, actionFn) {
     const modal = document.getElementById('universal-modal');
     if (!modal) { if (confirm(desc)) actionFn(); return; }
@@ -282,7 +289,7 @@ function showPopup(title, desc, confirmLabel, actionFn) {
     modal.style.setProperty('display', 'flex', 'important');
 }
 function closeModal() { document.getElementById('universal-modal').style.display = 'none'; }
-function logout() { showPopup("Esci", "Vuoi disconnetterti?", "Esci", () => { state.mode = null; state.currentPin = null; location.reload(); }); }
+function logout() { showPopup("Esci", "Vuoi disconnetterti?", "Esci", () => { location.reload(); }); }
 function toggleSecurity() { document.querySelector('.security-box')?.classList.toggle('open'); }
 function adminReset(pin) { showPopup("Reset", "Azzera progressi?", "Resetta", () => { dbUsers[pin].progress = {}; dbUsers[pin].activeProgress = {}; saveMasterDB(); renderProfile(); }); }
 function adminDelete(pin) { showPopup("Elimina", "Elimina utente?", "Elimina", () => { delete dbUsers[pin]; saveMasterDB(); renderProfile(); }); }
@@ -294,6 +301,8 @@ function userChangePin() {
     }
 }
 function userSelfDelete() { showPopup("Elimina", "Elimina il tuo profilo?", "Elimina", () => { delete dbUsers[state.currentPin]; saveMasterDB(); location.reload(); }); }
+
+// 9. LIVELLO 5
 function renderL5(lang) {
     updateNav(true, `renderLevels('${lang}')`);
     const challenges = {
