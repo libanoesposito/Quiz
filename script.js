@@ -687,3 +687,6 @@ function finishQuiz(lang, level) {
     alert("Complimenti! Livello completato!");
     renderLevels(lang); // Torna alla lista livelli aggiornata
 }
+function saveMasterDB() {
+    localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
+}
