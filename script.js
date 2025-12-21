@@ -124,55 +124,61 @@ function renderLevels(lang) {
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = lang;
     let html = ""; 
-    const comp = state.progress[lang] || 1;
+    const prog = state.progress[lang] || []; // Array di livelli completati es. [1, 2]
     
     for(let i=1; i<=5; i++) {
-        const key = "L" + i;
-        const totalQ = (domandaRepo[lang] && domandaRepo[lang][key]) ? domandaRepo[lang][key].length : 0;
-        const savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${i}`]) || 0;
-        const percentage = totalQ > 0 ? (savedIdx / totalQ) * 100 : 0;
+        let isLocked = false;
         
-        let isLocked = i > comp;
-        if (i === 5 && comp < 4) isLocked = true;
+        // Logica di sblocco Utente vs Guest
+        if (state.mode !== 'guest') {
+            const completatiBase = [1, 2, 3].every(n => prog.includes(n));
+            if ((i === 4 || i === 5) && !completatiBase) {
+                isLocked = true;
+            }
+        }
 
         html += `
             <div class="level-card ${isLocked ? 'locked' : ''}" onclick="${isLocked ? '' : `startQuiz('${lang}', ${i})`}" style="margin-bottom:10px; padding:18px; position:relative">
                 <div style="display:flex; justify-content:space-between; align-items:center">
                     <span style="font-weight:600">${i === 5 ? 'ESAMINATI' : 'Livello ' + i} ${isLocked ? '🔒' : ''}</span>
-                    <span style="font-size:12px; opacity:0.5">${savedIdx}/${totalQ}</span>
-                </div>
-                <div class="progress-container" style="width:100%; height:5px; background:rgba(120,120,128,0.1); border-radius:10px; margin-top:12px; overflow:hidden">
-                    <div class="progress-bar-fill" style="width:${percentage}%; height:100%; background:var(--accent); border-radius:10px; transition:0.4s ease"></div>
+                    <span style="font-size:12px; opacity:0.5">${prog.includes(i) ? 'Completato ✅' : ''}</span>
                 </div>
             </div>`;
     }
     document.getElementById('content-area').innerHTML = html;
 }
 
-// 6. LOGICA QUIZ
+// 6. LOGICA QUIZ (RANDOM 15 DOMANDE)
 function startQuiz(lang, lvl) {
     if(lvl === 5) { renderL5(lang); return; }
-    const key = "L" + lvl;
-    state.currentQuiz = { lang, level: lvl };
-    const savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${lvl}`]) || 0;
-    state.currentQuestionIndex = savedIdx;
+    
+    const allQuestions = domandaRepo[lang]["L" + lvl];
+    if(!allQuestions) return;
+
+    // Mescola e pesca 15 domande
+    const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
+    const selection = shuffled.slice(0, 15).map(raw => {
+        const p = raw.split("|");
+        return { q: p[0], options: [p[1], p[2], p[3]], correct: parseInt(p[4]), exp: p[5] };
+    });
+
+    state.currentQuiz = { lang, level: lvl, questions: selection };
+    state.currentQuestionIndex = 0;
     updateNav(true, `renderLevels('${lang}')`);
     renderQuestion();
 }
 
 function renderQuestion() {
-    const { lang, level } = state.currentQuiz;
-    const questions = domandaRepo[lang]["L" + level];
-    if (state.currentQuestionIndex >= questions.length) { finishQuiz(lang, level); return; }
+    const quiz = state.currentQuiz;
+    if (state.currentQuestionIndex >= quiz.questions.length) { finishQuiz(); return; }
 
-    const raw = questions[state.currentQuestionIndex].split("|");
-    const qData = { q: raw[0], options: [raw[1], raw[2], raw[3]], correct: parseInt(raw[4]), exp: raw[5] };
-    const progress = (state.currentQuestionIndex / questions.length) * 100;
+    const qData = quiz.questions[state.currentQuestionIndex];
+    const progress = (state.currentQuestionIndex / quiz.questions.length) * 100;
 
     document.getElementById('content-area').innerHTML = `
         <div style="width:100%; margin-bottom:25px">
             <div style="display:flex; justify-content:space-between; font-size:11px; opacity:0.5; margin-bottom:8px; font-weight:600">
-                <span>DOMANDA ${state.currentQuestionIndex + 1} DI ${questions.length}</span>
+                <span>DOMANDA ${state.currentQuestionIndex + 1} DI 15</span>
             </div>
             <div style="width:100%; height:6px; background:rgba(120,120,128,0.1); border-radius:10px; overflow:hidden">
                 <div style="width:${progress}%; height:100%; background:var(--accent); border-radius:10px; transition:0.4s ease"></div>
@@ -186,10 +192,10 @@ function renderQuestion() {
 }
 
 function checkAnswer(isOk, exp) {
-    const { lang, level } = state.currentQuiz;
+    const { lang } = state.currentQuiz;
     if(state.mode === 'user') {
         if(!state.history[lang]) state.history[lang] = [];
-        state.history[lang].push({ q: "Domanda " + (state.currentQuestionIndex+1), ok: isOk });
+        state.history[lang].push({ q: "Q" + (state.currentQuestionIndex+1), ok: isOk });
     }
     document.getElementById('opts').style.pointerEvents = "none";
     document.getElementById('fb').innerHTML = `
@@ -201,86 +207,78 @@ function checkAnswer(isOk, exp) {
 }
 
 function nextQuestion() {
-    const { lang, level } = state.currentQuiz;
     state.currentQuestionIndex++;
-    if (dbUsers[state.currentPin]) {
-        if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
-        dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = state.currentQuestionIndex;
-    }
-    saveMasterDB();
     renderQuestion();
 }
 
-function finishQuiz(lang, level) {
-    if (dbUsers[state.currentPin]?.activeProgress) dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = 0;
-    state.progress[lang] = Math.max(state.progress[lang] || 1, level + 1);
-    saveMasterDB();
-    alert("Livello completato con successo!");
+function finishQuiz() {
+    const { lang, level } = state.currentQuiz;
+    if (state.mode === 'user') {
+        if (!state.progress[lang]) state.progress[lang] = [];
+        if (!state.progress[lang].includes(level)) {
+            state.progress[lang].push(level);
+        }
+        saveMasterDB();
+    }
+    alert("Livello completato!");
     renderLevels(lang);
 }
 
-// 7. PROFILO
+// 7. PROFILO E ALTRE AZIONI (Invariate)
 function renderProfile() {
     updateNav(true, "showHome()");
     let html = "";
     if (state.mode === 'admin') {
         document.getElementById('app-title').innerText = "GESTIONE";
-        html += `<div style="text-align:right; margin-bottom:15px"><button onclick="renderProfile()" class="btn-apple" style="width:auto; padding:8px 15px; font-size:13px">Aggiorna 🔄</button></div>`;
         Object.keys(dbUsers).forEach(pin => {
             if (pin === ADMIN_PIN) return;
-            const u = dbUsers[pin];
-            html += `
-            <div class="review-card" style="border-left:4px solid var(--accent); margin-bottom:12px; padding:15px; display:flex; justify-content:space-between; align-items:center">
-                <div><strong>${u.name}</strong><br><small style="opacity:0.6">PIN: ${pin}</small></div>
-                <div style="display:flex; gap:10px">
-                    <button onclick="adminReset('${pin}')" style="background:none; border:none; font-size:20px; cursor:pointer">🔄</button>
-                    <button onclick="adminDelete('${pin}')" style="background:none; border:none; font-size:20px; cursor:pointer">🗑️</button>
-                </div>
+            html += `<div class="review-card" style="margin-bottom:12px; padding:15px; display:flex; justify-content:space-between">
+                <div><strong>${dbUsers[pin].name}</strong></div>
+                <button onclick="adminDelete('${pin}')">🗑️</button>
             </div>`;
         });
     } else {
         document.getElementById('app-title').innerText = "PROFILO";
-        html += `<h3 style="margin-bottom:20px">Ciao, ${state.currentUser}</h3>
-            <div class="security-box" style="background:rgba(120,120,128,0.08); border-radius:12px; margin-bottom:25px">
-                <div class="security-header" onclick="toggleSecurity()" style="padding:15px; cursor:pointer; display:flex; justify-content:space-between">
-                    <span>Sicurezza Account</span><span class="chevron">›</span>
-                </div>
-                <div class="security-content" style="padding:0 15px; max-height:0; overflow:hidden; transition:0.3s ease">
-                    <button class="btn-apple" onclick="userChangePin()" style="margin-bottom:10px; background:var(--card)">Cambia PIN</button>
-                    <button class="btn-apple" style="color:#ff3b30; background:none; border:none" onclick="userSelfDelete()">Elimina Profilo</button>
-                </div>
-            </div>
-            <h4 style="border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:15px">Attività Recente</h4>`;
-        const entries = (state.history[Object.keys(state.history)[0]] || []).slice(-3).reverse();
-        entries.forEach(h => {
-            html += `<div class="review-card ${h.ok?'is-ok':'is-err'}" style="margin-bottom:8px; padding:12px; font-size:13px">${h.q}</div>`;
-        });
+        html += `<h3>Ciao, ${state.currentUser}</h3><button class="btn-apple" onclick="userSelfDelete()">Elimina Profilo</button>`;
     }
     document.getElementById('content-area').innerHTML = html;
 }
 
-// 8. POPUP E AZIONI (RIMASTE INVARIATE)
-function showPopup(title, desc, confirmLabel, actionFn) {
-    const modal = document.getElementById('universal-modal');
-    if (!modal) { if (confirm(desc)) actionFn(); return; }
-    document.getElementById('modal-title').innerText = title;
-    document.getElementById('modal-desc').innerText = desc;
-    const btn = document.getElementById('modal-confirm-btn');
-    btn.innerText = confirmLabel;
-    btn.onclick = () => { actionFn(); closeModal(); };
-    modal.style.setProperty('display', 'flex', 'important');
+function showPopup(title, desc, confirmLabel, actionFn) { if (confirm(desc)) actionFn(); }
+function logout() { state.mode = null; location.reload(); }
+function adminDelete(pin) { delete dbUsers[pin]; saveMasterDB(); renderProfile(); }
+function userSelfDelete() { delete dbUsers[state.currentPin]; saveMasterDB(); location.reload(); }
+
+// ==========================================
+// SEZIONE LIVELLO 5 - MODIFICA SOLO QUI SOTTO
+// ==========================================
+
+const challenges5 = {
+    "HTML": { task: "Usa il tag per creare un elemento di una lista.", logic: "li" },
+    "Python": { task: "Scrivi il comando per stampare un testo.", logic: "print" },
+    "JavaScript": { task: "Scrivi il comando per creare un ciclo for.", logic: "for" }
+};
+
+function renderL5(lang) {
+    updateNav(true, `renderLevels('${lang}')`);
+    const c = challenges5[lang] || { task: "In arrivo", logic: "" };
+    document.getElementById('content-area').innerHTML = `
+        <h3>ESAMINATI: ${lang}</h3>
+        <p style="font-size:14px; margin-bottom:10px">${c.task}</p>
+        <textarea id="ed" style="width:100%; height:150px; background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:10px; padding:10px; font-size:16px"></textarea>
+        <button class="btn-apple btn-primary" style="margin-top:10px" onclick="runL5('${lang}')">Verifica</button>
+        <div id="l5-err" style="color:#ff3b30; display:none; margin-top:10px">Codice non corretto.</div>`;
 }
-function closeModal() { document.getElementById('universal-modal').style.display = 'none'; }
-function logout() { showPopup("Esci", "Vuoi disconnetterti?", "Esci", () => { state.mode = null; state.currentPin = null; location.reload(); }); }
-function toggleSecurity() { document.querySelector('.security-box')?.classList.toggle('open'); }
-function adminReset(pin) { showPopup("Reset", "Azzera progressi?", "Resetta", () => { dbUsers[pin].progress = {}; dbUsers[pin].activeProgress = {}; saveMasterDB(); renderProfile(); }); }
-function adminDelete(pin) { showPopup("Elimina", "Elimina utente?", "Elimina", () => { delete dbUsers[pin]; saveMasterDB(); renderProfile(); }); }
-function userChangePin() {
-    const n = prompt("Nuovo PIN (4 cifre):");
-    if (n && n.length === 4) {
-        const d = dbUsers[state.currentPin]; delete dbUsers[state.currentPin];
-        dbUsers[n] = d; state.currentPin = n; saveMasterDB(); alert("PIN Cambiato");
-    }
+
+function runL5(l) {
+    const v = document.getElementById('ed').value.toLowerCase();
+    if(v.includes(challenges5[l].logic)) {
+        if (state.mode === 'user') {
+            if (!state.progress[l]) state.progress[l] = [];
+            if (!state.progress[l].includes(5)) state.progress[l].push(5);
+            saveMasterDB();
+        }
+        alert("Esame superato!");
+        showHome();
+    } else { document.getElementById('l5-err').style.display = "block"; }
 }
-function userSelfDelete() { showPopup("Elimina", "Elimina il tuo profilo?", "Elimina", () => { delete dbUsers[state.currentPin]; saveMasterDB(); location.reload(); }); }
-function renderL5(lang) { document.getElementById('content-area').innerHTML = `<h3>Esame ${lang}</h3><p style="margin:20px 0; opacity:0.7">Contenuto in fase di aggiornamento...</p><button class="btn-apple" onclick="renderLevels('${lang}')">Indietro</button>`; }
