@@ -39,3 +39,35 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
 .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
 .back-link { color: var(--accent); cursor: pointer; font-size: 17px; }
 @keyframes slideIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+.glass-header {
+    display: flex;                /* Mette i figli sulla stessa riga */
+    justify-content: space-between; /* Spinge back-nav a sinistra e right-nav a destra */
+    align-items: center;          /* Centra tutto verticalmente */
+    padding: 10px 15px;
+    background: var(--bg);        /* Usa il colore del tuo tema */
+    border-bottom: 1px solid var(--border);
+    position: sticky;             /* Rimane fisso in alto mentre scorri */
+    top: 0;
+    z-index: 100;
+}
+
+#back-nav, #right-nav {
+    flex: 1;                      /* Dà la stessa importanza ai lati per bilanciare il titolo */
+    min-width: 70px;              /* Spazio minimo per i tasti */
+}
+
+#app-title {
+    flex: 2;                      /* Il titolo prende più spazio centrale */
+    font-size: 18px;
+    margin: 0;
+    text-align: center;
+}
+
+/* Colore rosso per il tasto Esci */
+.logout-link {
+    text-align: right;
+    color: #ff3b30;
+    font-weight: 600;
+    cursor: pointer;
+}
