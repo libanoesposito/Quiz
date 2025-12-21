@@ -40,11 +40,10 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
 .back-link { color: var(--accent); cursor: pointer; font-size: 17px; }
 @keyframes slideIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-/* La testata trasparente stile iOS */
-/* Header con griglia a 3 colonne */
-.glass-header {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr; /* Sinistra, Centro, Destra */
+/* La testata trasparente stile iOS */.glass-header {
+    position: relative; /* Necessario per i figli assoluti */
+    display: flex;
+    justify-content: center; /* Centra il titolo perfettamente */
     align-items: center;
     height: 44px;
     padding: 0 16px;
@@ -55,51 +54,42 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
     z-index: 1000;
 }
 
-#back-nav { text-align: left; }
-#app-title { 
-    font-size: 17px; 
-    font-weight: 600; 
-    margin: 0; 
-    white-space: nowrap;
-}
-#right-nav { text-align: right; }
-
-/* Popup Modale stile iOS */
-.modal-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.4);
-    display: none; /* Nascosto di default */
-    justify-content: center;
-    align-items: flex-end; /* Appare dal basso */
-    z-index: 2000;
-}
-
-.modal-content {
-    width: 95%;
-    max-width: 400px;
-    background: var(--card);
-    border-radius: 14px;
-    margin-bottom: 20px;
-    padding: 20px;
+#app-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0;
     text-align: center;
-    animation: slideUp 0.3s ease-out;
 }
 
-@keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+/* Posizionamento forzato ai bordi */
+#back-nav {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%); /* Centra verticalmente */
 }
 
-.modal-btn {
-    width: 100%;
-    padding: 12px;
-    margin-top: 10px;
-    border-radius: 10px;
-    border: none;
+#right-nav {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%); /* Centra verticalmente */
+}
+
+/* Stili Testo Apple */
+.back-link {
+    color: #007aff !important;
+    font-size: 17px;
+    cursor: pointer;
+}
+
+.logout-link {
+    color: #ff3b30 !important; /* Forza il rosso Apple */
     font-size: 17px;
     font-weight: 600;
     cursor: pointer;
 }
-.btn-destruct { color: #ff3b30; background: rgba(255,59,48,0.1); }
-.btn-cancel { color: #007aff; background: none; }
+
+.back-link:active, .logout-link:active {
+    opacity: 0.3;
+}
