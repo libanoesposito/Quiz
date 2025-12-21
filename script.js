@@ -29,9 +29,21 @@ function toggleTheme() {
     localStorage.setItem('theme', target);
 }
 
-function updateNav(s, t) { 
-    document.getElementById('back-nav').innerHTML = s ? `<div class="back-link" onclick="${t}">〈 Indietro</div>` : ""; 
+function updateNav(showBack, backTarget) {
+    // Gestione tasto Indietro (a sinistra)
+    const backNav = document.getElementById('back-nav');
+    backNav.innerHTML = showBack ? `<div class="back-link" onclick="${backTarget}">〈 Indietro</div>` : "";
+
+    // Gestione tasto Esci (a destra)
+    // Lo mostriamo solo se non siamo nella pagina di Login (quindi se c'è un mode attivo)
+    const rightNav = document.getElementById('right-nav'); // Assicurati di avere questo ID nel tuo HTML
+    if (state.mode) {
+        rightNav.innerHTML = `<div class="logout-link" onclick="logout()" style="color:#ff3b30; font-weight:600; cursor:pointer">Esci</div>`;
+    } else {
+        rightNav.innerHTML = "";
+    }
 }
+
 
 function saveMasterDB() {
     if (state.mode === 'user' && state.currentPin) {
@@ -218,28 +230,51 @@ function next() {
 function renderProfile() {
     updateNav(true, "showHome()");
     let html = "";
+
     if (state.mode === 'admin') {
-        document.getElementById('app-title').innerText = "ADMIN PANEL";
-        html += `<h3 style="margin-bottom:15px">Utenti Registrati</h3>`;
+        document.getElementById('app-title').innerText = "GESTIONE UTENTI";
+        html += `<div style="text-align:left; width:100%">`;
+        
         Object.keys(dbUsers).forEach(pin => {
             const u = dbUsers[pin];
-            html += `<div class="review-card" style="border-left:4px solid var(--accent); margin-bottom:12px; text-align:left">
-                <strong>${u.name}</strong><br>
-                <span style="font-size:11px; opacity:0.7">${Object.keys(u.progress).map(l=>`${l}: L${u.progress[l]}`).join(' | ') || 'No progress'}</span>
+            html += `
+            <div class="review-card" style="border-left:4px solid var(--accent); margin-bottom:15px">
+                <div style="display:flex; justify-content:space-between; align-items:start">
+                    <div>
+                        <strong style="font-size:16px">${u.name}</strong><br>
+                        <span style="font-size:11px; opacity:0.6">${Object.keys(u.progress).map(l=>`${l}:L${u.progress[l]}`).join(' | ') || 'Nessun progresso'}</span>
+                    </div>
+                    <div style="display:flex; gap:10px">
+                        <button onclick="adminReset('${pin}')" style="background:none; border:none; color:#ff9500; font-size:18px" title="Resetta Progressi">🔄</button>
+                        <button onclick="adminDelete('${pin}')" style="background:none; border:none; color:#ff3b30; font-size:18px" title="Elimina Utente">🗑️</button>
+                    </div>
+                </div>
             </div>`;
         });
+        html += `</div>`;
     } else {
         document.getElementById('app-title').innerText = "PROFILO";
-        html += `<h3>Ciao, ${state.currentUser}</h3>`;
+        html += `
+            <div style="width:100%; text-align:left">
+                <h3>Ciao, ${state.currentUser}</h3>
+                <div style="margin: 20px 0; padding: 15px; background: rgba(120,120,128,0.1); border-radius:12px">
+                    <h4 style="margin-bottom:10px; font-size:14px">Sicurezza Account</h4>
+                    <button class="btn-apple" style="background:var(--card); font-size:13px" onclick="userChangePin()">Cambia il tuo PIN</button>
+                    <button class="btn-apple" style="background:none; color:#ff3b30; font-size:13px; margin-top:5px" onclick="userSelfDelete()">Elimina il mio profilo</button>
+                </div>
+                <h4 style="border-bottom:1px solid var(--border); padding-bottom:5px">Cronologia Ripasso</h4>
+        `;
+        
         Object.keys(state.history).forEach(lang => {
-            html += `<h4 style="margin-top:15px; border-bottom:1px solid var(--border)">${lang}</h4>`;
-            state.history[lang].slice(-5).reverse().forEach(item => {
-                html += `<div class="review-card ${item.ok?'is-ok':'is-err'}">${item.q}</div>`;
+            state.history[lang].slice(-3).reverse().forEach(item => {
+                html += `<div class="review-card ${item.ok?'is-ok':'is-err'}" style="font-size:12px; margin-bottom:5px">${item.q}</div>`;
             });
         });
+        html += `</div>`;
     }
     document.getElementById('content-area').innerHTML = html;
 }
+
 
 function renderL5(lang) {
     const c = challenges5[lang];
@@ -259,3 +294,64 @@ function runL5(l) {
         showHome();
     } else { document.getElementById('l5-err').style.display = "block"; }
 }
+// --- FUNZIONI ADMIN ---
+function adminReset(pin) {
+    if(confirm(`Vuoi resettare i progressi di ${dbUsers[pin].name}?`)) {
+        dbUsers[pin].progress = {};
+        dbUsers[pin].history = {};
+        localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
+        renderProfile();
+    }
+}
+
+function adminDelete(pin) {
+    if(confirm(`ELIMINARE DEFINITIVAMENTE l'utente ${dbUsers[pin].name}?`)) {
+        delete dbUsers[pin];
+        localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
+        renderProfile();
+    }
+}
+
+// --- FUNZIONI UTENTE ---
+function userChangePin() {
+    const nuovo = prompt("Inserisci il nuovo PIN di 4 cifre:");
+    if (!nuovo || nuovo.length !== 4 || isNaN(nuovo)) {
+        alert("PIN non valido.");
+        return;
+    }
+    if ("0123456789876543210".includes(nuovo) || /^(\d)\1{3}$/.test(nuovo)) {
+        alert("PIN troppo semplice, scegline un altro.");
+        return;
+    }
+    
+    // Sposta i dati dal vecchio PIN al nuovo
+    const datiVecchi = dbUsers[state.currentPin];
+    delete dbUsers[state.currentPin];
+    dbUsers[nuovo] = datiVecchi;
+    state.currentPin = nuovo;
+    localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
+    alert("PIN aggiornato con successo!");
+}
+
+function userSelfDelete() {
+    if(confirm("Sei sicuro di voler eliminare il tuo profilo? Questa azione è irreversibile.")) {
+        delete dbUsers[state.currentPin];
+        localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
+        location.reload(); // Torna al login
+    }
+}
+function logout() {
+    if(confirm("Vuoi uscire dal profilo attuale?")) {
+        // Resettiamo lo stato dell'app
+        state.mode = null;
+        state.currentPin = null;
+        state.currentUser = null;
+        state.progress = {};
+        state.history = {};
+        session = null;
+        
+        // Torniamo alla schermata di login
+        renderLogin();
+    }
+}
+
