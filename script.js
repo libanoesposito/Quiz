@@ -231,10 +231,17 @@ function renderProfile() {
     updateNav(true, "showHome()");
     let html = "";
 
-    if (state.mode === 'admin') {
-        document.getElementById('app-title').innerText = "GESTIONE UTENTI";
-        html += `<div style="text-align:left; width:100%">`;
-        
+    // Cerca questo punto dentro renderProfile()
+if (state.mode === 'admin') {
+    document.getElementById('app-title').innerText = "GESTIONE UTENTI";
+    html += `
+        <div style="text-align:right; margin-bottom: 15px;">
+            <button onclick="adminRefresh()" class="btn-apple" style="display:inline-block; width:auto; padding:5px 15px; font-size:12px">Aggiorna Dati 🔄</button>
+        </div>
+        <div style="text-align:left; width:100%">
+    `;
+    // ... resta del ciclo Object.keys ...
+
         Object.keys(dbUsers).forEach(pin => {
             if (pin === '3473') return; // Nasconde l'admin dalla lista utenti
             
