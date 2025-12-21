@@ -124,26 +124,37 @@ function renderLevels(lang) {
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = lang;
     let html = ""; 
-    const comp = state.progress[lang] || 1;
+    const comp = state.progress[lang] || 0;
     
     for(let i=1; i<=5; i++) {
         const key = "L" + i;
         const totalQ = (domandaRepo[lang] && domandaRepo[lang][key]) ? domandaRepo[lang][key].length : 0;
-        const savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${i}`]) || 0;
-        const percentage = totalQ > 0 ? (savedIdx / totalQ) * 100 : 0;
         
-        let isLocked = i > comp;
-        if (i === 5 && comp < 4) isLocked = true;
+        let isLocked = false;
+        // Solo per Utenti registrati: Blocca 4 e 5 se progresso < 3
+        if (state.mode === 'user') {
+            if ((i === 4 || i === 5) && comp < 3) isLocked = true;
+        }
+
+        let percentage = 0;
+        let progDisplay = "∞";
+        
+        if (state.mode !== 'guest') {
+            const savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${i}`]) || 0;
+            percentage = totalQ > 0 ? (savedIdx / totalQ) * 100 : 0;
+            progDisplay = `${savedIdx}/${totalQ}`;
+        }
 
         html += `
             <div class="level-card ${isLocked ? 'locked' : ''}" onclick="${isLocked ? '' : `startQuiz('${lang}', ${i})`}" style="margin-bottom:10px; padding:18px; position:relative">
                 <div style="display:flex; justify-content:space-between; align-items:center">
                     <span style="font-weight:600">${i === 5 ? 'ESAMINATI' : 'Livello ' + i} ${isLocked ? '🔒' : ''}</span>
-                    <span style="font-size:12px; opacity:0.5">${savedIdx}/${totalQ}</span>
+                    <span style="font-size:12px; opacity:0.5">${progDisplay}</span>
                 </div>
+                ${state.mode !== 'guest' ? `
                 <div class="progress-container" style="width:100%; height:5px; background:rgba(120,120,128,0.1); border-radius:10px; margin-top:12px; overflow:hidden">
                     <div class="progress-bar-fill" style="width:${percentage}%; height:100%; background:var(--accent); border-radius:10px; transition:0.4s ease"></div>
-                </div>
+                </div>` : ''}
             </div>`;
     }
     document.getElementById('content-area').innerHTML = html;
@@ -154,7 +165,7 @@ function startQuiz(lang, lvl) {
     if(lvl === 5) { renderL5(lang); return; }
     const key = "L" + lvl;
     state.currentQuiz = { lang, level: lvl };
-    const savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${lvl}`]) || 0;
+    const savedIdx = (state.mode === 'user' && dbUsers[state.currentPin]?.activeProgress) ? (dbUsers[state.currentPin].activeProgress[`${lang}_${lvl}`] || 0) : 0;
     state.currentQuestionIndex = savedIdx;
     updateNav(true, `renderLevels('${lang}')`);
     renderQuestion();
@@ -203,7 +214,7 @@ function checkAnswer(isOk, exp) {
 function nextQuestion() {
     const { lang, level } = state.currentQuiz;
     state.currentQuestionIndex++;
-    if (dbUsers[state.currentPin]) {
+    if (state.mode === 'user' && dbUsers[state.currentPin]) {
         if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
         dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = state.currentQuestionIndex;
     }
@@ -212,8 +223,8 @@ function nextQuestion() {
 }
 
 function finishQuiz(lang, level) {
-    if (dbUsers[state.currentPin]?.activeProgress) dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = 0;
-    state.progress[lang] = Math.max(state.progress[lang] || 1, level + 1);
+    if (state.mode === 'user' && dbUsers[state.currentPin]?.activeProgress) dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = 0;
+    state.progress[lang] = Math.max(state.progress[lang] || 0, level);
     saveMasterDB();
     alert("Livello completato con successo!");
     renderLevels(lang);
@@ -249,8 +260,7 @@ function renderProfile() {
                     <button class="btn-apple" onclick="userChangePin()" style="margin-bottom:10px; background:var(--card)">Cambia PIN</button>
                     <button class="btn-apple" style="color:#ff3b30; background:none; border:none" onclick="userSelfDelete()">Elimina Profilo</button>
                 </div>
-            </div>
-            <h4 style="border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:15px">Attività Recente</h4>`;
+            </div>`;
         const entries = (state.history[Object.keys(state.history)[0]] || []).slice(-3).reverse();
         entries.forEach(h => {
             html += `<div class="review-card ${h.ok?'is-ok':'is-err'}" style="margin-bottom:8px; padding:12px; font-size:13px">${h.q}</div>`;
@@ -259,7 +269,7 @@ function renderProfile() {
     document.getElementById('content-area').innerHTML = html;
 }
 
-// 8. POPUP E AZIONI (RIMASTE INVARIATE)
+// 8. POPUP E AZIONI
 function showPopup(title, desc, confirmLabel, actionFn) {
     const modal = document.getElementById('universal-modal');
     if (!modal) { if (confirm(desc)) actionFn(); return; }
@@ -283,4 +293,52 @@ function userChangePin() {
     }
 }
 function userSelfDelete() { showPopup("Elimina", "Elimina il tuo profilo?", "Elimina", () => { delete dbUsers[state.currentPin]; saveMasterDB(); location.reload(); }); }
-function renderL5(lang) { document.getElementById('content-area').innerHTML = `<h3>Esame ${lang}</h3><p style="margin:20px 0; opacity:0.7">Contenuto in fase di aggiornamento...</p><button class="btn-apple" onclick="renderLevels('${lang}')">Indietro</button>`; }
+
+// 9. LOGICA LIVELLO 5 (VS CODE STYLE)
+function renderL5(lang) {
+    updateNav(true, `renderLevels('${lang}')`);
+    const challenges = {
+        "python": { task: "Scrivi un ciclo che stampi i numeri da 1 a 10", logic: "range(1, 11)", file: "main.py" },
+        "javascript": { task: "Crea un ciclo che stampi i numeri da 1 a 10", logic: "10", file: "index.js" },
+        "html": { task: "Crea un elenco puntato (ul) con un elemento (li)", logic: "<li>", file: "index.html" }
+    };
+    const current = challenges[lang.toLowerCase()] || { task: "Conta da 1 a 10", logic: "10", file: "script.txt" };
+
+    document.getElementById('content-area').innerHTML = `
+        <div style="text-align:left; margin-bottom:15px">
+            <h3 style="font-size:16px; color:var(--accent)">Esercizio di Logica</h3>
+            <p style="font-size:14px; opacity:0.8">${current.task}</p>
+        </div>
+        <div style="background:#1e1e1e; border-radius:8px; overflow:hidden; border:1px solid #3c3c3c; font-family:monospace; text-align:left">
+            <div style="background:#323233; padding:8px 15px; color:#cccccc; font-size:11px; display:flex; justify-content:space-between">
+                <span>${current.file}</span><span style="color:#6a9955">// Editor</span>
+            </div>
+            <textarea id="code-editor" spellcheck="false" style="width:100%; height:150px; background:#1e1e1e; color:#d4d4d4; border:none; padding:15px; font-size:14px; outline:none; resize:none; line-height:1.5"></textarea>
+        </div>
+        <div id="l5-feedback" style="margin-top:10px"></div>
+        <div style="display:flex; gap:10px; margin-top:15px">
+            <button class="btn-apple btn-primary" onclick="verifyL5('${lang}', '${current.logic}')">Esegui (Run)</button>
+            <button class="btn-apple" style="background:none; border:1px solid var(--border)" onclick="renderLevels('${lang}')">Passa alla prossima (Next)</button>
+        </div>
+        <div id="console-output" style="display:none; margin-top:20px; background:#1e1e1e; border-top:2px solid #007acc; padding:12px; font-family:monospace; text-align:left">
+            <div style="color:#007acc; font-size:10px; margin-bottom:5px; font-weight:bold">OUTPUT CONSOLE</div>
+            <div id="console-text" style="color:#ffffff; font-size:12px; line-height:1.4"></div>
+        </div>`;
+}
+
+function verifyL5(lang, logic) {
+    const code = document.getElementById('code-editor').value;
+    const fb = document.getElementById('l5-feedback');
+    const cBox = document.getElementById('console-output');
+    const cText = document.getElementById('console-text');
+
+    if (code.toLowerCase().includes(logic.toLowerCase())) {
+        fb.innerHTML = `<div style="color:#4ec9b0; font-size:13px; margin-bottom:5px">✓ Script compilato correttamente.</div>`;
+        cBox.style.display = "block";
+        cText.innerHTML = "1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br><span style="color:#6a9955">> Processo terminato con successo.</span>";
+        if (state.mode === 'user') { state.progress[lang] = Math.max(state.progress[lang] || 0, 5); saveMasterDB(); }
+    } else {
+        fb.innerHTML = `<div style="background:rgba(255,59,48,0.1); border-left:4px solid #f44336; padding:12px; color:#f44336; font-size:13px"><strong>Compilation Error:</strong> Sintassi non riconosciuta. Riprova.</div>`;
+        cBox.style.display = "none";
+    }
+}
