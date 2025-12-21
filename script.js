@@ -340,9 +340,3 @@ function displayConsoleOutput(output) {
     const consoleDiv = document.getElementById("console-output");
     consoleDiv.textContent = output;
 }
-
-document.getElementById("run-button").addEventListener("click", () => {
-    const code = document.getElementById("editor").value;
-    const lang = "Python"; // o rendilo dinamico se vuoi cambiare lingua
-    testLevel5(code, lang);
-});
