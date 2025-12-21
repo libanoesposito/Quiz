@@ -1,3 +1,4 @@
+Script 
 let state = {
     mode: null,
     userId: localStorage.getItem('devUserId') || null,
@@ -37,6 +38,7 @@ window.onload = () => {
     renderLogin();
 };
 
+// ASCOLTA IL CAMBIO DI TEMA DEL SISTEMA IN TEMPO REALE
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
     if (!localStorage.getItem('theme')) {
         setTheme(e.matches ? 'dark' : 'light');
@@ -69,19 +71,8 @@ function validatePin(type) {
     const easy = ['1111','2222','3333','1234','4567','6789'];
     if(pin.length !== 4) return alert("Inserisci 4 cifre");
     if(easy.includes(pin)) return alert("PIN troppo semplice!");
-    
-    if(pin === "3473") { // CEO PIN
-        grantCeoAccess();
-        return;
-    }
-
-    if(type === 'register') { 
-        if(pin === "3473") return alert("PIN non disponibile per nuovi utenti");
-        localStorage.setItem('devUserId', pin); 
-        state.userId = pin; 
-    } else { 
-        if(pin !== state.userId) return alert("PIN Errato"); 
-    }
+    if(type === 'register') { localStorage.setItem('devUserId', pin); state.userId = pin; } 
+    else { if(pin !== state.userId) return alert("PIN Errato"); }
     state.mode = 'user'; showHome();
 }
 
@@ -106,7 +97,6 @@ function showHome() {
     document.getElementById('content-area').innerHTML = html;
 }
 
-// ----- PROFILO -----
 function renderProfile() {
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = "PROFILO";
@@ -124,83 +114,85 @@ function renderProfile() {
             </div>`;
         });
     });
-
-    html += `
-        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap">
-            <button class="btn-apple btn-primary" onclick="resetProfile()">Reset Profilo</button>
-            <button class="btn-apple" onclick="promptChangePin()">Cambia PIN</button>
-            <button class="btn-apple" onclick="exportProfile()">Esporta Profilo</button>
-            <input type="file" id="importProfileFile" style="display:none" onchange="importProfile(this.files[0])">
-            <button class="btn-apple" onclick="document.getElementById('importProfileFile').click()">Importa Profilo</button>
-        </div>`;
-
     document.getElementById('content-area').innerHTML = html;
 }
 
-// FUNZIONI PROFILO
-function resetProfile() {
-    if(confirm("Sei sicuro di resettare il profilo?")) {
-        localStorage.removeItem('devUserId');
-        localStorage.removeItem('devProgress');
-        localStorage.removeItem('devHistory');
-        state.userId = null;
-        state.progress = {};
-        state.history = {};
-        alert("Profilo resettato!");
-        renderLogin();
+function showLevels(lang) {
+    updateNav(true, "showHome()");
+    document.getElementById('app-title').innerText = lang;
+    let html = ""; const comp = state.progress[lang] || 0;
+    for(let i=1; i<=5; i++) {
+        let isLocked = (state.mode === 'user' && i === 5 && comp < 4);
+        html += `<button class="btn-apple" ${isLocked ? 'disabled' : ''} onclick="startStep('${lang}',${i})">Livello ${i} ${isLocked ? '🔒' : ''}</button>`;
+    }
+    document.getElementById('content-area').innerHTML = html;
+}
+
+function startStep(lang, lvl) {
+    if(lvl === 5) renderL5(lang);
+    else {
+        const key = "L"+lvl;
+        if(!quizDB[lang][key] || quizDB[lang][key].length === 0) return alert("Livello non disponibile.");
+        session = { lang, lvl, q: [...quizDB[lang][key]], idx: 0 };
+        renderQ();
     }
 }
 
-function promptChangePin() {
-    let newPin = prompt("Inserisci il nuovo PIN (4 cifre, non 3473)");
-    if(newPin && newPin.length===4 && newPin !== "3473") {
-        state.userId = newPin;
-        localStorage.setItem('devUserId', newPin);
-        alert("PIN aggiornato!");
-    } else if(newPin === "3473") alert("Non puoi usare il PIN CEO");
-    else alert("PIN non valido");
+function renderQ() {
+    const data = session.q[session.idx];
+    document.getElementById('content-area').innerHTML = `
+        <div style="margin-bottom:10px; font-weight:bold; opacity:0.5">LIVELLO ${session.lvl}</div>
+        <h2 style="margin-bottom:20px; font-size:18px">${data.q}</h2>
+        <div id="opts">${data.options.map((o,i)=>`<button class="btn-apple" onclick="check(${i===data.correct})">${o}</button>`).join('')}</div>
+        <div id="fb"></div>`;
 }
 
-function exportProfile() {
-    const userData = {
-        userId: state.userId,
-        progress: state.progress,
-        history: state.history
-    };
-    const blob = new Blob([JSON.stringify(userData)], {type:"application/json"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `profilo_${state.userId}.json`;
-    a.click();
+function check(isOk) {
+    const data = session.q[session.idx];
+    if(state.mode === 'user') {
+        if(!state.history[session.lang]) state.history[session.lang] = [];
+        if(!state.history[session.lang].some(h => h.q === data.q)) {
+            state.history[session.lang].push({ q: data.q, ok: isOk, exp: data.exp, code: data.code });
+            localStorage.setItem('devHistory', JSON.stringify(state.history));
+        }
+    }
+    document.getElementById('opts').style.pointerEvents = "none";
+    document.getElementById('fb').innerHTML = `<div class="feedback-box ${isOk?'correct':'wrong'}">
+        <strong>${isOk?'Ottimo!':'Riprova'}</strong><p>${data.exp}</p><pre>${data.code}</pre>
+        <button class="btn-apple btn-primary" style="margin-top:10px" onclick="next()">Continua</button>
+    </div>`;
 }
 
-function importProfile(file) {
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const data = JSON.parse(e.target.result);
-        state.userId = data.userId;
-        state.progress = data.progress || {};
-        state.history = data.history || {};
-        localStorage.setItem('devUserId', state.userId);
+function next() {
+    session.idx++; if(session.idx < session.q.length) renderQ(); 
+    else { 
+        state.progress[session.lang] = Math.max(state.progress[session.lang]||0, session.lvl); 
         localStorage.setItem('devProgress', JSON.stringify(state.progress));
-        localStorage.setItem('devHistory', JSON.stringify(state.history));
-        alert("Profilo importato!");
-        renderProfile();
-    };
-    reader.readAsText(file);
+        showLevels(session.lang); 
+    }
 }
 
-// ----- PIN CEO -----
-function grantCeoAccess() {
-    state.mode = 'ceo';
-    alert("Accesso CEO attivato! Visualizzi tutti i profili.");
-    // qui puoi aggiungere funzionalità per mostrare dati di tutti gli utenti
+function renderL5(lang) {
+    const c = challenges5[lang];
+    document.getElementById('content-area').innerHTML = `
+        <h3>Livello 5 Expert</h3>
+        <p style="font-size:14px; margin-bottom:15px">${c.task}</p>
+        <div id="inline-error" class="error-inline">Errore di logica. Controlla il codice!</div>
+        <textarea id="ed" class="code-editor" spellcheck="false" placeholder="Scrivi il codice qui..." oninput="document.getElementById('inline-error').style.display='none'"></textarea>
+        <div id="con" class="console-terminal" style="display:none"></div>
+        <button id="verify-btn" class="btn-apple btn-primary" style="margin-top:15px" onclick="runL5('${lang}')">Verifica Codice</button>`;
 }
 
-// ------------------
-// Le funzioni esistenti showLevels, startStep, renderQ, check, next, renderL5, runL5 rimangono invariate
-// ------------------
+function runL5(l) {
+    const v = document.getElementById('ed').value.trim();
+    const c = challenges5[l];
+    if(v.includes(c.logic)) {
+        document.getElementById('inline-error').style.display = 'none';
+        const con = document.getElementById('con'); con.style.display = "block";
+        con.innerHTML = `> Esecuzione...\n> Output:\n${c.output}`;
+        document.getElementById('verify-btn').disabled = true;
+        setTimeout(() => { state.progress[l] = 5; localStorage.setItem('devProgress', JSON.stringify(state.progress)); showHome(); }, 2500);
+    } else { document.getElementById('inline-error').style.display = 'block'; }
+}
 
 function updateNav(s,t){ document.getElementById('back-nav').innerHTML = s?`<div class="back-link" onclick="${t}">〈 Indietro</div>`:""; }
