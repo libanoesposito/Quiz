@@ -1,5 +1,6 @@
-// 1. DATABASE E STATO (TUO ORIGINALE)
+// Database globale degli utenti
 let dbUsers = JSON.parse(localStorage.getItem('quiz_master_db')) || {};
+
 let state = {
     mode: null,      
     currentPin: null, 
@@ -7,8 +8,16 @@ let state = {
     progress: {},    
     history: {}
 };
+
 let session = null;
 const ADMIN_PIN = "3473";
+
+// Sfide per il livello 5 (Aggiungi qui le tue domande)
+const challenges5 = {
+    "HTML": { task: "Usa il tag per creare un elemento di una lista.", logic: "li" },
+    "Python": { task: "Scrivi il comando per stampare un testo.", logic: "print" },
+    "JavaScript": { task: "Scrivi il comando per creare un ciclo for.", logic: "for" }
+};
 
 window.onload = () => {
     initTheme();
@@ -30,7 +39,7 @@ function toggleTheme() {
 function updateNav(showBack, backTarget) {
     const b = document.getElementById('back-nav');
     const r = document.getElementById('right-nav');
-    b.innerHTML = showBack ? `<span class="back-link" onclick="${backTarget}">\u2039 Indietro</span>` : "";
+    b.innerHTML = showBack ? `<span class="back-link" onclick="${backTarget}">‹ Indietro</span>` : "";
     r.innerHTML = state.mode ? `<span class="logout-link" onclick="logout()">Esci</span>` : "";
 }
 
@@ -42,7 +51,6 @@ function saveMasterDB() {
     localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
 }
 
-// 2. LOGIN E PIN (TUO ORIGINALE)
 function renderLogin() {
     state.mode = null;
     updateNav(false);
@@ -58,7 +66,9 @@ function renderLogin() {
 function uiPin(type) {
     updateNav(true, "renderLogin()");
     let title = type === 'login' ? 'Bentornato' : 'Crea Profilo';
-    let nameField = type === 'register' ? `<input type="text" id="name-field" class="btn-apple" placeholder="Il tuo Nome" style="text-align:center; margin-bottom:10px">` : '';
+    let nameField = type === 'register' ? 
+        `<input type="text" id="name-field" class="btn-apple" placeholder="Il tuo Nome" style="text-align:center; margin-bottom:10px">` : '';
+
     document.getElementById('content-area').innerHTML = `
         <div style="display:flex; flex-direction:column; align-items:center; width:100%">
             <h3 style="margin-bottom:20px">${title}</h3>
@@ -94,7 +104,6 @@ function validatePin(type) {
 
 function setGuest() { state.mode = 'guest'; state.progress = {}; state.history = {}; showHome(); }
 
-// 3. NAVIGAZIONE PERCORSI (TUO ORIGINALE)
 function showHome() {
     updateNav(true, "renderLogin()");
     document.getElementById('app-title').innerText = "PERCORSI";
@@ -117,13 +126,12 @@ function showLevels(lang) {
     let html = ""; 
     const comp = state.progress[lang] || 0;
     for(let i=1; i<=5; i++) {
-        let label = (i === 5) ? "ESAMINATI" : "Livello " + i;
+        let label = "Livello " + i;
         let isLocked = false;
-        // Logica blocchi originale
         if (state.mode !== 'guest') {
             if (i === 4 && comp < 3) isLocked = true;
-            if (i === 5 && comp < 3) isLocked = true;
-            if (i > comp + 1 && i < 4) isLocked = true;
+            if (i === 5) { label = "ESAMINATI"; if (comp < 3) isLocked = true; }
+            else if (i > comp + 1 && i < 4) isLocked = true;
         }
         html += `<button class="btn-apple" ${isLocked ? 'disabled' : ''} onclick="startStep('${lang}',${i})">
             ${label} ${isLocked ? '🔒' : ''}
@@ -132,7 +140,6 @@ function showLevels(lang) {
     document.getElementById('content-area').innerHTML = html;
 }
 
-// 4. QUIZ (TUO ORIGINALE)
 function startStep(lang, lvl) {
     if(lvl === 5) renderL5(lang);
     else {
@@ -157,7 +164,7 @@ function renderQ() {
                 <span>DOMANDA ${session.idx + 1}/${session.q.length}</span>
             </div>
             <div style="width:100%; height:4px; background:rgba(120,120,128,0.1); border-radius:10px">
-                <div style="width:${progress}%; height:100%; background:var(--accent); border-radius:10px; transition:0.3s"></div>
+                <div style="width:${progress}%; height:100%; background:var(--accent); border-radius:10px; transition:0.3"></div>
             </div>
         </div>
         <h2 style="font-size:18px; margin-bottom:20px">${data.q}</h2>
@@ -190,74 +197,31 @@ function next() {
     }
 }
 
-// 5. LIVELLO 5 (INTEGRATO CON DOMANDA E CONTROLLO)
+// LIVELLO 5 - RIPRISTINATO STILE ORIGINALE
 function renderL5(lang) {
     updateNav(true, `showLevels('${lang}')`);
-    // Definiamo le sfide per lingua
-    const sfide = {
-        "Python": { task: "Stampa a video la parola 'Hello'.", logic: "print" },
-        "JavaScript": { task: "Crea un ciclo che usi 'for' o 'while'.", logic: "for" },
-        "HTML": { task: "Inserisci un tag per una lista puntata.", logic: "li" }
-    };
-    const sfidaCorrente = sfide[lang] || { task: "Scrivi il codice richiesto.", logic: "" };
-
+    const c = challenges5[lang] || { task: "Completa l'esercizio.", logic: "" };
     document.getElementById('content-area').innerHTML = `
         <h3>ESAMINATI: ${lang}</h3>
-        <p style="font-size:14px; margin-bottom:15px; opacity:0.8">${sfidaCorrente.task}</p>
-        <textarea id="ed" class="btn-apple" style="width:100%; height:180px; font-family:monospace; text-align:left; padding:15px; background:var(--card); resize:none" placeholder="// Scrivi qui il codice..."></textarea>
-        <div id="l5-err" style="color:#ff3b30; display:none; margin-top:10px; font-size:13px">Codice non corretto, controlla la logica.</div>
-        <button class="btn-apple btn-primary" style="margin-top:15px" onclick="runL5('${lang}', '${sfidaCorrente.logic}')">Verifica Esame</button>`;
+        <p style="font-size:14px; margin-bottom:10px">${c.task}</p>
+        <textarea id="ed" class="btn-apple" style="width:100%; height:150px; font-family:monospace; text-align:left; padding:15px; resize:none"></textarea>
+        <button class="btn-apple btn-primary" style="margin-top:10px" onclick="runL5('${lang}')">Verifica</button>
+        <div id="l5-err" style="color:#ff3b30; display:none; margin-top:10px">Codice non corretto.</div>`;
 }
 
-function runL5(l, parolaChiave) {
+function runL5(l) {
     const v = document.getElementById('ed').value.toLowerCase();
-    if(v.includes(parolaChiave.toLowerCase()) && v.trim().length > 3) {
+    const task = challenges5[l];
+    if(task && v.includes(task.logic)) {
         state.progress[l] = 5;
         saveMasterDB();
-        alert("Esame Superato!");
+        alert("Esame superato!");
         showHome();
     } else { 
         document.getElementById('l5-err').style.display = "block"; 
     }
 }
 
-// 6. PROFILO E POPUP (TUO ORIGINALE)
-function renderProfile() {
-    updateNav(true, "showHome()");
-    let html = "";
-    if (state.mode === 'admin') {
-        document.getElementById('app-title').innerText = "GESTIONE";
-        Object.keys(dbUsers).forEach(pin => {
-            if (pin === ADMIN_PIN) return;
-            const u = dbUsers[pin];
-            html += `<div class="review-card" style="border-left:4px solid var(--accent); margin-bottom:10px">
-                <strong>${u.name}</strong> (PIN: ${pin})
-                <div style="margin-top:5px">
-                    <button onclick="adminReset('${pin}')" style="background:none; border:none; color:orange">Resetta</button>
-                    <button onclick="adminDelete('${pin}')" style="background:none; border:none; color:red; margin-left:10px">Elimina</button>
-                </div>
-            </div>`;
-        });
-    } else {
-        document.getElementById('app-title').innerText = "PROFILO";
-        html += `<h3>Ciao, ${state.currentUser}</h3>
-        <div class="security-box" onclick="toggleSecurity()" style="cursor:pointer; padding:10px; background:var(--card); border-radius:8px">Sicurezza Account ›</div>
-        <div class="security-content" style="display:none; margin-top:10px">
-            <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
-            <button class="btn-apple" onclick="userSelfDelete()" style="color:red">Elimina Profilo</button>
-        </div>`;
-    }
-    document.getElementById('content-area').innerHTML = html;
-}
-
-function toggleSecurity() {
-    const content = document.querySelector('.security-content');
-    content.style.display = content.style.display === 'none' ? 'block' : 'none';
-}
-
 function logout() {
-    if(confirm("Vuoi uscire?")) {
-        state.mode = null;
-        renderLogin();
-    }
+    if(confirm("Vuoi uscire?")) { state.mode = null; renderLogin(); }
 }
