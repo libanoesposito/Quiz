@@ -152,11 +152,22 @@ function showLevels(lang) {
     document.getElementById('app-title').innerText = lang;
     let html = ""; 
     const comp = state.progress[lang] || 0;
+    
     for(let i=1; i<=5; i++) {
         let label = "Livello " + i;
         let isLocked = false;
-        if (i === 4 && comp < 3) isLocked = true;
-        if (i === 5) { label = "ESAMINATI"; if (comp < 3) isLocked = true; }
+
+        // Se l'utente NON è un guest, applichiamo i blocchi
+        if (state.mode !== 'guest') {
+            if (i === 4 && comp < 3) isLocked = true;
+            if (i === 5) { 
+                label = "ESAMINATI"; 
+                if (comp < 3) isLocked = true; 
+            }
+        } else {
+            // Se è guest, cambiamo solo la label per il livello 5
+            if (i === 5) label = "ESAMINATI";
+        }
         
         html += `<button class="btn-apple" ${isLocked ? 'disabled' : ''} onclick="startStep('${lang}',${i})">
             ${label} ${isLocked ? '🔒' : ''}
@@ -164,6 +175,7 @@ function showLevels(lang) {
     }
     document.getElementById('content-area').innerHTML = html;
 }
+
 
 function startStep(lang, lvl) {
     if(lvl === 5) renderL5(lang);
