@@ -180,3 +180,26 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
     width: 0%; /* Gestito da JS */
     transition: width 0.3s ease;
 }
+#editor {
+    width: 600px;
+    height: 200px;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    font-family: "Consolas", monospace;
+    font-size: 14px;
+    padding: 10px;
+    border-radius: 5px;
+    line-height: 1.5;
+    white-space: pre;
+}
+#editor:focus { outline: none; }
+
+#console-output {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    font-family: monospace;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+    min-height: 50px;
+}
