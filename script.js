@@ -601,3 +601,24 @@ function startQuiz(lang, level) {
     state.currentQuestionIndex = resumeIndex;
     renderQuestion();
 }
+renderQuestion();
+}
+
+function checkAnswer(isCorrect) {
+    // ... il tuo codice per gestire il feedback ...
+
+    // Sposta l'indice alla prossima domanda
+    state.currentQuestionIndex++;
+
+    // SALVATAGGIO PROGRESSO: 
+    const { lang, level } = state.currentQuiz;
+    if (!dbUsers[state.currentPin].activeProgress) {
+        dbUsers[state.currentPin].activeProgress = {};
+    }
+    
+    // Salviamo l'indice aggiornato nel database
+    dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = state.currentQuestionIndex;
+    saveMasterDB();
+
+    // ... prosegui con renderQuestion() o fine quiz ...
+}
