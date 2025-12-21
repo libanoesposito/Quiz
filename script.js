@@ -7,10 +7,10 @@ let state = {
     progress: {},    
     history: {},
     currentQuiz: null,
-    currentQuestionIndex: 0
+    currentQuestionIndex: 0,
+    currentL5QuestionIndex: 0
 };
 
-let session = null;
 const ADMIN_PIN = "3473";
 
 window.onload = () => {
@@ -18,6 +18,7 @@ window.onload = () => {
     renderLogin();
 };
 
+// --- THEME ---
 function initTheme() {
     const saved = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', saved);
@@ -30,6 +31,7 @@ function toggleTheme() {
     localStorage.setItem('theme', target);
 }
 
+// --- NAV ---
 function updateNav(showBack, backTarget) {
     const b = document.getElementById('back-nav');
     const r = document.getElementById('right-nav');
@@ -37,6 +39,7 @@ function updateNav(showBack, backTarget) {
     r.innerHTML = state.mode ? `<span class="logout-link" onclick="logout()">Esci</span>` : "";
 }
 
+// --- DB ---
 function saveMasterDB() {
     if (state.mode === 'user' && state.currentPin) {
         dbUsers[state.currentPin].progress = state.progress;
@@ -45,6 +48,7 @@ function saveMasterDB() {
     localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
 }
 
+// --- LOGIN / REGISTER / GUEST ---
 function renderLogin() {
     state.mode = null;
     updateNav(false);
@@ -103,6 +107,7 @@ function validatePin(type) {
 
 function setGuest() { state.mode = 'guest'; state.progress = {}; state.history = {}; showHome(); }
 
+// --- HOME ---
 function showHome() {
     updateNav(true, "renderLogin()");
     document.getElementById('app-title').innerText = "PERCORSI";
@@ -122,6 +127,7 @@ function showHome() {
     document.getElementById('content-area').innerHTML = html;
 }
 
+// --- LIVELLI ---
 function showLevels(lang) {
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = lang;
@@ -131,12 +137,9 @@ function showLevels(lang) {
     for(let i=1; i<=5; i++) {
         let label = (i === 5) ? "ESAMINATI" : "Livello " + i;
         let isLocked = false;
-        // TUA LOGICA ORIGINALE: Blocca 4 e 5 se progressi < 3
         if(state.mode !== 'guest') {
-    if ((i === 4 || i === 5) && comp < 3) isLocked = true;
-} else {
-    isLocked = false; // guest può aprire tutto
-}
+            if ((i === 4 || i === 5) && comp < 3) isLocked = true;
+        } 
         const key = "L" + i;
         const totalQ = (domandaRepo[lang] && domandaRepo[lang][key]) ? domandaRepo[lang][key].length : 0;
         const savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${i}`]) || 0;
@@ -156,13 +159,16 @@ function showLevels(lang) {
     document.getElementById('content-area').innerHTML = html;
 }
 
+// --- QUIZ ---
 function startQuiz(lang, lvl) {
     if(lvl === 5) { 
-        state.currentL5QuestionIndex = 0; // reset per livello 5
+        state.currentL5QuestionIndex = 0;
         renderL5(lang); 
         return; 
     }
-    ...
+    state.currentQuiz = { lang, level: lvl };
+    state.currentQuestionIndex = dbUsers[state.currentPin]?.activeProgress?.[`${lang}_${lvl}`] || 0;
+    renderQuestion();
 }
 
 function renderQuestion() {
@@ -222,6 +228,64 @@ function finishQuiz(lang, level) {
     showLevels(lang);
 }
 
+// --- LIVELLO 5 ---
+function renderL5(lang) {
+    const q = challenges5[lang][state.currentL5QuestionIndex];
+
+    const html = `
+        <h3>Esame ${lang}</h3>
+        <p style="margin-top:10px; font-weight:600">${q.task}</p>
+        <button class="btn-apple" onclick="showLevels('${lang}')">Indietro</button>
+        <div id="level5-container"></div>
+        <textarea id="editor" spellcheck="false" placeholder="Scrivi qui il codice..." 
+            style="width:100%; height:150px; background:#1e1e1e; color:#d4d4d4; font-family:monospace; padding:10px; margin-top:10px;"></textarea>
+        <button class="btn-apple btn-primary" id="run-button" style="margin-top:10px">Esegui</button>
+        <div id="console-output" style="background:#1e1e1e; color:#d4d4d4; font-family:monospace; padding:10px; margin-top:10px; border-radius:5px; min-height:50px;"></div>
+    `;
+    document.getElementById('content-area').innerHTML = html;
+
+    generateLevel5List(challenges5);
+
+    document.getElementById("run-button").addEventListener("click", () => {
+        const code = document.getElementById("editor").value;
+        testLevel5(code, lang);
+    });
+}
+
+function testLevel5(userCode, lang) {
+    const index = state.currentL5QuestionIndex;
+    const challenge = challenges5[lang][index];
+    if (!challenge) return alert("Lingua non trovata");
+
+    if (userCode.includes(challenge.logic)) {
+        if(state.mode !== 'guest') challenge.userStatus = "corretto";
+        displayConsoleOutput(challenge.output);
+        alert("Logica corretta!");
+    } else {
+        if(state.mode !== 'guest') challenge.userStatus = "sbagliato";
+        alert("Logica sbagliata, riprova!");
+        return;
+    }
+
+    document.getElementById("level5-container").remove();
+    generateLevel5List(challenges5);
+
+    state.currentL5QuestionIndex++;
+    if(state.currentL5QuestionIndex < challenges5[lang].length) {
+        renderL5(lang);
+    } else {
+        alert("Hai completato tutte le domande!");
+        showLevels(lang);
+        state.currentL5QuestionIndex = 0;
+    }
+}
+
+function displayConsoleOutput(output) {
+    const consoleDiv = document.getElementById("console-output");
+    consoleDiv.textContent = output;
+}
+
+// --- PROFILE / ADMIN ---
 function renderProfile() {
     updateNav(true, "showHome()");
     let html = "";
@@ -258,7 +322,7 @@ function renderProfile() {
     document.getElementById('content-area').innerHTML = html;
 }
 
-// FUNZIONI DI SUPPORTO (Popup, Admin, Security)
+// --- POPUP / UTILITY ---
 function showPopup(title, desc, confirmLabel, actionFn) {
     const modal = document.getElementById('universal-modal');
     if (!modal) { if (confirm(desc)) actionFn(); return; }
@@ -269,74 +333,8 @@ function showPopup(title, desc, confirmLabel, actionFn) {
     btn.onclick = () => { actionFn(); closeModal(); };
     modal.style.setProperty('display', 'flex', 'important');
 }
+
 function closeModal() { document.getElementById('universal-modal').style.display = 'none'; }
 function logout() { showPopup("Esci", "Vuoi disconnetterti?", "Esci", () => { location.reload(); }); }
 function toggleSecurity() { document.querySelector('.security-box')?.classList.toggle('open'); }
-function adminReset(pin) { showPopup("Reset", "Azzera progressi?", "Resetta", () => { dbUsers[pin].progress = {}; dbUsers[pin].activeProgress = {}; saveMasterDB(); renderProfile(); }); }
-function adminDelete(pin) { showPopup("Elimina", "Elimina utente?", "Elimina", () => { delete dbUsers[pin]; saveMasterDB(); renderProfile(); }); }
-function userChangePin() {
-    const n = prompt("Nuovo PIN (4 cifre):");
-    if (n && n.length === 4) {
-        const d = dbUsers[state.currentPin]; delete dbUsers[state.currentPin];
-        dbUsers[n] = d; state.currentPin = n; saveMasterDB(); alert("PIN Cambiato");
-    }
-}
-function userSelfDelete() { showPopup("Elimina", "Elimina il tuo profilo?", "Elimina", () => { delete dbUsers[state.currentPin]; saveMasterDB(); location.reload(); }); }
-
-function renderL5(lang) {
-    const q = challenges5[lang][state.currentL5QuestionIndex];
-
-    const html = `
-        <h3>Esame ${lang}</h3>
-        <p style="margin-top:10px; font-weight:600">${q.task}</p>
-        <button class="btn-apple" onclick="showLevels('${lang}')">Indietro</button>
-        <div id="level5-container"></div>
-        <textarea id="editor" spellcheck="false" placeholder="Scrivi qui il codice..." 
-            style="width:100%; height:150px; background:#1e1e1e; color:#d4d4d4; font-family:monospace; padding:10px; margin-top:10px;"></textarea>
-        <button class="btn-apple btn-primary" id="run-button" style="margin-top:10px">Esegui</button>
-        <div id="console-output" style="background:#1e1e1e; color:#d4d4d4; font-family:monospace; padding:10px; margin-top:10px; border-radius:5px; min-height:50px;"></div>
-    `;
-    document.getElementById('content-area').innerHTML = html;
-
-    generateLevel5List(challenges5);
-
-    document.getElementById("run-button").addEventListener("click", () => {
-        const code = document.getElementById("editor").value;
-        testLevel5(code, lang);
-    });
-}
-
-function testLevel5(userCode, lang) {
-    const index = state.currentL5QuestionIndex;
-    const challenge = challenges5[lang][index];
-    if (!challenge) return alert("Lingua non trovata");
-
-    if (userCode.includes(challenge.logic)) {
-        if(state.mode !== 'guest') challenge.userStatus = "corretto";
-        displayConsoleOutput(challenge.output);
-        alert("Logica corretta!");
-    } else {
-        if(state.mode !== 'guest') challenge.userStatus = "sbagliato";
-        alert("Logica sbagliata, riprova!");
-        return; // non avanza se sbagliato
-    }
-
-    // Aggiorna la lista dei pallini
-    document.getElementById("level5-container").remove();
-    generateLevel5List(challenges5);
-
-    // Passa alla domanda successiva
-    state.currentL5QuestionIndex++;
-    if(state.currentL5QuestionIndex < challenges5[lang].length) {
-        renderL5(lang);
-    } else {
-        alert("Hai completato tutte le domande!");
-        showLevels(lang);
-        state.currentL5QuestionIndex = 0; // reset per prossimo accesso
-    }
-}
-
-function displayConsoleOutput(output) {
-    const consoleDiv = document.getElementById("console-output");
-    consoleDiv.textContent = output;
-}
+function adminReset(pin) { showPopup("Reset", "Azzera progressi?", "Resetta", () => { dbUsers[pin].progress
