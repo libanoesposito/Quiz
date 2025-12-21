@@ -1,5 +1,5 @@
-// 1. STATO E COSTANTI
 let dbUsers = JSON.parse(localStorage.getItem('quiz_master_db')) || {};
+
 let state = {
     mode: null,      
     currentPin: null, 
@@ -9,6 +9,7 @@ let state = {
     currentQuiz: null,
     currentQuestionIndex: 0
 };
+
 let session = null;
 const ADMIN_PIN = "3473";
 
@@ -29,11 +30,10 @@ function toggleTheme() {
     localStorage.setItem('theme', target);
 }
 
-// 3. NAVIGAZIONE
 function updateNav(showBack, backTarget) {
     const b = document.getElementById('back-nav');
     const r = document.getElementById('right-nav');
-    b.innerHTML = showBack ? `<span class="back-link" onclick="${backTarget}">‹ Indietro</span>` : "";
+    b.innerHTML = showBack ? `<span class="back-link" onclick="${backTarget}">\u2039 Indietro</span>` : "";
     r.innerHTML = state.mode ? `<span class="logout-link" onclick="logout()">Esci</span>` : "";
 }
 
@@ -45,7 +45,6 @@ function saveMasterDB() {
     localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
 }
 
-// 4. LOGIN E PIN
 function renderLogin() {
     state.mode = null;
     updateNav(false);
@@ -61,14 +60,16 @@ function renderLogin() {
 function uiPin(type) {
     updateNav(true, "renderLogin()");
     let title = type === 'login' ? 'Bentornato' : 'Crea Profilo';
-    let nameField = type === 'register' ? `<input type="text" id="name-field" class="btn-apple" placeholder="Il tuo Nome" style="text-align:center; margin-bottom:15px; background:var(--card)">` : '';
+    let nameField = type === 'register' ? 
+        `<input type="text" id="name-field" class="btn-apple" placeholder="Il tuo Nome" style="text-align:center; margin-bottom:10px">` : '';
+
     document.getElementById('content-area').innerHTML = `
         <div style="display:flex; flex-direction:column; align-items:center; width:100%">
             <h3 style="margin-bottom:20px">${title}</h3>
             <div id="pin-error" style="color:#ff3b30; font-size:13px; margin-bottom:10px; display:none; padding:0 20px"></div>
             ${nameField}
-            <input type="password" id="pin-field" class="btn-apple" style="text-align:center; font-size:24px; letter-spacing:8px; background:var(--card)" maxlength="4" inputmode="numeric" placeholder="PIN">
-            <button class="btn-apple btn-primary" style="margin-top:25px" onclick="validatePin('${type}')">Conferma</button>
+            <input type="password" id="pin-field" class="btn-apple" style="text-align:center; font-size:24px; letter-spacing:8px" maxlength="4" inputmode="numeric" placeholder="PIN">
+            <button class="btn-apple btn-primary" style="margin-top:20px" onclick="validatePin('${type}')">Conferma</button>
         </div>`;
 }
 
@@ -82,7 +83,8 @@ function validatePin(type) {
     }
 
     if (type === 'register') {
-        const name = document.getElementById('name-field')?.value.trim();
+        const nameInput = document.getElementById('name-field');
+        const name = nameInput ? nameInput.value.trim() : "";
         if(!name) { errorEl.innerText = "Inserisci il tuo nome"; errorEl.style.display = "block"; return; }
         if (dbUsers[pin]) { errorEl.innerText = "Questo PIN è già in uso"; errorEl.style.display = "block"; return; }
         dbUsers[pin] = { name: name, progress: {}, history: {}, activeProgress: {} };
@@ -101,14 +103,14 @@ function validatePin(type) {
 
 function setGuest() { state.mode = 'guest'; state.progress = {}; state.history = {}; showHome(); }
 
-// 5. HOME E LIVELLI
 function showHome() {
     updateNav(true, "renderLogin()");
     document.getElementById('app-title').innerText = "PERCORSI";
     let html = `<div class="lang-grid">`;
     Object.keys(domandaRepo).forEach(l => {
         const icon = (l === 'HTML') ? 'html5' : l.toLowerCase();
-        html += `<div class="lang-item" onclick="renderLevels('${l}')">
+        html += `
+        <div class="lang-item" onclick="showLevels('${l}')">
             <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${icon}/${icon}-original.svg" width="35" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1005/1005141.png'">
             <div style="margin-top:10px; font-weight:700; font-size:13px">${l}</div>
         </div>`;
@@ -120,43 +122,43 @@ function showHome() {
     document.getElementById('content-area').innerHTML = html;
 }
 
-function renderLevels(lang) {
+function showLevels(lang) {
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = lang;
     let html = ""; 
-    const comp = state.progress[lang] || 1;
+    const comp = state.progress[lang] || 0;
     
     for(let i=1; i<=5; i++) {
+        let label = (i === 5) ? "ESAMINATI" : "Livello " + i;
+        let isLocked = false;
+        // TUA LOGICA ORIGINALE: Blocca 4 e 5 se progressi < 3
+        if ((i === 4 || i === 5) && comp < 3) isLocked = true;
+
         const key = "L" + i;
         const totalQ = (domandaRepo[lang] && domandaRepo[lang][key]) ? domandaRepo[lang][key].length : 0;
         const savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${i}`]) || 0;
         const percentage = totalQ > 0 ? (savedIdx / totalQ) * 100 : 0;
         
-        let isLocked = i > comp;
-        if (i === 5 && comp < 4) isLocked = true;
-
         html += `
-            <div class="level-card ${isLocked ? 'locked' : ''}" onclick="${isLocked ? '' : `startQuiz('${lang}', ${i})`}" style="margin-bottom:10px; padding:18px; position:relative">
-                <div style="display:flex; justify-content:space-between; align-items:center">
-                    <span style="font-weight:600">${i === 5 ? 'ESAMINATI' : 'Livello ' + i} ${isLocked ? '🔒' : ''}</span>
-                    <span style="font-size:12px; opacity:0.5">${savedIdx}/${totalQ}</span>
+            <button class="btn-apple" ${isLocked ? 'disabled' : ''} onclick="startQuiz('${lang}',${i})">
+                <div style="display:flex; justify-content:space-between; width:100%; align-items:center">
+                    <span>${label} ${isLocked ? '🔒' : ''}</span>
+                    <span style="font-size:10px; opacity:0.5">${savedIdx}/${totalQ}</span>
                 </div>
-                <div class="progress-container" style="width:100%; height:5px; background:rgba(120,120,128,0.1); border-radius:10px; margin-top:12px; overflow:hidden">
-                    <div class="progress-bar-fill" style="width:${percentage}%; height:100%; background:var(--accent); border-radius:10px; transition:0.4s ease"></div>
+                <div style="width:100%; height:3px; background:rgba(120,120,128,0.1); border-radius:10px; margin-top:8px">
+                    <div style="width:${percentage}%; height:100%; background:var(--accent); border-radius:10px; transition:0.3s"></div>
                 </div>
-            </div>`;
+            </button>`;
     }
     document.getElementById('content-area').innerHTML = html;
 }
 
-// 6. LOGICA QUIZ
 function startQuiz(lang, lvl) {
     if(lvl === 5) { renderL5(lang); return; }
-    const key = "L" + lvl;
     state.currentQuiz = { lang, level: lvl };
     const savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${lvl}`]) || 0;
     state.currentQuestionIndex = savedIdx;
-    updateNav(true, `renderLevels('${lang}')`);
+    updateNav(true, `showLevels('${lang}')`);
     renderQuestion();
 }
 
@@ -170,18 +172,16 @@ function renderQuestion() {
     const progress = (state.currentQuestionIndex / questions.length) * 100;
 
     document.getElementById('content-area').innerHTML = `
-        <div style="width:100%; margin-bottom:25px">
-            <div style="display:flex; justify-content:space-between; font-size:11px; opacity:0.5; margin-bottom:8px; font-weight:600">
-                <span>DOMANDA ${state.currentQuestionIndex + 1} DI ${questions.length}</span>
+        <div style="width:100%; margin-bottom:15px">
+            <div style="display:flex; justify-content:space-between; font-size:11px; opacity:0.5; margin-bottom:5px">
+                <span>DOMANDA ${state.currentQuestionIndex + 1}/${questions.length}</span>
             </div>
-            <div style="width:100%; height:6px; background:rgba(120,120,128,0.1); border-radius:10px; overflow:hidden">
-                <div style="width:${progress}%; height:100%; background:var(--accent); border-radius:10px; transition:0.4s ease"></div>
+            <div style="width:100%; height:4px; background:rgba(120,120,128,0.1); border-radius:10px">
+                <div style="width:${progress}%; height:100%; background:var(--accent); border-radius:10px; transition:0.3s"></div>
             </div>
         </div>
-        <h2 style="font-size:22px; margin-bottom:30px; line-height:1.3">${qData.q}</h2>
-        <div id="opts" style="display:flex; flex-direction:column; gap:12px; width:100%">
-            ${qData.options.map((o,i)=>`<button class="btn-apple" style="text-align:left; padding:18px; font-size:16px; background:var(--card)" onclick="checkAnswer(${i === qData.correct}, '${qData.exp.replace(/'/g, "\\'")}')">${o}</button>`).join('')}
-        </div>
+        <h2 style="font-size:18px; margin-bottom:20px">${qData.q}</h2>
+        <div id="opts" style="width:100%">${qData.options.map((o,i)=>`<button class="btn-apple" onclick="checkAnswer(${i === qData.correct}, '${qData.exp.replace(/'/g, "\\'")}')">${o}</button>`).join('')}</div>
         <div id="fb"></div>`;
 }
 
@@ -193,9 +193,9 @@ function checkAnswer(isOk, exp) {
     }
     document.getElementById('opts').style.pointerEvents = "none";
     document.getElementById('fb').innerHTML = `
-        <div class="feedback-box ${isOk?'correct':'wrong'}" style="margin-top:25px; padding:20px; border-radius:15px; animation: slideUp 0.3s ease">
-            <strong style="font-size:18px">${isOk?'Ottimo!':'Riprova'}</strong>
-            <p style="margin:10px 0; font-size:15px; line-height:1.4 opacity:0.9">${exp}</p>
+        <div class="feedback-box ${isOk?'correct':'wrong'}">
+            <strong>${isOk?'Giusto!':'Sbagliato'}</strong>
+            <p>${exp}</p>
             <button class="btn-apple btn-primary" onclick="nextQuestion()">Continua</button>
         </div>`;
 }
@@ -213,53 +213,49 @@ function nextQuestion() {
 
 function finishQuiz(lang, level) {
     if (dbUsers[state.currentPin]?.activeProgress) dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = 0;
-    state.progress[lang] = Math.max(state.progress[lang] || 1, level + 1);
+    state.progress[lang] = Math.max(state.progress[lang] || 0, level);
     saveMasterDB();
-    alert("Livello completato con successo!");
-    renderLevels(lang);
+    alert("Livello completato!");
+    showLevels(lang);
 }
 
-// 7. PROFILO
 function renderProfile() {
     updateNav(true, "showHome()");
     let html = "";
     if (state.mode === 'admin') {
-        document.getElementById('app-title').innerText = "GESTIONE";
-        html += `<div style="text-align:right; margin-bottom:15px"><button onclick="renderProfile()" class="btn-apple" style="width:auto; padding:8px 15px; font-size:13px">Aggiorna 🔄</button></div>`;
+        document.getElementById('app-title').innerText = "GESTIONE UTENTI";
+        html += `<div style="text-align:right; margin-bottom: 15px;"><button onclick="renderProfile()" class="btn-apple" style="width:auto; padding:5px 15px; font-size:12px">Aggiorna 🔄</button></div>`;
         Object.keys(dbUsers).forEach(pin => {
             if (pin === ADMIN_PIN) return;
             const u = dbUsers[pin];
-            html += `
-            <div class="review-card" style="border-left:4px solid var(--accent); margin-bottom:12px; padding:15px; display:flex; justify-content:space-between; align-items:center">
-                <div><strong>${u.name}</strong><br><small style="opacity:0.6">PIN: ${pin}</small></div>
-                <div style="display:flex; gap:10px">
-                    <button onclick="adminReset('${pin}')" style="background:none; border:none; font-size:20px; cursor:pointer">🔄</button>
-                    <button onclick="adminDelete('${pin}')" style="background:none; border:none; font-size:20px; cursor:pointer">🗑️</button>
+            html += `<div class="review-card" style="border-left:4px solid var(--accent); margin-bottom:15px; display:flex; justify-content:space-between; align-items:center">
+                <div><strong>${u.name}</strong><br><small>PIN: ${pin}</small></div>
+                <div>
+                    <button onclick="adminReset('${pin}')" style="background:none; border:none; font-size:18px">🔄</button>
+                    <button onclick="adminDelete('${pin}')" style="background:none; border:none; font-size:18px">🗑️</button>
                 </div>
             </div>`;
         });
     } else {
         document.getElementById('app-title').innerText = "PROFILO";
-        html += `<h3 style="margin-bottom:20px">Ciao, ${state.currentUser}</h3>
-            <div class="security-box" style="background:rgba(120,120,128,0.08); border-radius:12px; margin-bottom:25px">
-                <div class="security-header" onclick="toggleSecurity()" style="padding:15px; cursor:pointer; display:flex; justify-content:space-between">
-                    <span>Sicurezza Account</span><span class="chevron">›</span>
+        html += `<h3>Ciao, ${state.currentUser}</h3>
+            <div class="security-box">
+                <div class="security-header" onclick="toggleSecurity()"><span>Sicurezza Account</span><span class="chevron">›</span></div>
+                <div class="security-content">
+                    <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
+                    <button class="btn-apple" style="color:#ff3b30" onclick="userSelfDelete()">Elimina Profilo</button>
                 </div>
-                <div class="security-content" style="padding:0 15px; max-height:0; overflow:hidden; transition:0.3s ease">
-                    <button class="btn-apple" onclick="userChangePin()" style="margin-bottom:10px; background:var(--card)">Cambia PIN</button>
-                    <button class="btn-apple" style="color:#ff3b30; background:none; border:none" onclick="userSelfDelete()">Elimina Profilo</button>
-                </div>
-            </div>
-            <h4 style="border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:15px">Attività Recente</h4>`;
-        const entries = (state.history[Object.keys(state.history)[0]] || []).slice(-3).reverse();
-        entries.forEach(h => {
-            html += `<div class="review-card ${h.ok?'is-ok':'is-err'}" style="margin-bottom:8px; padding:12px; font-size:13px">${h.q}</div>`;
+            </div>`;
+        Object.keys(state.history).forEach(lang => {
+            state.history[lang].slice(-3).reverse().forEach(h => {
+                html += `<div class="review-card ${h.ok?'is-ok':'is-err'}" style="font-size:12px; margin-bottom:5px">${h.q}</div>`;
+            });
         });
     }
     document.getElementById('content-area').innerHTML = html;
 }
 
-// 8. POPUP E AZIONI (RIMASTE INVARIATE)
+// FUNZIONI DI SUPPORTO (Popup, Admin, Security)
 function showPopup(title, desc, confirmLabel, actionFn) {
     const modal = document.getElementById('universal-modal');
     if (!modal) { if (confirm(desc)) actionFn(); return; }
@@ -271,7 +267,7 @@ function showPopup(title, desc, confirmLabel, actionFn) {
     modal.style.setProperty('display', 'flex', 'important');
 }
 function closeModal() { document.getElementById('universal-modal').style.display = 'none'; }
-function logout() { showPopup("Esci", "Vuoi disconnetterti?", "Esci", () => { state.mode = null; state.currentPin = null; location.reload(); }); }
+function logout() { showPopup("Esci", "Vuoi disconnetterti?", "Esci", () => { location.reload(); }); }
 function toggleSecurity() { document.querySelector('.security-box')?.classList.toggle('open'); }
 function adminReset(pin) { showPopup("Reset", "Azzera progressi?", "Resetta", () => { dbUsers[pin].progress = {}; dbUsers[pin].activeProgress = {}; saveMasterDB(); renderProfile(); }); }
 function adminDelete(pin) { showPopup("Elimina", "Elimina utente?", "Elimina", () => { delete dbUsers[pin]; saveMasterDB(); renderProfile(); }); }
@@ -283,4 +279,4 @@ function userChangePin() {
     }
 }
 function userSelfDelete() { showPopup("Elimina", "Elimina il tuo profilo?", "Elimina", () => { delete dbUsers[state.currentPin]; saveMasterDB(); location.reload(); }); }
-function renderL5(lang) { document.getElementById('content-area').innerHTML = `<h3>Esame ${lang}</h3><p style="margin:20px 0; opacity:0.7">Contenuto in fase di aggiornamento...</p><button class="btn-apple" onclick="renderLevels('${lang}')">Indietro</button>`; }
+function renderL5(lang) { document.getElementById('content-area').innerHTML = `<h3>Esame ${lang}</h3><button class="btn-apple" onclick="showLevels('${lang}')">Indietro</button>`; }
