@@ -28,7 +28,17 @@
 
     <script src="database.js"></script>
     <script src="script.js"></script>
+    <div id="logout-modal" class="modal-overlay" onclick="closeLogoutModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h3 style="margin-bottom: 8px;">Vuoi uscire?</h3>
+        <p style="font-size: 13px; opacity: 0.6; margin-bottom: 20px;">Dovrai inserire nuovamente il PIN per accedere.</p>
+        <button class="modal-btn btn-destruct" onclick="confirmLogout()">Esci</button>
+        <button class="modal-btn btn-cancel" onclick="closeLogoutModal()">Annulla</button>
+    </div>
+</div>
+
 </body>
 </html>
+
 
 
