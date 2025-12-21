@@ -111,13 +111,36 @@ function showLevels(lang) {
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = lang;
     let html = ""; 
+    
+    // Recuperiamo il progresso per questo linguaggio
+    // progress[lang] salva l'ultimo livello completato con successo
     const comp = state.progress[lang] || 0;
+
     for(let i=1; i<=5; i++) {
-        let isLocked = (state.mode === 'user' && i === 5 && comp < 4);
-        html += `<button class="btn-apple" ${isLocked ? 'disabled' : ''} onclick="startStep('${lang}',${i})">Livello ${i} ${isLocked ? '🔒' : ''}</button>`;
+        let label = "Livello " + i;
+        let isLocked = false;
+
+        // Regola Livello 4: sbloccato solo se completati 1, 2 e 3
+        if (i === 4) {
+            if (comp < 3) isLocked = true;
+        }
+
+        // Regola Livello 5: Rinominato in "ESAMINATI" e sbloccato dopo il Livello 3
+        if (i === 5) {
+            label = "METTITI ALLA PROVA";
+            if (comp < 3) isLocked = true;
+        }
+
+        // I livelli 1, 2, 3 rimangono sempre isLocked = false (accessibili)
+
+        html += `<button class="btn-apple" ${isLocked ? 'disabled' : ''} onclick="startStep('${lang}',${i})">
+            ${label} ${isLocked ? '🔒' : ''}
+        </button>`;
     }
+    
     document.getElementById('content-area').innerHTML = html;
 }
+
 
 // --- LOGICA QUIZ ---
 function startStep(lang, lvl) {
