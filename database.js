@@ -251,4 +251,32 @@ const quizDB = {
       {"q":"Come si usa data attributes in tabella?","options":["data-id=\"123\"","custom-data=\"123\"","info=\"123\"","value=\"123\""],"correct":0,"exp":"data-* per dati custom","code":"<tr data-user-id=\"456\"><td>Mario</td></tr>"}
     ]
   }
+  // ===== FUNZIONI PROFILO AGGIUNTIVE =====
+
+// Salva utente (per import/export o cambio PIN)
+function saveUser(user) {
+    localStorage.setItem('devUserId', user.userId);
+    localStorage.setItem('devProgress', JSON.stringify(user.progress || {}));
+    localStorage.setItem('devHistory', JSON.stringify(user.history || {}));
+}
+
+// Recupera utente corrente
+function getUser(id) {
+    if(!id) return null;
+    return {
+        userId: localStorage.getItem('devUserId'),
+        progress: JSON.parse(localStorage.getItem('devProgress')) || {},
+        history: JSON.parse(localStorage.getItem('devHistory')) || {}
+    };
+}
+
+// Reset completo del profilo
+function resetCurrentUser() {
+    localStorage.removeItem('devUserId');
+    localStorage.removeItem('devProgress');
+    localStorage.removeItem('devHistory');
+    state.userId = null;
+    state.progress = {};
+    state.history = {};
+}
 }
