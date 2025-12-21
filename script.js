@@ -553,3 +553,42 @@ function closeModal() {
     const modal = document.getElementById('universal-modal');
     if (modal) modal.style.setProperty('display', 'none', 'important');
 }
+
+function saveCurrentStep(lang, level, questionIndex) {
+    if (!dbUsers[state.currentPin].activeProgress) {
+        dbUsers[state.currentPin].activeProgress = {};
+    }
+    
+    // Salva a che domanda siamo arrivati per quel preciso livello
+    dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = questionIndex;
+    saveMasterDB();
+}
+function renderLevels(lang) {
+    updateNav(true, "showHome()");
+    let html = `<h2>Livelli ${lang.toUpperCase()}</h2>`;
+    
+    // Supponiamo che ogni livello abbia 15 domande
+    const totalQuestions = 15; 
+
+    for (let i = 1; i <= 5; i++) {
+        // Recuperiamo il progresso salvato per questo specifico livello
+        const savedProgress = dbUsers[state.currentPin].activeProgress?.[`${lang}_${i}`] || 0;
+        const percentage = (savedProgress / totalQuestions) * 100;
+        
+        const isLocked = i > (dbUsers[state.currentPin].progress[lang] || 1);
+        
+        html += `
+            <div class="level-card ${isLocked ? 'locked' : ''}" onclick="${isLocked ? '' : `startQuiz('${lang}', ${i})`}">
+                <div style="display:flex; justify-content:space-between">
+                    <span>Livello ${i}</span>
+                    <span style="font-size:12px; opacity:0.6">${savedProgress}/${totalQuestions}</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar-fill" style="width: ${percentage}%"></div>
+                </div>
+            </div>
+        `;
+    }
+    document.getElementById('content-area').innerHTML = html;
+}
+
