@@ -8,14 +8,14 @@
 </head>
 <body>
     <div class="glass-bg"></div>
-   <header class="glass-header">
-    <div id="back-nav"></div>
-    <h1 id="app-title">QUIZ</h1>
-    <div id="right-nav"></div>
-</header>
 
-<div class="header-spacer"></div>
+    <header class="glass-header">
+        <div id="back-nav"></div>
+        <h1 id="app-title">QUIZ</h1>
+        <div id="right-nav"></div>
+    </header>
 
+    <div class="header-spacer"></div>
 
     <main class="main-container">
         <div class="glass-card">
@@ -24,41 +24,40 @@
     </main>
 
     <div class="theme-toggle" onclick="toggleTheme()" id="theme-btn">
-        <svg id="theme-icon" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        <svg id="theme-icon" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </div>
+
+    <!-- Modale logout -->
+    <div id="logout-modal" class="modal-overlay" onclick="closeLogoutModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 style="margin-bottom: 8px;">Vuoi uscire?</h3>
+            <p style="font-size: 13px; opacity: 0.6; margin-bottom: 20px;">Dovrai inserire nuovamente il PIN per accedere.</p>
+            <button class="modal-btn btn-destruct" onclick="confirmLogout()">Esci</button>
+            <button class="modal-btn btn-cancel" onclick="closeLogoutModal()">Annulla</button>
+        </div>
+    </div>
+
+    <!-- Modale universale -->
+    <div id="universal-modal" class="modal-overlay" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 id="modal-title">Titolo</h3>
+            <p id="modal-desc" style="font-size: 13px; opacity: 0.6; margin-bottom: 20px;">Descrizione</p>
+            <button id="modal-confirm-btn" class="modal-btn btn-destruct">Conferma</button>
+            <button class="modal-btn btn-cancel" onclick="closeModal()">Annulla</button>
+        </div>
+    </div>
+
+    <!-- Editor e console per livello 5 -->
+    <div id="editor-container" style="display:none; margin-top:15px;">
+        <textarea id="editor" spellcheck="false" placeholder="Scrivi qui il codice..." 
+            style="width:100%; height:150px; background:#1e1e1e; color:#d4d4d4; font-family:monospace; padding:10px;"></textarea>
+        <button id="run-button" class="btn-apple btn-primary" style="margin-top:10px">Esegui</button>
+        <div id="console-output" style="background:#1e1e1e; color:#d4d4d4; font-family:monospace; padding:10px; margin-top:10px; border-radius:5px; min-height:50px;"></div>
     </div>
 
     <script src="database.js"></script>
     <script src="script.js"></script>
-    <div id="logout-modal" class="modal-overlay" onclick="closeLogoutModal(event)">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <h3 style="margin-bottom: 8px;">Vuoi uscire?</h3>
-        <p style="font-size: 13px; opacity: 0.6; margin-bottom: 20px;">Dovrai inserire nuovamente il PIN per accedere.</p>
-        <button class="modal-btn btn-destruct" onclick="confirmLogout()">Esci</button>
-        <button class="modal-btn btn-cancel" onclick="closeLogoutModal()">Annulla</button>
-    </div>
-</div>
-<div id="universal-modal" class="modal-overlay" onclick="closeModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <h3 id="modal-title">Titolo</h3>
-        <p id="modal-desc" style="font-size: 13px; opacity: 0.6; margin-bottom: 20px;">Descrizione</p>
-        <button id="modal-confirm-btn" class="modal-btn btn-destruct">Conferma</button>
-        <button class="modal-btn btn-cancel" onclick="closeModal()">Annulla</button>
-    </div>
-</div>
-<div id="editor-container">
-  <textarea id="editor" spellcheck="false"></textarea>
-  <button id="run-button">Esegui</button>
-</div>
-
-<div id="console-output"></div>
-
 </body>
 </html>
-
-
-
-
-
-
-
-
