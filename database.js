@@ -394,9 +394,36 @@ const domandaRepo = {
 };
 
 const challenges5 = {
-    Python: { task: "Usa range(1, 4)", logic: "range(1, 4)", output: "1\n2\n3" },
-    JavaScript: { task: "Ciclo for", logic: "for", output: "OK" },
-    Java: { task: "Main", logic: "main", output: "OK" },
-    MySQL: { task: "Select", logic: "SELECT", output: "OK" },
-    HTML: { task: "Div", logic: "<div>", output: "OK" }
+    Python: [
+        { task: "Conta da 1 a 3", logic: "for i in range(1, 4)", output: "1\n2\n3", userStatus: null },
+        { task: "Stampa numeri pari fino a 6", logic: "for i in range(2,7,2)", output: "2\n4\n6", userStatus: null },
+        { task: "Somma numeri da 1 a 5", logic: "sum(range(1,6))", output: "15", userStatus: null },
+        { task: "Crea una lista di quadrati 1-5", logic: "[i*i for i in range(1,6)]", output: "[1, 4, 9, 16, 25]", userStatus: null },
+        { task: "Stampa 'Ciao' 3 volte usando ciclo", logic: "for i in range(3): print('Ciao')", output: "Ciao\nCiao\nCiao", userStatus: null }
+    ],
+    JavaScript: [
+        { task: "Conta da 1 a 5", logic: "for(let i=1;i<=5;i++)", output: "1\n2\n3\n4\n5", userStatus: null },
+        { task: "Ciclo su array [1,2,3]", logic: "for(let x of [1,2,3])", output: "1\n2\n3", userStatus: null },
+        { task: "Somma numeri da 1 a 5", logic: "let sum=0;for(let i=1;i<=5;i++)", output: "15", userStatus: null },
+        { task: "Stampa solo numeri pari 1-10", logic: "if(i%2===0)", output: "2\n4\n6\n8\n10", userStatus: null },
+        { task: "Crea array di quadrati 1-5", logic: "[1,2,3,4,5].map(x=>x*x)", output: "[1,4,9,16,25]", userStatus: null }
+    ],
+    Java: [
+        { task: "Main che stampa 'Ciao'", logic: "System.out.println(\"Ciao\")", output: "Ciao", userStatus: null },
+        { task: "Conta da 1 a 3", logic: "for(int i=1;i<=3;i++)", output: "1\n2\n3", userStatus: null },
+        { task: "Somma numeri 1-5", logic: "int sum=0;for(int i=1;i<=5;i++)", output: "15", userStatus: null },
+        { task: "Stampa numeri pari 1-6", logic: "if(i%2==0)", output: "2\n4\n6", userStatus: null }
+    ],
+    MySQL: [
+        { task: "Seleziona tutti da tabella utenti", logic: "SELECT * FROM utenti", output: "OK", userStatus: null },
+        { task: "Conta record tabella prodotti", logic: "SELECT COUNT(*) FROM prodotti", output: "OK", userStatus: null },
+        { task: "Seleziona nome e prezzo da prodotti", logic: "SELECT nome, prezzo FROM prodotti", output: "OK", userStatus: null },
+        { task: "Seleziona prodotti con prezzo > 100", logic: "SELECT * FROM prodotti WHERE prezzo>100", output: "OK", userStatus: null }
+    ],
+    HTML: [
+        { task: "Crea un div", logic: "<div>", output: "OK", userStatus: null },
+        { task: "Crea un paragrafo", logic: "<p>", output: "OK", userStatus: null },
+        { task: "Crea un link ad esempio.com", logic: "<a href=", output: "OK", userStatus: null },
+        { task: "Crea un elenco non ordinato", logic: "<ul>", output: "OK", userStatus: null }
+    ]
 };
