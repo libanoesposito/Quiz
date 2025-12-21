@@ -107,14 +107,37 @@ function showLevels(lang) {
 }
 
 function startStep(lang, lvl) {
-    if(lvl === 5) renderL5(lang);
-    else {
-        const key = "L"+lvl;
-        if(!quizDB[lang][key] || quizDB[lang][key].length === 0) return alert("Livello in arrivo!");
-        session = { lang, lvl, q: [...quizDB[lang][key]], idx: 0 };
+    if(lvl === 5) {
+        renderL5(lang);
+    } else {
+        const key = "L" + lvl;
+        const stringheDomande = domandaRepo[lang][key];
+        
+        if(!stringheDomande || stringheDomande.length === 0) {
+            document.getElementById('content-area').innerHTML = `<h3>In arrivo</h3><button class="btn-apple" onclick="showLevels('${lang}')">Indietro</button>`;
+            return;
+        }
+
+        // 1. Mescoliamo le stringhe
+        const rimescolate = stringheDomande.sort(() => 0.5 - Math.random());
+        
+        // 2. Prendiamo le prime 15 e trasformiamole in oggetti veri
+        const selezione = rimescolate.slice(0, 15).map(riga => {
+            const parti = riga.split("|");
+            return {
+                q: parti[0],
+                options: [parti[1], parti[2], parti[3]],
+                correct: parseInt(parti[4]),
+                exp: parti[5],
+                code: "" // Opzionale: puoi aggiungerlo come sesta parte se vuoi
+            };
+        });
+
+        session = { lang: lang, lvl: lvl, q: selezione, idx: 0 };
         renderQ();
     }
 }
+
 
 function renderQ() {
     const data = session.q[session.idx];
