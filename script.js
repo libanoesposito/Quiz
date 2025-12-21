@@ -18,7 +18,6 @@ window.onload = () => {
     renderLogin();
 };
 
-// --- THEME ---
 function initTheme() {
     const saved = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', saved);
@@ -31,7 +30,6 @@ function toggleTheme() {
     localStorage.setItem('theme', target);
 }
 
-// --- NAV ---
 function updateNav(showBack, backTarget) {
     const b = document.getElementById('back-nav');
     const r = document.getElementById('right-nav');
@@ -39,7 +37,6 @@ function updateNav(showBack, backTarget) {
     r.innerHTML = state.mode ? `<span class="logout-link" onclick="logout()">Esci</span>` : "";
 }
 
-// --- DB ---
 function saveMasterDB() {
     if (state.mode === 'user' && state.currentPin) {
         dbUsers[state.currentPin].progress = state.progress;
@@ -48,7 +45,7 @@ function saveMasterDB() {
     localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
 }
 
-// --- LOGIN / REGISTER / GUEST ---
+// -------- LOGIN / REGISTER / GUEST --------
 function renderLogin() {
     state.mode = null;
     updateNav(false);
@@ -57,7 +54,7 @@ function renderLogin() {
         <div style="display:flex; flex-direction:column; gap:12px; padding-top:10px; width:100%; align-items:center">
             <button class="btn-apple btn-primary" onclick="uiPin('login')">Accedi con PIN</button>
             <button class="btn-apple" onclick="uiPin('register')">Nuovo Utente</button>
-            <button class="btn-apple" style="background:none; color:var(--accent); text-align:center" onclick="setGuest()">Entra come Guest</button>
+            <button class="btn-apple" style="background:none; color:var(--accent);" onclick="setGuest()">Entra come Guest</button>
         </div>`;
 }
 
@@ -105,9 +102,14 @@ function validatePin(type) {
     showHome();
 }
 
-function setGuest() { state.mode = 'guest'; state.progress = {}; state.history = {}; showHome(); }
+function setGuest() {
+    state.mode = 'guest';
+    state.progress = {};
+    state.history = {};
+    showHome();
+}
 
-// --- HOME ---
+// -------- HOME / LIVELLI --------
 function showHome() {
     updateNav(true, "renderLogin()");
     document.getElementById('app-title').innerText = "PERCORSI";
@@ -127,7 +129,6 @@ function showHome() {
     document.getElementById('content-area').innerHTML = html;
 }
 
-// --- LIVELLI ---
 function showLevels(lang) {
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = lang;
@@ -139,7 +140,8 @@ function showLevels(lang) {
         let isLocked = false;
         if(state.mode !== 'guest') {
             if ((i === 4 || i === 5) && comp < 3) isLocked = true;
-        } 
+        }
+
         const key = "L" + i;
         const totalQ = (domandaRepo[lang] && domandaRepo[lang][key]) ? domandaRepo[lang][key].length : 0;
         const savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${i}`]) || 0;
@@ -159,14 +161,14 @@ function showLevels(lang) {
     document.getElementById('content-area').innerHTML = html;
 }
 
-// --- QUIZ ---
+// -------- QUIZ --------
 function startQuiz(lang, lvl) {
-    if(lvl === 5) { 
+    if(lvl === 5) {
         state.currentL5QuestionIndex = 0;
-        renderL5(lang); 
-        return; 
+        renderL5(lang);
+        return;
     }
-    state.currentQuiz = { lang, level: lvl };
+    state.currentQuiz = { lang: lang, level: lvl };
     state.currentQuestionIndex = dbUsers[state.currentPin]?.activeProgress?.[`${lang}_${lvl}`] || 0;
     renderQuestion();
 }
@@ -190,7 +192,7 @@ function renderQuestion() {
             </div>
         </div>
         <h2 style="font-size:18px; margin-bottom:20px">${qData.q}</h2>
-        <div id="opts" style="width:100%">${qData.options.map((o,i)=>`<button class="btn-apple" onclick="checkAnswer(${i === qData.correct}, '${qData.exp.replace(/'/g, "\\'")}')">${o}</button>`).join('')}</div>
+        <div id="opts" style="width:100%">${qData.options.map((o,i)=>`<button class="btn-apple" onclick="checkAnswer(${i===qData.correct},'${qData.exp.replace(/'/g,"\\'")}')">${o}</button>`).join('')}</div>
         <div id="fb"></div>`;
 }
 
@@ -228,9 +230,10 @@ function finishQuiz(lang, level) {
     showLevels(lang);
 }
 
-// --- LIVELLO 5 ---
+// -------- LIVELLO 5 --------
 function renderL5(lang) {
     const q = challenges5[lang][state.currentL5QuestionIndex];
+    if(!q) { showLevels(lang); return; }
 
     const html = `
         <h3>Esame ${lang}</h3>
@@ -244,8 +247,6 @@ function renderL5(lang) {
     `;
     document.getElementById('content-area').innerHTML = html;
 
-    generateLevel5List(challenges5);
-
     document.getElementById("run-button").addEventListener("click", () => {
         const code = document.getElementById("editor").value;
         testLevel5(code, lang);
@@ -255,9 +256,9 @@ function renderL5(lang) {
 function testLevel5(userCode, lang) {
     const index = state.currentL5QuestionIndex;
     const challenge = challenges5[lang][index];
-    if (!challenge) return alert("Lingua non trovata");
+    if(!challenge) return alert("Lingua non trovata");
 
-    if (userCode.includes(challenge.logic)) {
+    if(userCode.includes(challenge.logic)) {
         if(state.mode !== 'guest') challenge.userStatus = "corretto";
         displayConsoleOutput(challenge.output);
         alert("Logica corretta!");
@@ -266,9 +267,6 @@ function testLevel5(userCode, lang) {
         alert("Logica sbagliata, riprova!");
         return;
     }
-
-    document.getElementById("level5-container").remove();
-    generateLevel5List(challenges5);
 
     state.currentL5QuestionIndex++;
     if(state.currentL5QuestionIndex < challenges5[lang].length) {
@@ -285,36 +283,36 @@ function displayConsoleOutput(output) {
     consoleDiv.textContent = output;
 }
 
-// --- PROFILE / ADMIN ---
+// -------- PROFILO / ADMIN --------
 function renderProfile() {
     updateNav(true, "showHome()");
     let html = "";
-    if (state.mode === 'admin') {
-        document.getElementById('app-title').innerText = "GESTIONE UTENTI";
+    if(state.mode==='admin') {
+        document.getElementById('app-title').innerText="GESTIONE UTENTI";
         html += `<div style="text-align:right; margin-bottom: 15px;"><button onclick="renderProfile()" class="btn-apple" style="width:auto; padding:5px 15px; font-size:12px">Aggiorna 🔄</button></div>`;
-        Object.keys(dbUsers).forEach(pin => {
-            if (pin === ADMIN_PIN) return;
+        Object.keys(dbUsers).forEach(pin=>{
+            if(pin===ADMIN_PIN) return;
             const u = dbUsers[pin];
             html += `<div class="review-card" style="border-left:4px solid var(--accent); margin-bottom:15px; display:flex; justify-content:space-between; align-items:center">
-                <div><strong>${u.name}</strong><br><small>PIN: ${pin}</small></div>
-                <div>
-                    <button onclick="adminReset('${pin}')" style="background:none; border:none; font-size:18px">🔄</button>
-                    <button onclick="adminDelete('${pin}')" style="background:none; border:none; font-size:18px">🗑️</button>
-                </div>
-            </div>`;
+                        <div><strong>${u.name}</strong><br><small>PIN: ${pin}</small></div>
+                        <div>
+                            <button onclick="adminReset('${pin}')" style="background:none; border:none; font-size:18px">🔄</button>
+                            <button onclick="adminDelete('${pin}')" style="background:none; border:none; font-size:18px">🗑️</button>
+                        </div>
+                     </div>`;
         });
     } else {
-        document.getElementById('app-title').innerText = "PROFILO";
+        document.getElementById('app-title').innerText="PROFILO";
         html += `<h3>Ciao, ${state.currentUser}</h3>
-            <div class="security-box">
-                <div class="security-header" onclick="toggleSecurity()"><span>Sicurezza Account</span><span class="chevron">›</span></div>
-                <div class="security-content">
-                    <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
-                    <button class="btn-apple" style="color:#ff3b30" onclick="userSelfDelete()">Elimina Profilo</button>
-                </div>
-            </div>`;
+                 <div class="security-box">
+                    <div class="security-header" onclick="toggleSecurity()"><span>Sicurezza Account</span><span class="chevron">›</span></div>
+                    <div class="security-content">
+                        <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
+                        <button class="btn-apple" style="color:#ff3b30" onclick="userSelfDelete()">Elimina Profilo</button>
+                    </div>
+                 </div>`;
         Object.keys(state.history).forEach(lang => {
-            state.history[lang].slice(-3).reverse().forEach(h => {
+            state.history[lang].slice(-3).reverse().forEach(h=>{
                 html += `<div class="review-card ${h.ok?'is-ok':'is-err'}" style="font-size:12px; margin-bottom:5px">${h.q}</div>`;
             });
         });
@@ -322,19 +320,19 @@ function renderProfile() {
     document.getElementById('content-area').innerHTML = html;
 }
 
-// --- POPUP / UTILITY ---
-function showPopup(title, desc, confirmLabel, actionFn) {
+// -------- POPUP / UTILI --------
+function showPopup(title, desc, confirmLabel, actionFn){
     const modal = document.getElementById('universal-modal');
-    if (!modal) { if (confirm(desc)) actionFn(); return; }
+    if(!modal){ if(confirm(desc)) actionFn(); return; }
     document.getElementById('modal-title').innerText = title;
     document.getElementById('modal-desc').innerText = desc;
     const btn = document.getElementById('modal-confirm-btn');
     btn.innerText = confirmLabel;
-    btn.onclick = () => { actionFn(); closeModal(); };
-    modal.style.setProperty('display', 'flex', 'important');
+    btn.onclick = ()=>{ actionFn(); closeModal(); };
+    modal.style.setProperty('display','flex','important');
 }
 
-function closeModal() { document.getElementById('universal-modal').style.display = 'none'; }
-function logout() { showPopup("Esci", "Vuoi disconnetterti?", "Esci", () => { location.reload(); }); }
-function toggleSecurity() { document.querySelector('.security-box')?.classList.toggle('open'); }
-function adminReset(pin) { showPopup("Reset", "Azzera progressi?", "Resetta", () => { dbUsers[pin].progress
+function closeModal(){ document.getElementById('universal-modal').style.display='none'; }
+function logout(){ showPopup("Esci","Vuoi disconnetterti?","Esci",()=>{ location.reload(); }); }
+function toggleSecurity(){ document.querySelector('.security-box')?.classList.toggle('open'); }
+function adminReset(pin){ showPopup("Reset","Azzera progressi?","Resetta",()=>{ dbUsers[pin].progress
