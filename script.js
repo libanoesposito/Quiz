@@ -427,6 +427,11 @@ function userChangePin() {
     saveMasterDB();
     alert("PIN aggiornato con successo!");
 }
+function toggleSecurity() {
+    const box = document.querySelector('.security-box');
+    if (box) box.classList.toggle('open');
+}
+
 
 function userSelfDelete() {
     showPopup(
