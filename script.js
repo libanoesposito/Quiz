@@ -366,3 +366,70 @@ function confirmLogout() {
     session = null;
     renderLogin();
 }
+// --- FUNZIONI DI SUPPORTO ---
+function saveMasterDB() {
+    localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
+}
+
+// --- AZIONI PER L'ADMIN ---
+function adminReset(pin) {
+    showPopup(
+        "Reset Progressi", 
+        `Vuoi azzerare i progressi di ${dbUsers[pin].name}?`, 
+        "Resetta", 
+        () => {
+            dbUsers[pin].progress = {};
+            dbUsers[pin].history = {};
+            saveMasterDB();
+            renderProfile(); // Ricarica la vista per vedere le modifiche
+        }
+    );
+}
+
+function adminDelete(pin) {
+    showPopup(
+        "Elimina Utente", 
+        `Sei sicuro di voler eliminare definitivamente ${dbUsers[pin].name}?`, 
+        "Elimina", 
+        () => {
+            delete dbUsers[pin];
+            saveMasterDB();
+            renderProfile();
+        }
+    );
+}
+
+// --- AZIONI PER L'UTENTE ---
+function userChangePin() {
+    const nuovo = prompt("Inserisci il nuovo PIN di 4 cifre:");
+    if (!nuovo || nuovo.length !== 4 || isNaN(nuovo)) {
+        alert("PIN non valido. Usa 4 cifre.");
+        return;
+    }
+    // Verifica sicurezza base
+    if (/^(\d)\1{3}$/.test(nuovo) || "0123456789876543210".includes(nuovo)) {
+        alert("PIN troppo semplice.");
+        return;
+    }
+    
+    const dati = dbUsers[state.currentPin];
+    delete dbUsers[state.currentPin];
+    dbUsers[nuovo] = dati;
+    state.currentPin = nuovo;
+    saveMasterDB();
+    alert("PIN aggiornato con successo!");
+}
+
+function userSelfDelete() {
+    showPopup(
+        "Elimina Profilo", 
+        "Questa azione è irreversibile. Tutti i tuoi progressi andranno persi.", 
+        "Elimina Account", 
+        () => {
+            delete dbUsers[state.currentPin];
+            saveMasterDB();
+            location.reload(); // Torna al login
+        }
+    );
+}
+
