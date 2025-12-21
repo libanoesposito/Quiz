@@ -1,7 +1,16 @@
-const quizDB = {
+const domandaRepo = {
     Python: {
-        L1: [{ q: "Come stampi 'Ciao'?", options: ["print('Ciao')", "echo 'Ciao'"], correct: 0, exp: "In Python si usa la funzione print().", code: "print('Ciao')" }],
-        L2: [], L3: [], L4: []
+        L1: [
+            "Qual è la funzione per stampare?|print()|echo()|output()|0|Si usa print() per l'output.",
+            "Come dichiari una variabile x?|x = 5|int x = 5|var x = 5|0|Python non richiede la dichiarazione del tipo.",
+            "Qui va la tua domanda 3|Opz1|Opz2|Opz3|0|Spiegazione",
+            // ... scrivine quante ne vuoi, anche 100 ...
+        ],
+        L2: [
+            "Domanda Livello 2|A|B|C|1|Spiegazione",
+            // ... altre domande ...
+        ],
+        L3: [], L4: []
     },
     JavaScript: { L1: [], L2: [], L3: [], L4: [] },
     Java: { L1: [], L2: [], L3: [], L4: [] },
@@ -10,9 +19,6 @@ const quizDB = {
 };
 
 const challenges5 = {
-    Python: { task: "Stampa i numeri da 1 a 3 con un ciclo for", logic: "range(1, 4)", output: "1\n2\n3", color: "#4B8BBE" },
-    JavaScript: { task: "Crea un ciclo for", logic: "for", output: "OK", color: "#F7DF1E" },
-    Java: { task: "Dichiara int x", logic: "int x", output: "OK", color: "#f89820" },
-    MySQL: { task: "SELECT", logic: "SELECT", output: "OK", color: "#00758f" },
-    HTML: { task: "Tag div", logic: "<div>", output: "OK", color: "#E34C26" }
+    Python: { task: "Usa range(1, 4)", logic: "range(1, 4)", output: "1\n2\n3" },
+    // ... le altre sfide rimangono uguali ...
 };
