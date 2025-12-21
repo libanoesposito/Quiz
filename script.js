@@ -342,12 +342,26 @@ function userSelfDelete() {
 }
 // Mostra il popup invece del confirm
 function logout() {
-    document.getElementById('logout-modal').style.display = 'flex';
+    const modal = document.getElementById('logout-modal');
+    if (modal) {
+        // Rimuoviamo il "none" e mettiamo "flex" per mostrarlo
+        modal.setAttribute('style', 'display: flex !important');
+    } else {
+        // Se per caso il modale non viene trovato, usa il backup standard
+        if (confirm("Vuoi uscire dal profilo attuale?")) {
+            confirmLogout();
+        }
+    }
 }
 
-function closeLogoutModal(e) {
-    document.getElementById('logout-modal').style.display = 'none';
+// Funzione per chiuderlo
+function closeLogoutModal() {
+    const modal = document.getElementById('logout-modal');
+    if (modal) {
+        modal.setAttribute('style', 'display: none !important');
+    }
 }
+
 
 function confirmLogout() {
     closeLogoutModal();
