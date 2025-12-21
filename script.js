@@ -446,3 +446,76 @@ function userSelfDelete() {
     );
 }
 
+// --- FUNZIONI DI SALVATAGGIO ---
+function saveMasterDB() {
+    localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
+}
+
+// --- AZIONI PER L'UTENTE (PROFILO) ---
+
+// Cambia il PIN con un prompt (standard ma efficace)
+function userChangePin() {
+    const nuovo = prompt("Inserisci il nuovo PIN di 4 cifre:");
+    if (!nuovo || nuovo.length !== 4 || isNaN(nuovo)) {
+        alert("PIN non valido. Inserisci 4 numeri.");
+        return;
+    }
+    
+    const datiUtente = dbUsers[state.currentPin];
+    delete dbUsers[state.currentPin]; // Rimuove il vecchio PIN
+    dbUsers[nuovo] = datiUtente;     // Crea il nuovo record
+    state.currentPin = nuovo;        // Aggiorna la sessione
+    saveMasterDB();
+    alert("PIN aggiornato! Ricordalo per il prossimo accesso.");
+    renderProfile();
+}
+
+// Elimina profilo UTENTE (con Popup)
+function userSelfDelete() {
+    showPopup(
+        "Elimina Profilo", 
+        "Questa azione è irreversibile. Tutti i tuoi progressi andranno persi.", 
+        "Elimina Account", 
+        () => {
+            delete dbUsers[state.currentPin];
+            saveMasterDB();
+            location.reload(); // Torna alla schermata di login
+        }
+    );
+}
+
+// --- AZIONI PER L'ADMIN ---
+
+// Resetta i progressi (con Popup)
+function adminReset(pin) {
+    showPopup(
+        "Resetta Progressi", 
+        `Vuoi azzerare i punteggi di ${dbUsers[pin].name}?`, 
+        "Resetta", 
+        () => {
+            dbUsers[pin].progress = {};
+            dbUsers[pin].history = {};
+            saveMasterDB();
+            renderProfile();
+        }
+    );
+}
+
+// Elimina utente (con Popup)
+function adminDelete(pin) {
+    showPopup(
+        "Elimina Utente", 
+        `Sei sicuro di voler eliminare definitivamente ${dbUsers[pin].name}?`, 
+        "Elimina", 
+        () => {
+            delete dbUsers[pin];
+            saveMasterDB();
+            renderProfile();
+        }
+    );
+}
+
+// Funzione "Aggiorna" (Ricarica i dati dalla vista Admin)
+function adminRefresh() {
+    renderProfile();
+}
