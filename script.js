@@ -592,43 +592,39 @@ function renderLevels(lang) {
     document.getElementById('content-area').innerHTML = html;
 }
 
+// Funzione per far partire il quiz
 function startQuiz(lang, level) {
-    state.currentQuiz = { lang, level };
-    
-    // Controlla se c'è una domanda salvata, altrimenti parti da 0
-    const resumeIndex = dbUsers[state.currentPin].activeProgress?.[`${lang}_${level}`] || 0;
-    
-    state.currentQuestionIndex = resumeIndex;
-    renderQuestion();
-}
-renderQuestion();
-}
-
-function checkAnswer(isCorrect) {
-    // ... il tuo codice per gestire il feedback ...
-
-    // Sposta l'indice alla prossima domanda
-    state.currentQuestionIndex++;
-
-    // SALVATAGGIO PROGRESSO: 
-    const { lang, level } = state.currentQuiz;
-    if (!dbUsers[state.currentPin].activeProgress) {
-        dbUsers[state.currentPin].activeProgress = {};
+    if (!quizData[lang] || !quizData[lang][level]) {
+        alert("Contenuto non disponibile");
+        return;
     }
     
-    // Salviamo l'indice aggiornato nel database
-    dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = state.currentQuestionIndex;
-    saveMasterDB();
+    state.currentQuiz = { lang, level };
+    
+    // Recupera progresso
+    const savedIdx = (dbUsers[state.currentPin].activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${level}`]) || 0;
+    state.currentQuestionIndex = savedIdx;
 
-    // ... prosegui con renderQuestion() o fine quiz ...
+    updateNav(true, `renderLevels('${lang}')`); 
+    renderQuestion();
 }
+
+// Funzione per visualizzare la domanda
 function renderQuestion() {
     const { lang, level } = state.currentQuiz;
-    const q = quizData[lang][level][state.currentQuestionIndex];
+    const questions = quizData[lang][level];
+
+    // Se il quiz è finito
+    if (state.currentQuestionIndex >= questions.length) {
+        finishQuiz(lang, level);
+        return;
+    }
+
+    const q = questions[state.currentQuestionIndex];
     
     let html = `
         <div class="quiz-container">
-            <p style="font-size:14px; opacity:0.6">Domanda ${state.currentQuestionIndex + 1}</p>
+            <p style="font-size:14px; opacity:0.6">Domanda ${state.currentQuestionIndex + 1} di ${questions.length}</p>
             <h2 style="margin-bottom:20px">${q.question}</h2>
             <div style="display:flex; flex-direction:column; gap:10px">
     `;
@@ -641,3 +637,38 @@ function renderQuestion() {
     document.getElementById('content-area').innerHTML = html;
 }
 
+// Funzione per gestire la risposta
+function checkAnswer(selectedIndex) {
+    const { lang, level } = state.currentQuiz;
+    const questions = quizData[lang][level];
+    const currentQ = questions[state.currentQuestionIndex];
+
+    const isCorrect = selectedIndex === currentQ.correct;
+
+    if (!state.history[lang]) state.history[lang] = [];
+    state.history[lang].push({ q: currentQ.question, ok: isCorrect });
+
+    state.currentQuestionIndex++;
+
+    // Salva progresso
+    if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
+    dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = state.currentQuestionIndex;
+    
+    saveMasterDB();
+    renderQuestion();
+}
+
+// Funzione di chiusura (Se non la avevi, il bianco dipendeva da questo)
+function finishQuiz(lang, level) {
+    // Reset progresso parziale perché il livello è finito
+    dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = 0;
+    
+    // Sblocca livello successivo se necessario
+    if (level == (dbUsers[state.currentPin].progress[lang] || 1)) {
+        dbUsers[state.currentPin].progress[lang] = level + 1;
+    }
+    
+    saveMasterDB();
+    alert("Livello Completato!");
+    renderLevels(lang);
+}
