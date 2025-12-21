@@ -123,3 +123,42 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
 /* Colori e stile Apple */
 .back-link { color: #007aff !important; cursor: pointer; font-size: 16px; }
 .logout-link { color: #ff3b30 !important; cursor: pointer; font-size: 16px; font-weight: 600; }
+
+/* Container per la sezione espandibile */
+.security-box {
+    background: rgba(120,120,128,0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 15px 0;
+    transition: all 0.3s ease;
+}
+
+.security-header {
+    padding: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.security-content {
+    max-height: 0; /* Chiuso di default */
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    padding: 0 14px;
+}
+
+.security-box.open .security-content {
+    max-height: 200px; /* Si espande */
+    padding-bottom: 14px;
+}
+
+.security-box.open .chevron {
+    transform: rotate(90deg);
+}
+
+.chevron {
+    transition: transform 0.3s;
+    color: var(--accent);
+}
