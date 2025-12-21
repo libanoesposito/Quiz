@@ -366,10 +366,10 @@ function updateNav(showBack, backTarget) {
     const b = document.getElementById('back-nav');
     const r = document.getElementById('right-nav');
 
-    // Forza il contenuto a sinistra
+    // Se deve mostrare il tasto, inserisce lo span, altrimenti svuota il div
     b.innerHTML = showBack ? `<span class="back-link" onclick="${backTarget}">\u2039 Indietro</span>` : "";
 
-    // Forza il contenuto a destra
+    // Se l'utente è loggato, mostra Esci (rosso)
     if (state.mode) {
         r.innerHTML = `<span class="logout-link" onclick="logout()">Esci</span>`;
     } else {
