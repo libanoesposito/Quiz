@@ -567,19 +567,22 @@ function renderLevels(lang) {
     updateNav(true, "showHome()");
     let html = `<h2>Livelli ${lang.toUpperCase()}</h2>`;
     
-    // Supponiamo che ogni livello abbia 15 domande
-    const totalQuestions = 15; 
-
     for (let i = 1; i <= 5; i++) {
-        // Recuperiamo il progresso salvato per questo specifico livello
-        const savedProgress = dbUsers[state.currentPin].activeProgress?.[`${lang}_${i}`] || 0;
-        const percentage = (savedProgress / totalQuestions) * 100;
+        // Recuperiamo il numero REALE di domande dal tuo database
+        // Se il livello non esiste ancora, mettiamo 0 come backup
+        const totalQuestions = (domandaRepo[lang] && domandaRepo[lang][i]) ? domandaRepo[lang][i].length : 0;
+        
+        // Recuperiamo il progresso salvato
+        const savedProgress = (dbUsers[state.currentPin].activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${i}`]) || 0;
+        
+        // Calcoliamo la percentuale (evitando divisioni per zero)
+        const percentage = totalQuestions > 0 ? (savedProgress / totalQuestions) * 100 : 0;
         
         const isLocked = i > (dbUsers[state.currentPin].progress[lang] || 1);
         
         html += `
             <div class="level-card ${isLocked ? 'locked' : ''}" onclick="${isLocked ? '' : `startQuiz('${lang}', ${i})`}">
-                <div style="display:flex; justify-content:space-between">
+                <div style="display:flex; justify-content:space-between; align-items:center">
                     <span>Livello ${i}</span>
                     <span style="font-size:12px; opacity:0.6">${savedProgress}/${totalQuestions}</span>
                 </div>
@@ -591,6 +594,7 @@ function renderLevels(lang) {
     }
     document.getElementById('content-area').innerHTML = html;
 }
+
 
 // Funzione per far partire il quiz
 // Funzione per far partire il quiz (USA domandaRepo)
@@ -658,4 +662,20 @@ function checkAnswer(selectedIndex) {
     
     saveMasterDB();
     renderQuestion();
+}
+function finishQuiz(lang, level) {
+    // 1. Reset progressi parziali del livello appena finito
+    if (dbUsers[state.currentPin].activeProgress) {
+        dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = 0;
+    }
+    
+    // 2. Sblocca il livello successivo se l'utente ha finito il suo livello attuale più alto
+    const currentMax = dbUsers[state.currentPin].progress[lang] || 1;
+    if (level == currentMax) {
+        dbUsers[state.currentPin].progress[lang] = level + 1;
+    }
+    
+    saveMasterDB();
+    alert("Complimenti! Livello completato!");
+    renderLevels(lang); // Torna alla lista livelli aggiornata
 }
