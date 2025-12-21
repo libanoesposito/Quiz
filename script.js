@@ -157,15 +157,16 @@ function showLevels(lang) {
         let label = "Livello " + i;
         let isLocked = false;
 
-        // Se l'utente NON è un guest, applichiamo i blocchi
-        if (state.mode !== 'guest') {
+        // I blocchi vengono applicati SOLO se l'utente è un 'user' normale
+        // Se è 'admin' o 'guest', isLocked rimane false
+        if (state.mode === 'user') {
             if (i === 4 && comp < 3) isLocked = true;
             if (i === 5) { 
                 label = "ESAMINATI"; 
                 if (comp < 3) isLocked = true; 
             }
         } else {
-            // Se è guest, cambiamo solo la label per il livello 5
+            // Per Admin e Guest mostriamo comunque la label corretta per il livello 5
             if (i === 5) label = "ESAMINATI";
         }
         
