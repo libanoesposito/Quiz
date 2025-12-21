@@ -264,13 +264,20 @@ function check(isOk) {
 
 function next() {
     session.idx++; 
-    if(session.idx < session.q.length) renderQ(); 
-    else { 
-        state.progress[session.lang] = Math.max(state.progress[session.lang]||0, session.lvl); 
-        localStorage.setItem('devProgress', JSON.stringify(state.progress));
+    if(session.idx < session.q.length) {
+        renderQ(); 
+    } else { 
+        // 1. Aggiorna lo stato locale dell'utente
+        state.progress[session.lang] = Math.max(state.progress[session.lang] || 0, session.lvl); 
+        
+        // 2. Salva nel database globale (Master DB)
+        saveMasterDB(); 
+        
+        // 3. Torna alla lista livelli
         showLevels(session.lang); 
     }
 }
+
 
 function renderL5(lang) {
     const c = challenges5[lang];
@@ -297,17 +304,64 @@ function updateNav(s,t){
 
 function renderProfile() {
     updateNav(true, "showHome()");
-    document.getElementById('app-title').innerText = "PROFILO";
-    let html = `<h3>Il tuo Ripasso</h3>`;
-    const keys = Object.keys(state.history);
-    if(keys.length === 0) html += `<p style="opacity:0.5">Nessun dato.</p>`;
-    else {
-        keys.forEach(lang => {
-            html += `<h4 style="color:var(--accent); margin-top:15px">${lang}</h4>`;
-            state.history[lang].slice(-5).forEach(item => {
-                html += `<div class="review-card ${item.ok?'is-ok':'is-err'}"><div style="font-weight:bold">${item.q}</div><div style="font-size:12px; opacity:0.7">${item.exp}</div></div>`;
+    
+    let html = "";
+
+    if (state.mode === 'admin') {
+        // --- VISTA AMMINISTRATORE ---
+        document.getElementById('app-title').innerText = "PANNELLO ADMIN";
+        html += `<h3 style="margin-bottom:15px">Utenti Registrati</h3>`;
+        
+        const pins = Object.keys(dbUsers);
+        if (pins.length === 0) {
+            html += `<p style="opacity:0.5">Nessun utente presente nel database.</p>`;
+        } else {
+            pins.forEach(pin => {
+                const u = dbUsers[pin];
+                // Calcoliamo quanti livelli ha completato in totale tra tutti i linguaggi
+                const totalComp = Object.values(u.progress).reduce((a, b) => a + b, 0);
+                
+                html += `
+                <div class="review-card" style="border-left:4px solid var(--accent); margin-bottom:12px; padding:15px">
+                    <div style="display:flex; justify-content:space-between; align-items:center">
+                        <strong style="font-size:16px">${u.name}</strong>
+                        <span style="font-size:10px; opacity:0.5">ID PROFILO</span>
+                    </div>
+                    <div style="font-size:12px; margin-top:8px; opacity:0.8">
+                        ${Object.keys(u.progress).length > 0 ? 
+                            Object.keys(u.progress).map(l => `${l}: Liv. ${u.progress[l]}`).join(' | ') : 
+                            'Nessun progresso ancora'}
+                    </div>
+                </div>`;
             });
-        });
+        }
+    } else {
+        // --- VISTA UTENTE NORMALE ---
+        document.getElementById('app-title').innerText = "IL MIO PROFILO";
+        html += `<h3 style="margin-bottom:5px">Ciao, ${state.currentUser}</h3>`;
+        html += `<p style="font-size:12px; opacity:0.6; margin-bottom:20px">Ecco il riepilogo delle tue attività</p>`;
+        
+        const historyKeys = Object.keys(state.history);
+        if (historyKeys.length === 0) {
+            html += `<p style="opacity:0.5; margin-top:20px">Non hai ancora salvato risposte nel ripasso.</p>`;
+        } else {
+            historyKeys.forEach(lang => {
+                html += `<h4 style="color:var(--accent); margin-top:15px; border-bottom:1px solid var(--border); padding-bottom:5px">${lang}</h4>`;
+                // Mostriamo solo gli ultimi 5 errori/risposte per non allungare troppo la pagina
+                state.history[lang].slice(-5).reverse().forEach(item => {
+                    html += `
+                    <div class="review-card ${item.ok ? 'is-ok' : 'is-err'}" style="margin-bottom:8px">
+                        <div style="font-weight:bold; font-size:13px">
+                            <span class="dot" style="background:${item.ok ? '#34c759' : '#ff3b30'}"></span>${item.q}
+                        </div>
+                        <div style="font-size:11px; opacity:0.7; margin-top:4px">${item.exp}</div>
+                    </div>`;
+                });
+            });
+        }
     }
+    
     document.getElementById('content-area').innerHTML = html;
+}
+html;
 }
