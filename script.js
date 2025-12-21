@@ -157,12 +157,12 @@ function showLevels(lang) {
 }
 
 function startQuiz(lang, lvl) {
-    if(lvl === 5) { renderL5(lang); return; }
-    state.currentQuiz = { lang, level: lvl };
-    const savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${lvl}`]) || 0;
-    state.currentQuestionIndex = savedIdx;
-    updateNav(true, `showLevels('${lang}')`);
-    renderQuestion();
+    if(lvl === 5) { 
+        state.currentL5QuestionIndex = 0; // reset per livello 5
+        renderL5(lang); 
+        return; 
+    }
+    ...
 }
 
 function renderQuestion() {
