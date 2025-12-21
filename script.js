@@ -1,4 +1,3 @@
-Script 
 let state = {
     mode: null,
     userId: localStorage.getItem('devUserId') || null,
