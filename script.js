@@ -284,32 +284,26 @@ function userChangePin() {
 function userSelfDelete() { showPopup("Elimina", "Elimina il tuo profilo?", "Elimina", () => { delete dbUsers[state.currentPin]; saveMasterDB(); location.reload(); }); }
 function renderL5(lang) { document.getElementById('content-area').innerHTML = `<h3>Esame ${lang}</h3><button class="btn-apple" onclick="showLevels('${lang}')">Indietro</button>`; }
 
-function generateLevel5List(challenges) {
-    const container = document.createElement("div");
-    container.id = "level5-container";
+function renderL5(lang) {
+    const html = `
+        <h3>Esame ${lang}</h3>
+        <button class="btn-apple" onclick="showLevels('${lang}')">Indietro</button>
+        <div id="level5-container"></div>
+        <textarea id="editor" spellcheck="false" placeholder="Scrivi qui il codice..." 
+            style="width:100%; height:150px; background:#1e1e1e; color:#d4d4d4; font-family:monospace; padding:10px; margin-top:10px;"></textarea>
+        <button class="btn-apple btn-primary" id="run-button" style="margin-top:10px">Esegui</button>
+        <div id="console-output" style="background:#1e1e1e; color:#d4d4d4; font-family:monospace; padding:10px; margin-top:10px; border-radius:5px; min-height:50px;"></div>
+    `;
+    document.getElementById('content-area').innerHTML = html;
 
-    for (const lang in challenges) {
-        const challenge = challenges[lang];
+    // Mostra i pallini verdi/rossi
+    generateLevel5List(challenges5);
 
-        const div = document.createElement("div");
-        div.style.display = "flex";
-        div.style.alignItems = "center";
-        div.style.marginBottom = "5px";
-
-        const status = challenge.userStatus === "corretto" ? "🟢" : "🔴";
-        const pallino = document.createElement("span");
-        pallino.textContent = status;
-        pallino.style.marginRight = "8px";
-
-        const testo = document.createElement("span");
-        testo.textContent = `${lang}: ${challenge.task}`;
-
-        div.appendChild(pallino);
-        div.appendChild(testo);
-        container.appendChild(div);
-    }
-
-    document.body.appendChild(container);
+    // Collega pulsante Esegui
+    document.getElementById("run-button").addEventListener("click", () => {
+        const code = document.getElementById("editor").value;
+        testLevel5(code, lang);
+    });
 }
 
 function testLevel5(userCode, lang) {
