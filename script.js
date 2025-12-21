@@ -154,28 +154,41 @@ function showLevels(lang) {
     const comp = state.progress[lang] || 0;
     
     for(let i=1; i<=5; i++) {
-        let label = "Livello " + i;
+        let label = (i === 5) ? "ESAMINATI" : "Livello " + i;
         let isLocked = false;
-
-        // I blocchi vengono applicati SOLO se l'utente è un 'user' normale
-        // Se è 'admin' o 'guest', isLocked rimane false
+        
         if (state.mode === 'user') {
             if (i === 4 && comp < 3) isLocked = true;
-            if (i === 5) { 
-                label = "ESAMINATI"; 
-                if (comp < 3) isLocked = true; 
-            }
-        } else {
-            // Per Admin e Guest mostriamo comunque la label corretta per il livello 5
-            if (i === 5) label = "ESAMINATI";
+            if (i === 5 && comp < 3) isLocked = true;
+        }
+
+        // Recuperiamo quante domande ha già fatto l'utente (solo se PIN)
+        let currentIdx = 0;
+        if (state.mode === 'user' && dbUsers[state.currentPin].activeProgress) {
+            currentIdx = dbUsers[state.currentPin].activeProgress[`${lang}_${i}`] || 0;
         }
         
-        html += `<button class="btn-apple" ${isLocked ? 'disabled' : ''} onclick="startStep('${lang}',${i})">
-            ${label} ${isLocked ? '🔒' : ''}
-        </button>`;
+        // Se il livello è già stato completato in passato, mostriamo 15/15
+        if (comp >= i) currentIdx = 15;
+
+        const percentage = (currentIdx / 15) * 100;
+
+        html += `
+            <button class="btn-apple" ${isLocked ? 'disabled' : ''} onclick="startStep('${lang}',${i})" style="display:block; text-align:left; padding: 15px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%">
+                    <span>${label} ${isLocked ? '🔒' : ''}</span>
+                    ${(state.mode === 'user' && !isLocked) ? `<span style="font-size:12px; opacity:0.6">${currentIdx}/15</span>` : ''}
+                </div>
+                ${(state.mode === 'user' && !isLocked) ? `
+                    <div class="progress-outer">
+                        <div class="progress-inner" style="width: ${percentage}%"></div>
+                    </div>
+                ` : ''}
+            </button>`;
     }
     document.getElementById('content-area').innerHTML = html;
 }
+
 
 
 function startStep(lang, lvl) {
