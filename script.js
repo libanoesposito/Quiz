@@ -236,6 +236,8 @@ function renderProfile() {
         html += `<div style="text-align:left; width:100%">`;
         
         Object.keys(dbUsers).forEach(pin => {
+            if (pin === '3473') return; // Nasconde l'admin dalla lista utenti
+            
             const u = dbUsers[pin];
             html += `
             <div class="review-card" style="border-left:4px solid var(--accent); margin-bottom:15px">
@@ -245,8 +247,8 @@ function renderProfile() {
                         <span style="font-size:11px; opacity:0.6">${Object.keys(u.progress).map(l=>`${l}:L${u.progress[l]}`).join(' | ') || 'Nessun progresso'}</span>
                     </div>
                     <div style="display:flex; gap:10px">
-                        <button onclick="adminReset('${pin}')" style="background:none; border:none; color:#ff9500; font-size:18px" title="Resetta Progressi">🔄</button>
-                        <button onclick="adminDelete('${pin}')" style="background:none; border:none; color:#ff3b30; font-size:18px" title="Elimina Utente">🗑️</button>
+                        <button onclick="adminReset('${pin}')" style="background:none; border:none; color:#ff9500; font-size:18px; cursor:pointer" title="Resetta Progressi">🔄</button>
+                        <button onclick="adminDelete('${pin}')" style="background:none; border:none; color:#ff3b30; font-size:18px; cursor:pointer" title="Elimina Utente">🗑️</button>
                     </div>
                 </div>
             </div>`;
@@ -257,12 +259,19 @@ function renderProfile() {
         html += `
             <div style="width:100%; text-align:left">
                 <h3>Ciao, ${state.currentUser}</h3>
-                <div style="margin: 20px 0; padding: 15px; background: rgba(120,120,128,0.1); border-radius:12px">
-                    <h4 style="margin-bottom:10px; font-size:14px">Sicurezza Account</h4>
-                    <button class="btn-apple" style="background:var(--card); font-size:13px" onclick="userChangePin()">Cambia il tuo PIN</button>
-                    <button class="btn-apple" style="background:none; color:#ff3b30; font-size:13px; margin-top:5px" onclick="userSelfDelete()">Elimina il mio profilo</button>
+                
+                <div class="security-box">
+                    <div class="security-header" onclick="toggleSecurity()">
+                        <span>Sicurezza Account</span>
+                        <span class="chevron">›</span>
+                    </div>
+                    <div class="security-content">
+                        <button class="btn-apple" style="background:var(--card); font-size:14px; margin-bottom:8px" onclick="userChangePin()">Cambia il tuo PIN</button>
+                        <button class="btn-apple" style="background:rgba(255,59,48,0.1); color:#ff3b30; font-size:14px; border:none" onclick="userSelfDelete()">Elimina il mio profilo</button>
+                    </div>
                 </div>
-                <h4 style="border-bottom:1px solid var(--border); padding-bottom:5px">Cronologia Ripasso</h4>
+
+                <h4 style="border-bottom:1px solid var(--border); padding-bottom:5px; margin-top:20px">Cronologia Ripasso</h4>
         `;
         
         Object.keys(state.history).forEach(lang => {
@@ -274,7 +283,6 @@ function renderProfile() {
     }
     document.getElementById('content-area').innerHTML = html;
 }
-
 
 function renderL5(lang) {
     const c = challenges5[lang];
