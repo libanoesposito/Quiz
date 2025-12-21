@@ -30,19 +30,21 @@ function toggleTheme() {
 }
 
 function updateNav(showBack, backTarget) {
-    // Gestione tasto Indietro (a sinistra)
-    const backNav = document.getElementById('back-nav');
-    backNav.innerHTML = showBack ? `<div class="back-link" onclick="${backTarget}">〈 Indietro</div>` : "";
+    const b = document.getElementById('back-nav');
+    const r = document.getElementById('right-nav');
 
-    // Gestione tasto Esci (a destra)
-    // Lo mostriamo solo se non siamo nella pagina di Login (quindi se c'è un mode attivo)
-    const rightNav = document.getElementById('right-nav'); // Assicurati di avere questo ID nel tuo HTML
+    // Inserisce il link Indietro solo se serve
+    b.innerHTML = showBack ? `<span class="back-link" onclick="${backTarget}">\u2039 Indietro</span>` : "";
+
+    // Inserisce Esci solo se l'utente è loggato
     if (state.mode) {
-        rightNav.innerHTML = `<div class="logout-link" onclick="logout()" style="color:#ff3b30; font-weight:600; cursor:pointer">Esci</div>`;
+        r.innerHTML = `<span class="logout-link" onclick="logout()">Esci</span>`;
     } else {
-        rightNav.innerHTML = "";
+        r.innerHTML = "";
     }
 }
+
+
 
 
 function saveMasterDB() {
