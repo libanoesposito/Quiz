@@ -132,8 +132,11 @@ function showLevels(lang) {
         let label = (i === 5) ? "ESAMINATI" : "Livello " + i;
         let isLocked = false;
         // TUA LOGICA ORIGINALE: Blocca 4 e 5 se progressi < 3
-        if ((i === 4 || i === 5) && comp < 3) isLocked = true;
-
+        if(state.mode !== 'guest') {
+    if ((i === 4 || i === 5) && comp < 3) isLocked = true;
+} else {
+    isLocked = false; // guest può aprire tutto
+}
         const key = "L" + i;
         const totalQ = (domandaRepo[lang] && domandaRepo[lang][key]) ? domandaRepo[lang][key].length : 0;
         const savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${i}`]) || 0;
