@@ -599,20 +599,19 @@ function renderLevels(lang) {
 // Funzione per far partire il quiz
 // Funzione per far partire il quiz (USA domandaRepo)
 function startQuiz(lang, level) {
-    if (!domandaRepo[lang] || !domandaRepo[lang][level]) {
-        alert("Contenuto non disponibile nel database");
-        return;
-    }
-    
     state.currentQuiz = { lang, level };
     
-    // Recupera progresso salvato
-    const savedIdx = (dbUsers[state.currentPin].activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${level}`]) || 0;
+    // Recupera progresso
+    if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
+    const savedIdx = dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] || 0;
     state.currentQuestionIndex = savedIdx;
 
+    // QUESTO È IL PUNTO CHIAVE: forza il tasto indietro ai livelli
     updateNav(true, `renderLevels('${lang}')`); 
+    
     renderQuestion();
 }
+
 
 // Funzione per visualizzare la domanda (USA domandaRepo)
 function renderQuestion() {
@@ -645,24 +644,33 @@ function renderQuestion() {
 function checkAnswer(selectedIndex) {
     const { lang, level } = state.currentQuiz;
     const questions = domandaRepo[lang][level];
-    const currentQ = questions[state.currentQuestionIndex];
-
-    const isCorrect = selectedIndex === currentQ.correct;
-
-    // Salva nella cronologia
+    
+    // 1. Controlla risposta
+    const isCorrect = selectedIndex === questions[state.currentQuestionIndex].correct;
+    
+    // 2. Salva in cronologia
     if (!state.history[lang]) state.history[lang] = [];
-    state.history[lang].push({ q: currentQ.question, ok: isCorrect });
+    state.history[lang].push({ q: questions[state.currentQuestionIndex].question, ok: isCorrect });
 
-    // Avanza l'indice
+    // 3. Incrementa indice
     state.currentQuestionIndex++;
 
-    // Salva il progresso attivo nel DB locale
-    if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
+    // 4. SALVA NEL DATABASE
+    if (!dbUsers[state.currentPin].activeProgress) {
+        dbUsers[state.currentPin].activeProgress = {};
+    }
     dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = state.currentQuestionIndex;
     
-    saveMasterDB();
-    renderQuestion();
+    saveMasterDB(); // Assicurati che questa funzione faccia localStorage.setItem
+
+    // 5. Vai avanti
+    if (state.currentQuestionIndex < questions.length) {
+        renderQuestion();
+    } else {
+        finishQuiz(lang, level);
+    }
 }
+
 function finishQuiz(lang, level) {
     // 1. Reset progressi parziali del livello appena finito
     if (dbUsers[state.currentPin].activeProgress) {
