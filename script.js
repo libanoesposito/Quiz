@@ -5,18 +5,44 @@ let state = {
     history: JSON.parse(localStorage.getItem('devHistory')) || {}
 };
 
+let session = null;
+
 window.onload = () => {
-    initTheme();
+    initTheme(); // Avvia il tema basandosi sul sistema o salvataggio
     renderLogin();
 };
 
-// --- GESTIONE TEMA ---
+// --- GESTIONE TEMA (Corretta e Collegata) ---
 function initTheme() {
-    const saved = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    document.documentElement.setAttribute('data-theme', saved);
+    const saved = localStorage.getItem('theme');
+    // Se non c'è salvataggio, guarda le impostazioni di sistema
+    if (!saved) {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        setTheme(prefersDark ? 'dark' : 'light');
+    } else {
+        setTheme(saved);
+    }
 }
 
-// --- NAVIGAZIONE ---
+function setTheme(mode) {
+    document.documentElement.setAttribute('data-theme', mode);
+    localStorage.setItem('theme', mode);
+    
+    // Cambia l'icona dentro l'SVG nel pulsante
+    const iconEl = document.getElementById('theme-icon');
+    if (iconEl) {
+        iconEl.innerHTML = mode === 'dark' ? 
+            '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>' : 
+            '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+    }
+}
+
+function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    setTheme(current === 'dark' ? 'light' : 'dark');
+}
+
+// --- NAVIGAZIONE E LOGIN ---
 function renderLogin() {
     state.mode = null;
     updateNav(false);
@@ -62,13 +88,10 @@ function validatePin(type) {
 
 function setGuest() { state.mode = 'guest'; showHome(); }
 
-// QUESTA FUNZIONE ORA USA domandaRepo CORRETTAMENTE
 function showHome() {
     updateNav(true, "renderLogin()");
     document.getElementById('app-title').innerText = "PERCORSI";
     let html = `<div class="lang-grid">`;
-    
-    // Cerchiamo le icone basandoci sulle chiavi di domandaRepo
     Object.keys(domandaRepo).forEach(l => {
         const icon = (l === 'HTML') ? 'html5' : l.toLowerCase();
         html += `
@@ -77,7 +100,6 @@ function showHome() {
             <div style="margin-top:10px; font-weight:700; font-size:13px">${l}</div>
         </div>`;
     });
-
     if(state.mode === 'user') {
         html += `<div class="lang-item profile-slot" onclick="renderProfile()"><div style="font-weight:700">IL MIO PROFILO</div></div>`;
     }
@@ -97,26 +119,21 @@ function showLevels(lang) {
     document.getElementById('content-area').innerHTML = html;
 }
 
-// --- LOGICA QUIZ RANDOM ---
+// --- LOGICA QUIZ ---
 function startStep(lang, lvl) {
-    if(lvl === 5) {
-        renderL5(lang);
-    } else {
+    if(lvl === 5) renderL5(lang);
+    else {
         const key = "L" + lvl;
         const stringhe = domandaRepo[lang][key];
-        
         if(!stringhe || stringhe.length === 0) {
             document.getElementById('content-area').innerHTML = `<h3>In arrivo</h3><button class="btn-apple" onclick="showLevels('${lang}')">Indietro</button>`;
             return;
         }
-
-        // Mischia e prendi 15
         const rimescolate = [...stringhe].sort(() => 0.5 - Math.random());
         const selezione = rimescolate.slice(0, 15).map(r => {
             const p = r.split("|");
             return { q: p[0], options: [p[1], p[2], p[3]], correct: parseInt(p[4]), exp: p[5] };
         });
-
         session = { lang: lang, lvl: lvl, q: selezione, idx: 0 };
         renderQ();
     }
