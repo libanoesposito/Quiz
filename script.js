@@ -592,3 +592,12 @@ function renderLevels(lang) {
     document.getElementById('content-area').innerHTML = html;
 }
 
+function startQuiz(lang, level) {
+    state.currentQuiz = { lang, level };
+    
+    // Controlla se c'è una domanda salvata, altrimenti parti da 0
+    const resumeIndex = dbUsers[state.currentPin].activeProgress?.[`${lang}_${level}`] || 0;
+    
+    state.currentQuestionIndex = resumeIndex;
+    renderQuestion();
+}
