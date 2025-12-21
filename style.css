@@ -43,47 +43,54 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
 /* La testata trasparente stile iOS */
 .glass-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    height: 44px;
     padding: 0 16px;
-    height: 44px; /* Altezza standard delle barre iOS */
     background: var(--bg);
-    border-bottom: 0.5px solid var(--border); /* Linea sottilissima stile Apple */
+    border-bottom: 0.5px solid var(--border);
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1000;
 }
 
+/* Sinistra: allinea il testo a sinistra */
+#back-nav {
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+    min-width: 80px; /* Spazio riservato per non far muovere il titolo */
+}
+
+/* Centro: resta sempre in mezzo */
 #app-title {
+    flex: 2;
     font-size: 17px;
     font-weight: 600;
-    letter-spacing: -0.4px;
+    margin: 0;
     text-align: center;
-    flex: 2;
-}
-
-/* Stile per i link di navigazione (Indietro ed Esci) */
-.back-link, .logout-link {
-    font-size: 17px; /* Dimensione standard iOS per i tasti nav */
-    cursor: pointer;
-    user-select: none;
-    transition: opacity 0.2s;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* Colore Blu Apple per Indietro */
-.back-link {
-    color: #007aff; 
-    text-align: left;
+/* Destra: allinea il testo a destra */
+#right-nav {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    min-width: 80px; /* Spazio riservato identico a sinistra */
 }
 
-/* Colore Rosso Apple per Esci */
-.logout-link {
-    color: #ff3b30;
-    text-align: right;
+/* Stile testo Apple */
+.back-link, .logout-link {
+    font-size: 17px;
+    font-family: -apple-system, sans-serif;
+    cursor: pointer;
+    transition: opacity 0.2s;
 }
 
-/* Effetto pressione stile Apple (diventa semitrasparente) */
-.back-link:active, .logout-link:active {
-    opacity: 0.3;
-}
+.back-link { color: #007aff; } /* Blu Apple */
+.logout-link { color: #ff3b30; font-weight: 600; } /* Rosso Apple */
+
+.back-link:active, .logout-link:active { opacity: 0.3; }
