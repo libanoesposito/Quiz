@@ -282,7 +282,6 @@ function userChangePin() {
     }
 }
 function userSelfDelete() { showPopup("Elimina", "Elimina il tuo profilo?", "Elimina", () => { delete dbUsers[state.currentPin]; saveMasterDB(); location.reload(); }); }
-function renderL5(lang) { document.getElementById('content-area').innerHTML = `<h3>Esame ${lang}</h3><button class="btn-apple" onclick="showLevels('${lang}')">Indietro</button>`; }
 
 function renderL5(lang) {
     const q = challenges5[lang][state.currentL5QuestionIndex];
