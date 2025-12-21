@@ -342,18 +342,37 @@ function userSelfDelete() {
         location.reload(); // Torna al login
     }
 }
+// Mostra il popup invece del confirm
 function logout() {
-    if(confirm("Vuoi uscire dal profilo attuale?")) {
-        // Resettiamo lo stato dell'app
-        state.mode = null;
-        state.currentPin = null;
-        state.currentUser = null;
-        state.progress = {};
-        state.history = {};
-        session = null;
-        
-        // Torniamo alla schermata di login
-        renderLogin();
-    }
+    document.getElementById('logout-modal').style.display = 'flex';
 }
 
+function closeLogoutModal(e) {
+    document.getElementById('logout-modal').style.display = 'none';
+}
+
+function confirmLogout() {
+    closeLogoutModal();
+    state.mode = null;
+    state.currentPin = null;
+    state.currentUser = null;
+    state.progress = {};
+    state.history = {};
+    session = null;
+    renderLogin();
+}
+
+function updateNav(showBack, backTarget) {
+    const b = document.getElementById('back-nav');
+    const r = document.getElementById('right-nav');
+
+    // Forza il contenuto a sinistra
+    b.innerHTML = showBack ? `<span class="back-link" onclick="${backTarget}">\u2039 Indietro</span>` : "";
+
+    // Forza il contenuto a destra
+    if (state.mode) {
+        r.innerHTML = `<span class="logout-link" onclick="logout()">Esci</span>`;
+    } else {
+        r.innerHTML = "";
+    }
+}
