@@ -40,34 +40,50 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
 .back-link { color: var(--accent); cursor: pointer; font-size: 17px; }
 @keyframes slideIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
+/* La testata trasparente stile iOS */
 .glass-header {
-    display: flex;                /* Mette i figli sulla stessa riga */
-    justify-content: space-between; /* Spinge back-nav a sinistra e right-nav a destra */
-    align-items: center;          /* Centra tutto verticalmente */
-    padding: 10px 15px;
-    background: var(--bg);        /* Usa il colore del tuo tema */
-    border-bottom: 1px solid var(--border);
-    position: sticky;             /* Rimane fisso in alto mentre scorri */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    height: 44px; /* Altezza standard delle barre iOS */
+    background: var(--bg);
+    border-bottom: 0.5px solid var(--border); /* Linea sottilissima stile Apple */
+    position: sticky;
     top: 0;
     z-index: 100;
 }
 
-#back-nav, #right-nav {
-    flex: 1;                      /* Dà la stessa importanza ai lati per bilanciare il titolo */
-    min-width: 70px;              /* Spazio minimo per i tasti */
-}
-
 #app-title {
-    flex: 2;                      /* Il titolo prende più spazio centrale */
-    font-size: 18px;
-    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.4px;
     text-align: center;
+    flex: 2;
 }
 
-/* Colore rosso per il tasto Esci */
-.logout-link {
-    text-align: right;
-    color: #ff3b30;
-    font-weight: 600;
+/* Stile per i link di navigazione (Indietro ed Esci) */
+.back-link, .logout-link {
+    font-size: 17px; /* Dimensione standard iOS per i tasti nav */
     cursor: pointer;
+    user-select: none;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+}
+
+/* Colore Blu Apple per Indietro */
+.back-link {
+    color: #007aff; 
+    text-align: left;
+}
+
+/* Colore Rosso Apple per Esci */
+.logout-link {
+    color: #ff3b30;
+    text-align: right;
+}
+
+/* Effetto pressione stile Apple (diventa semitrasparente) */
+.back-link:active, .logout-link:active {
+    opacity: 0.3;
 }
