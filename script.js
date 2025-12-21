@@ -1,17 +1,18 @@
-// Database globale degli utenti (caricato da memoria locale)
+// 1. STATO E COSTANTI
 let dbUsers = JSON.parse(localStorage.getItem('quiz_master_db')) || {};
-
 let state = {
     mode: null,      
     currentPin: null, 
     currentUser: null, 
     progress: {},    
-    history: {}
+    history: {},
+    currentQuiz: null,
+    currentQuestionIndex: 0
 };
-
 let session = null;
 const ADMIN_PIN = "3473";
 
+// 2. INIZIALIZZAZIONE
 window.onload = () => {
     initTheme();
     renderLogin();
@@ -29,21 +30,13 @@ function toggleTheme() {
     localStorage.setItem('theme', target);
 }
 
+// 3. NAVIGAZIONE
 function updateNav(showBack, backTarget) {
     const b = document.getElementById('back-nav');
     const r = document.getElementById('right-nav');
-
-    b.innerHTML = showBack ? `<span class="back-link" onclick="${backTarget}">\u2039 Indietro</span>` : "";
-    
-    if (state.mode) {
-        r.innerHTML = `<span class="logout-link" onclick="logout()">Esci</span>`;
-    } else {
-        r.innerHTML = "";
-    }
+    b.innerHTML = showBack ? `<span class="back-link" onclick="${backTarget}">‹ Indietro</span>` : "";
+    r.innerHTML = state.mode ? `<span class="logout-link" onclick="logout()">Esci</span>` : "";
 }
-
-
-
 
 function saveMasterDB() {
     if (state.mode === 'user' && state.currentPin) {
@@ -53,6 +46,7 @@ function saveMasterDB() {
     localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
 }
 
+// 4. LOGIN E PIN
 function renderLogin() {
     state.mode = null;
     updateNav(false);
@@ -68,9 +62,7 @@ function renderLogin() {
 function uiPin(type) {
     updateNav(true, "renderLogin()");
     let title = type === 'login' ? 'Bentornato' : 'Crea Profilo';
-    let nameField = type === 'register' ? 
-        `<input type="text" id="name-field" class="btn-apple" placeholder="Il tuo Nome" style="text-align:center; margin-bottom:10px">` : '';
-
+    let nameField = type === 'register' ? `<input type="text" id="name-field" class="btn-apple" placeholder="Il tuo Nome" style="text-align:center; margin-bottom:10px">` : '';
     document.getElementById('content-area').innerHTML = `
         <div style="display:flex; flex-direction:column; align-items:center; width:100%">
             <h3 style="margin-bottom:20px">${title}</h3>
@@ -84,33 +76,20 @@ function uiPin(type) {
 function validatePin(type) {
     const pin = document.getElementById('pin-field').value;
     const errorEl = document.getElementById('pin-error');
-    errorEl.style.display = "none";
-
-    if(pin.length !== 4) {
-        errorEl.innerText = "Il PIN deve essere di 4 cifre";
-        errorEl.style.display = "block";
-        return;
-    }
+    if(pin.length !== 4) { errorEl.innerText = "Il PIN deve essere di 4 cifre"; errorEl.style.display = "block"; return; }
 
     if (pin === ADMIN_PIN) {
-        state.mode = 'admin';
-        state.currentUser = "Creatore";
-        showHome();
-        return;
+        state.mode = 'admin'; state.currentUser = "Creatore"; showHome(); return;
     }
 
     if (type === 'register') {
-        const nameInput = document.getElementById('name-field');
-        const name = nameInput ? nameInput.value.trim() : "";
+        const name = document.getElementById('name-field')?.value.trim();
         if(!name) { errorEl.innerText = "Inserisci il tuo nome"; errorEl.style.display = "block"; return; }
-        if (/^(\d)\1{3}$/.test(pin)) { errorEl.innerText = "PIN troppo semplice (cifre ripetute)"; errorEl.style.display = "block"; return; }
-        if ("0123456789876543210".includes(pin)) { errorEl.innerText = "PIN non valido (sequenza numerica)"; errorEl.style.display = "block"; return; }
         if (dbUsers[pin]) { errorEl.innerText = "Questo PIN è già in uso"; errorEl.style.display = "block"; return; }
-
-        dbUsers[pin] = { name: name, progress: {}, history: {} };
-        localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
+        dbUsers[pin] = { name: name, progress: {}, history: {}, activeProgress: {} };
+        saveMasterDB();
     } else {
-        if (!dbUsers[pin]) { errorEl.innerText = "PIN errato o utente inesistente"; errorEl.style.display = "block"; return; }
+        if (!dbUsers[pin]) { errorEl.innerText = "PIN errato"; errorEl.style.display = "block"; return; }
     }
 
     state.currentPin = pin;
@@ -121,21 +100,16 @@ function validatePin(type) {
     showHome();
 }
 
-function setGuest() { 
-    state.mode = 'guest'; 
-    state.progress = {}; 
-    state.history = {}; 
-    showHome(); 
-}
+function setGuest() { state.mode = 'guest'; state.progress = {}; state.history = {}; showHome(); }
 
+// 5. HOME E LIVELLI
 function showHome() {
     updateNav(true, "renderLogin()");
     document.getElementById('app-title').innerText = "PERCORSI";
     let html = `<div class="lang-grid">`;
     Object.keys(domandaRepo).forEach(l => {
         const icon = (l === 'HTML') ? 'html5' : l.toLowerCase();
-        html += `
-        <div class="lang-item" onclick="showLevels('${l}')">
+        html += `<div class="lang-item" onclick="renderLevels('${l}')">
             <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${icon}/${icon}-original.svg" width="35" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1005/1005141.png'">
             <div style="margin-top:10px; font-weight:700; font-size:13px">${l}</div>
         </div>`;
@@ -147,546 +121,202 @@ function showHome() {
     document.getElementById('content-area').innerHTML = html;
 }
 
-function showLevels(lang) {
+function renderLevels(lang) {
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = lang;
     let html = ""; 
-    const comp = state.progress[lang] || 0;
+    const comp = state.progress[lang] || 1;
+    
     for(let i=1; i<=5; i++) {
-        let label = "Livello " + i;
-        let isLocked = false;
-        if (i === 4 && comp < 3) isLocked = true;
-        if (i === 5) { label = "ESAMINATI"; if (comp < 3) isLocked = true; }
+        const key = "L" + i;
+        const totalQ = (domandaRepo[lang] && domandaRepo[lang][key]) ? domandaRepo[lang][key].length : 0;
+        const savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${i}`]) || 0;
+        const percentage = totalQ > 0 ? (savedIdx / totalQ) * 100 : 0;
         
-        html += `<button class="btn-apple" ${isLocked ? 'disabled' : ''} onclick="startStep('${lang}',${i})">
-            ${label} ${isLocked ? '🔒' : ''}
-        </button>`;
-    }
-    document.getElementById('content-area').innerHTML = html;
-}
+        let isLocked = i > comp;
+        if (i === 5 && comp < 4) isLocked = true;
 
-function startStep(lang, lvl) {
-    if(lvl === 5) renderL5(lang);
-    else {
-        const key = "L" + lvl;
-        const stringhe = domandaRepo[lang][key];
-        if(!stringhe || stringhe.length === 0) {
-            document.getElementById('content-area').innerHTML = `<h3>In arrivo</h3><button class="btn-apple" onclick="showLevels('${lang}')">Indietro</button>`;
-            return;
-        }
-        const rimescolate = [...stringhe].sort(() => 0.5 - Math.random());
-        const selezione = rimescolate.slice(0, 15).map(r => {
-            const p = r.split("|");
-            return { q: p[0], options: [p[1], p[2], p[3]], correct: parseInt(p[4]), exp: p[5] };
-        });
-        session = { lang: lang, lvl: lvl, q: selezione, idx: 0 };
-        renderQ();
-    }
-}
-
-function renderQ() {
-    const data = session.q[session.idx];
-    const progress = (session.idx / session.q.length) * 100;
-    document.getElementById('content-area').innerHTML = `
-        <div style="width:100%; margin-bottom:15px">
-            <div style="display:flex; justify-content:space-between; font-size:11px; opacity:0.5; margin-bottom:5px">
-                <span>DOMANDA ${session.idx + 1}/${session.q.length}</span>
-            </div>
-            <div style="width:100%; height:4px; background:rgba(120,120,128,0.1); border-radius:10px">
-                <div style="width:${progress}%; height:100%; background:var(--accent); border-radius:10px; transition:0.3s"></div>
-            </div>
-        </div>
-        <h2 style="font-size:18px; margin-bottom:20px">${data.q}</h2>
-        <div id="opts" style="width:100%">${data.options.map((o,i)=>`<button class="btn-apple" onclick="check(${i===data.correct})">${o}</button>`).join('')}</div>
-        <div id="fb"></div>`;
-}
-
-function check(isOk) {
-    const data = session.q[session.idx];
-    if(state.mode === 'user') {
-        if(!state.history[session.lang]) state.history[session.lang] = [];
-        state.history[session.lang].push({ q: data.q, ok: isOk, exp: data.exp });
-        saveMasterDB();
-    }
-    document.getElementById('opts').style.pointerEvents = "none";
-    document.getElementById('fb').innerHTML = `
-        <div class="feedback-box ${isOk?'correct':'wrong'}">
-            <strong>${isOk?'Giusto!':'Sbagliato'}</strong>
-            <p>${data.exp}</p>
-            <button class="btn-apple btn-primary" onclick="next()">Continua</button>
-        </div>`;
-}
-
-function next() {
-    session.idx++; 
-    if(session.idx < session.q.length) renderQ(); 
-    else { 
-        state.progress[session.lang] = Math.max(state.progress[session.lang]||0, session.lvl); 
-        saveMasterDB();
-        showLevels(session.lang); 
-    }
-}
-
-function renderProfile() {
-    updateNav(true, "showHome()");
-    let html = "";
-
-    // Cerca questo punto dentro renderProfile()
-if (state.mode === 'admin') {
-    document.getElementById('app-title').innerText = "GESTIONE UTENTI";
-    html += `
-        <div style="text-align:right; margin-bottom: 15px;">
-            <button onclick="adminRefresh()" class="btn-apple" style="display:inline-block; width:auto; padding:5px 15px; font-size:12px">Aggiorna Dati 🔄</button>
-        </div>
-        <div style="text-align:left; width:100%">
-    `;
-    // ... resta del ciclo Object.keys ...
-
-        Object.keys(dbUsers).forEach(pin => {
-            if (pin === '3473') return; // Nasconde l'admin dalla lista utenti
-            
-            const u = dbUsers[pin];
-            html += `
-            <div class="review-card" style="border-left:4px solid var(--accent); margin-bottom:15px">
-                <div style="display:flex; justify-content:space-between; align-items:start">
-                    <div>
-                        <strong style="font-size:16px">${u.name}</strong><br>
-                        <span style="font-size:11px; opacity:0.6">${Object.keys(u.progress).map(l=>`${l}:L${u.progress[l]}`).join(' | ') || 'Nessun progresso'}</span>
-                    </div>
-                    <div style="display:flex; gap:10px">
-                        <button onclick="adminReset('${pin}')" style="background:none; border:none; color:#ff9500; font-size:18px; cursor:pointer" title="Resetta Progressi">🔄</button>
-                        <button onclick="adminDelete('${pin}')" style="background:none; border:none; color:#ff3b30; font-size:18px; cursor:pointer" title="Elimina Utente">🗑️</button>
-                    </div>
-                </div>
-            </div>`;
-        });
-        html += `</div>`;
-    } else {
-        document.getElementById('app-title').innerText = "PROFILO";
-        html += `
-            <div style="width:100%; text-align:left">
-                <h3>Ciao, ${state.currentUser}</h3>
-                
-                <div class="security-box">
-                    <div class="security-header" onclick="toggleSecurity()">
-                        <span>Sicurezza Account</span>
-                        <span class="chevron">›</span>
-                    </div>
-                    <div class="security-content">
-                        <button class="btn-apple" style="background:var(--card); font-size:14px; margin-bottom:8px" onclick="userChangePin()">Cambia il tuo PIN</button>
-                        <button class="btn-apple" style="background:rgba(255,59,48,0.1); color:#ff3b30; font-size:14px; border:none" onclick="userSelfDelete()">Elimina il mio profilo</button>
-                    </div>
-                </div>
-
-                <h4 style="border-bottom:1px solid var(--border); padding-bottom:5px; margin-top:20px">Cronologia Ripasso</h4>
-        `;
-        
-        Object.keys(state.history).forEach(lang => {
-            state.history[lang].slice(-3).reverse().forEach(item => {
-                html += `<div class="review-card ${item.ok?'is-ok':'is-err'}" style="font-size:12px; margin-bottom:5px">${item.q}</div>`;
-            });
-        });
-        html += `</div>`;
-    }
-    document.getElementById('content-area').innerHTML = html;
-}
-
-function renderL5(lang) {
-    const c = challenges5[lang];
-    document.getElementById('content-area').innerHTML = `
-        <h3>ESAMINATI: ${lang}</h3>
-        <p style="font-size:14px; margin-bottom:10px">${c.task}</p>
-        <textarea id="ed" class="code-editor" style="width:100%; height:150px; font-size:16px"></textarea>
-        <button class="btn-apple btn-primary" style="margin-top:10px" onclick="runL5('${lang}')">Verifica</button>
-        <div id="l5-err" style="color:#ff3b30; display:none; margin-top:10px">Codice non corretto.</div>`;
-}
-
-function runL5(l) {
-    const v = document.getElementById('ed').value;
-    if(v.includes(challenges5[l].logic)) {
-        state.progress[l] = 5;
-        saveMasterDB();
-        showHome();
-    } else { document.getElementById('l5-err').style.display = "block"; }
-}
-// --- FUNZIONI ADMIN ---
-function adminReset(pin) {
-    if(confirm(`Vuoi resettare i progressi di ${dbUsers[pin].name}?`)) {
-        dbUsers[pin].progress = {};
-        dbUsers[pin].history = {};
-        localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
-        renderProfile();
-    }
-}
-
-function adminDelete(pin) {
-    if(confirm(`ELIMINARE DEFINITIVAMENTE l'utente ${dbUsers[pin].name}?`)) {
-        delete dbUsers[pin];
-        localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
-        renderProfile();
-    }
-}
-
-// --- FUNZIONI UTENTE ---
-function userChangePin() {
-    const nuovo = prompt("Inserisci il nuovo PIN di 4 cifre:");
-    if (!nuovo || nuovo.length !== 4 || isNaN(nuovo)) {
-        alert("PIN non valido.");
-        return;
-    }
-    if ("0123456789876543210".includes(nuovo) || /^(\d)\1{3}$/.test(nuovo)) {
-        alert("PIN troppo semplice, scegline un altro.");
-        return;
-    }
-    
-    // Sposta i dati dal vecchio PIN al nuovo
-    const datiVecchi = dbUsers[state.currentPin];
-    delete dbUsers[state.currentPin];
-    dbUsers[nuovo] = datiVecchi;
-    state.currentPin = nuovo;
-    localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
-    alert("PIN aggiornato con successo!");
-}
-
-function userSelfDelete() {
-    if(confirm("Sei sicuro di voler eliminare il tuo profilo? Questa azione è irreversibile.")) {
-        delete dbUsers[state.currentPin];
-        localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
-        location.reload(); // Torna al login
-    }
-}
-// Mostra il popup invece del confirm
-function logout() {
-    const modal = document.getElementById('logout-modal');
-    if (modal) {
-        modal.style.setProperty('display', 'flex', 'important');
-    }
-}
-
-function closeLogoutModal() {
-    const modal = document.getElementById('logout-modal');
-    if (modal) {
-        modal.style.setProperty('display', 'none', 'important');
-    }
-}
-
-
-function confirmLogout() {
-    closeLogoutModal();
-    state.mode = null;
-    state.currentPin = null;
-    state.currentUser = null;
-    state.progress = {};
-    state.history = {};
-    session = null;
-    renderLogin();
-}
-// --- FUNZIONI DI SUPPORTO ---
-function saveMasterDB() {
-    localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
-}
-
-// --- AZIONI PER L'ADMIN ---
-function adminReset(pin) {
-    showPopup(
-        "Reset Progressi", 
-        `Vuoi azzerare i progressi di ${dbUsers[pin].name}?`, 
-        "Resetta", 
-        () => {
-            dbUsers[pin].progress = {};
-            dbUsers[pin].history = {};
-            saveMasterDB();
-            renderProfile(); // Ricarica la vista per vedere le modifiche
-        }
-    );
-}
-
-function adminDelete(pin) {
-    showPopup(
-        "Elimina Utente", 
-        `Sei sicuro di voler eliminare definitivamente ${dbUsers[pin].name}?`, 
-        "Elimina", 
-        () => {
-            delete dbUsers[pin];
-            saveMasterDB();
-            renderProfile();
-        }
-    );
-}
-
-// --- AZIONI PER L'UTENTE ---
-function userChangePin() {
-    const nuovo = prompt("Inserisci il nuovo PIN di 4 cifre:");
-    if (!nuovo || nuovo.length !== 4 || isNaN(nuovo)) {
-        alert("PIN non valido. Usa 4 cifre.");
-        return;
-    }
-    // Verifica sicurezza base
-    if (/^(\d)\1{3}$/.test(nuovo) || "0123456789876543210".includes(nuovo)) {
-        alert("PIN troppo semplice.");
-        return;
-    }
-    
-    const dati = dbUsers[state.currentPin];
-    delete dbUsers[state.currentPin];
-    dbUsers[nuovo] = dati;
-    state.currentPin = nuovo;
-    saveMasterDB();
-    alert("PIN aggiornato con successo!");
-}
-function toggleSecurity() {
-    const box = document.querySelector('.security-box');
-    if (box) box.classList.toggle('open');
-}
-
-
-function userSelfDelete() {
-    showPopup(
-        "Elimina Profilo", 
-        "Questa azione è irreversibile. Tutti i tuoi progressi andranno persi.", 
-        "Elimina Account", 
-        () => {
-            delete dbUsers[state.currentPin];
-            saveMasterDB();
-            location.reload(); // Torna al login
-        }
-    );
-}
-
-// --- FUNZIONI DI SALVATAGGIO ---
-function saveMasterDB() {
-    localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
-}
-
-// --- AZIONI PER L'UTENTE (PROFILO) ---
-
-// Cambia il PIN con un prompt (standard ma efficace)
-function userChangePin() {
-    const nuovo = prompt("Inserisci il nuovo PIN di 4 cifre:");
-    if (!nuovo || nuovo.length !== 4 || isNaN(nuovo)) {
-        alert("PIN non valido. Inserisci 4 numeri.");
-        return;
-    }
-    
-    const datiUtente = dbUsers[state.currentPin];
-    delete dbUsers[state.currentPin]; // Rimuove il vecchio PIN
-    dbUsers[nuovo] = datiUtente;     // Crea il nuovo record
-    state.currentPin = nuovo;        // Aggiorna la sessione
-    saveMasterDB();
-    alert("PIN aggiornato! Ricordalo per il prossimo accesso.");
-    renderProfile();
-}
-
-// Elimina profilo UTENTE (con Popup)
-function userSelfDelete() {
-    showPopup(
-        "Elimina Profilo", 
-        "Questa azione è irreversibile. Tutti i tuoi progressi andranno persi.", 
-        "Elimina Account", 
-        () => {
-            delete dbUsers[state.currentPin];
-            saveMasterDB();
-            location.reload(); // Torna alla schermata di login
-        }
-    );
-}
-
-// --- AZIONI PER L'ADMIN ---
-
-// Resetta i progressi (con Popup)
-function adminReset(pin) {
-    showPopup(
-        "Resetta Progressi", 
-        `Vuoi azzerare i punteggi di ${dbUsers[pin].name}?`, 
-        "Resetta", 
-        () => {
-            dbUsers[pin].progress = {};
-            dbUsers[pin].history = {};
-            saveMasterDB();
-            renderProfile();
-        }
-    );
-}
-
-// Elimina utente (con Popup)
-function adminDelete(pin) {
-    showPopup(
-        "Elimina Utente", 
-        `Sei sicuro di voler eliminare definitivamente ${dbUsers[pin].name}?`, 
-        "Elimina", 
-        () => {
-            delete dbUsers[pin];
-            saveMasterDB();
-            renderProfile();
-        }
-    );
-}
-
-// Funzione "Aggiorna" (Ricarica i dati dalla vista Admin)
-function adminRefresh() {
-    renderProfile();
-}
-function showPopup(title, desc, confirmLabel, actionFn) {
-    const modal = document.getElementById('universal-modal'); // Controlla che l'ID sia questo
-    if (!modal) {
-        // Se il modale non esiste nell'HTML, usa il vecchio confirm come emergenza
-        if (confirm(desc)) actionFn();
-        return;
-    }
-    
-    document.getElementById('modal-title').innerText = title;
-    document.getElementById('modal-desc').innerText = desc;
-    
-    const btn = document.getElementById('modal-confirm-btn');
-    btn.innerText = confirmLabel;
-    
-    // Collega l'azione al tasto di conferma
-    btn.onclick = () => {
-        actionFn();
-        closeModal();
-    };
-    
-    modal.style.setProperty('display', 'flex', 'important');
-}
-
-function closeModal() {
-    const modal = document.getElementById('universal-modal');
-    if (modal) modal.style.setProperty('display', 'none', 'important');
-}
-
-function saveCurrentStep(lang, level, questionIndex) {
-    if (!dbUsers[state.currentPin].activeProgress) {
-        dbUsers[state.currentPin].activeProgress = {};
-    }
-    
-    // Salva a che domanda siamo arrivati per quel preciso livello
-    dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = questionIndex;
-    saveMasterDB();
-}
-function renderLevels(lang) {
-    updateNav(true, "showHome()");
-    let html = `<h2>Livelli ${lang.toUpperCase()}</h2>`;
-    
-    for (let i = 1; i <= 5; i++) {
-        // Recuperiamo il numero REALE di domande dal tuo database
-        // Se il livello non esiste ancora, mettiamo 0 come backup
-        const totalQuestions = (domandaRepo[lang] && domandaRepo[lang][i]) ? domandaRepo[lang][i].length : 0;
-        
-        // Recuperiamo il progresso salvato
-        const savedProgress = (dbUsers[state.currentPin].activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${i}`]) || 0;
-        
-        // Calcoliamo la percentuale (evitando divisioni per zero)
-        const percentage = totalQuestions > 0 ? (savedProgress / totalQuestions) * 100 : 0;
-        
-        const isLocked = i > (dbUsers[state.currentPin].progress[lang] || 1);
-        
         html += `
             <div class="level-card ${isLocked ? 'locked' : ''}" onclick="${isLocked ? '' : `startQuiz('${lang}', ${i})`}">
                 <div style="display:flex; justify-content:space-between; align-items:center">
-                    <span>Livello ${i}</span>
-                    <span style="font-size:12px; opacity:0.6">${savedProgress}/${totalQuestions}</span>
+                    <span>Livello ${i === 5 ? 'ESAMINATI' : 'Livello ' + i} ${isLocked ? '🔒' : ''}</span>
+                    <span style="font-size:11px; opacity:0.6">${savedIdx}/${totalQ}</span>
                 </div>
-                <div class="progress-container">
-                    <div class="progress-bar-fill" style="width: ${percentage}%"></div>
+                <div class="progress-container" style="width:100%; height:4px; background:rgba(120,120,128,0.1); border-radius:10px; margin-top:8px">
+                    <div class="progress-bar-fill" style="width:${percentage}%; height:100%; background:var(--accent); border-radius:10px; transition:0.3s"></div>
                 </div>
-            </div>
-        `;
+            </div>`;
     }
     document.getElementById('content-area').innerHTML = html;
 }
 
-
-// Funzione per far partire il quiz
-// Funzione per far partire il quiz (USA domandaRepo)
-function startQuiz(lang, level) {
-    state.currentQuiz = { lang, level };
+// 6. LOGICA QUIZ (startQuiz, renderQuestion, checkAnswer)
+function startQuiz(lang, lvl) {
+    if(lvl === 5) { renderL5(lang); return; }
     
-    // Recupera progresso
-    if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
-    const savedIdx = dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] || 0;
+    const key = "L" + lvl;
+    if(!domandaRepo[lang][key]) { alert("Livello non disponibile"); return; }
+
+    state.currentQuiz = { lang, level: lvl };
+    const savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${lvl}`]) || 0;
     state.currentQuestionIndex = savedIdx;
 
-    // QUESTO È IL PUNTO CHIAVE: forza il tasto indietro ai livelli
-    updateNav(true, `renderLevels('${lang}')`); 
-    
+    updateNav(true, `renderLevels('${lang}')`);
     renderQuestion();
 }
 
-
-// Funzione per visualizzare la domanda (USA domandaRepo)
 function renderQuestion() {
     const { lang, level } = state.currentQuiz;
-    const questions = domandaRepo[lang][level];
-
+    const questions = domandaRepo[lang]["L" + level];
+    
     if (state.currentQuestionIndex >= questions.length) {
         finishQuiz(lang, level);
         return;
     }
 
-    const q = questions[state.currentQuestionIndex];
-    
-    let html = `
-        <div class="quiz-container">
-            <p style="font-size:12px; opacity:0.5; margin-bottom:10px">Domanda ${state.currentQuestionIndex + 1} di ${questions.length}</p>
-            <h2 style="margin-bottom:25px; font-size:20px">${q.question}</h2>
-            <div style="display:flex; flex-direction:column; gap:12px">
-    `;
+    const raw = questions[state.currentQuestionIndex].split("|");
+    const qData = { q: raw[0], options: [raw[1], raw[2], raw[3]], correct: parseInt(raw[4]), exp: raw[5] };
+    const progress = (state.currentQuestionIndex / questions.length) * 100;
 
-    q.options.forEach((opt, idx) => {
-        html += `<button class="btn-apple" onclick="checkAnswer(${idx})" style="text-align:left; padding:15px">${opt}</button>`;
-    });
-
-    html += `</div></div>`;
-    document.getElementById('content-area').innerHTML = html;
+    document.getElementById('content-area').innerHTML = `
+        <div style="width:100%; margin-bottom:15px">
+            <div style="display:flex; justify-content:space-between; font-size:11px; opacity:0.5; margin-bottom:5px">
+                <span>DOMANDA ${state.currentQuestionIndex + 1}/${questions.length}</span>
+            </div>
+            <div style="width:100%; height:4px; background:rgba(120,120,128,0.1); border-radius:10px">
+                <div style="width:${progress}%; height:100%; background:var(--accent); border-radius:10px; transition:0.3s"></div>
+            </div>
+        </div>
+        <h2 style="font-size:18px; margin-bottom:20px">${qData.q}</h2>
+        <div id="opts" style="width:100%">${qData.options.map((o,i)=>`<button class="btn-apple" onclick="checkAnswer(${i === qData.correct}, '${qData.exp.replace(/'/g, "\\'")}')">${o}</button>`).join('')}</div>
+        <div id="fb"></div>`;
 }
 
-// Funzione per gestire la risposta (USA domandaRepo)
-function checkAnswer(selectedIndex) {
+function checkAnswer(isOk, exp) {
     const { lang, level } = state.currentQuiz;
-    const questions = domandaRepo[lang][level];
-    
-    // 1. Controlla risposta
-    const isCorrect = selectedIndex === questions[state.currentQuestionIndex].correct;
-    
-    // 2. Salva in cronologia
-    if (!state.history[lang]) state.history[lang] = [];
-    state.history[lang].push({ q: questions[state.currentQuestionIndex].question, ok: isCorrect });
+    if(state.mode === 'user') {
+        if(!state.history[lang]) state.history[lang] = [];
+        state.history[lang].push({ q: "Domanda " + (state.currentQuestionIndex+1), ok: isOk });
+    }
 
-    // 3. Incrementa indice
+    document.getElementById('opts').style.pointerEvents = "none";
+    document.getElementById('fb').innerHTML = `
+        <div class="feedback-box ${isOk?'correct':'wrong'}">
+            <strong>${isOk?'Giusto!':'Sbagliato'}</strong>
+            <p>${exp}</p>
+            <button class="btn-apple btn-primary" onclick="nextQuestion()">Continua</button>
+        </div>`;
+}
+
+function nextQuestion() {
+    const { lang, level } = state.currentQuiz;
     state.currentQuestionIndex++;
-
-    // 4. SALVA NEL DATABASE
-    if (!dbUsers[state.currentPin].activeProgress) {
-        dbUsers[state.currentPin].activeProgress = {};
-    }
-    dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = state.currentQuestionIndex;
     
-    saveMasterDB(); // Assicurati che questa funzione faccia localStorage.setItem
-
-    // 5. Vai avanti
-    if (state.currentQuestionIndex < questions.length) {
-        renderQuestion();
-    } else {
-        finishQuiz(lang, level);
+    if (dbUsers[state.currentPin]) {
+        if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
+        dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = state.currentQuestionIndex;
     }
+    saveMasterDB();
+    renderQuestion();
 }
 
 function finishQuiz(lang, level) {
-    // 1. Reset progressi parziali del livello appena finito
-    if (dbUsers[state.currentPin].activeProgress) {
-        dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = 0;
-    }
-    
-    // 2. Sblocca il livello successivo se l'utente ha finito il suo livello attuale più alto
-    const currentMax = dbUsers[state.currentPin].progress[lang] || 1;
-    if (level == currentMax) {
-        dbUsers[state.currentPin].progress[lang] = level + 1;
-    }
-    
+    if (dbUsers[state.currentPin]?.activeProgress) dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = 0;
+    state.progress[lang] = Math.max(state.progress[lang] || 1, level + 1);
     saveMasterDB();
-    alert("Complimenti! Livello completato!");
-    renderLevels(lang); // Torna alla lista livelli aggiornata
+    alert("Livello completato!");
+    renderLevels(lang);
 }
-function saveMasterDB() {
-    localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
+
+// 7. PROFILO E AZIONI ADMIN/USER
+function renderProfile() {
+    updateNav(true, "showHome()");
+    let html = "";
+
+    if (state.mode === 'admin') {
+        document.getElementById('app-title').innerText = "GESTIONE UTENTI";
+        html += `<div style="text-align:right; margin-bottom:15px"><button onclick="renderProfile()" class="btn-apple" style="width:auto; padding:5px 15px">Aggiorna 🔄</button></div>`;
+        Object.keys(dbUsers).forEach(pin => {
+            if (pin === ADMIN_PIN) return;
+            const u = dbUsers[pin];
+            html += `
+            <div class="review-card" style="border-left:4px solid var(--accent); margin-bottom:15px">
+                <div style="display:flex; justify-content:space-between; align-items:start">
+                    <div><strong>${u.name}</strong><br><small>PIN: ${pin}</small></div>
+                    <div style="display:flex; gap:10px">
+                        <button onclick="adminReset('${pin}')" style="background:none; border:none; font-size:18px">🔄</button>
+                        <button onclick="adminDelete('${pin}')" style="background:none; border:none; font-size:18px">🗑️</button>
+                    </div>
+                </div>
+            </div>`;
+        });
+    } else {
+        document.getElementById('app-title').innerText = "PROFILO";
+        html += `<h3>Ciao, ${state.currentUser}</h3>
+            <div class="security-box">
+                <div class="security-header" onclick="toggleSecurity()"><span>Sicurezza Account</span><span class="chevron">›</span></div>
+                <div class="security-content">
+                    <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
+                    <button class="btn-apple" style="color:#ff3b30" onclick="userSelfDelete()">Elimina Profilo</button>
+                </div>
+            </div>
+            <h4>Cronologia Recente</h4>`;
+        (state.history[Object.keys(state.history)[0]] || []).slice(-3).reverse().forEach(h => {
+            html += `<div class="review-card ${h.ok?'is-ok':'is-err'}">${h.q}</div>`;
+        });
+    }
+    document.getElementById('content-area').innerHTML = html;
+}
+
+// 8. POPUP E MODALI
+function showPopup(title, desc, confirmLabel, actionFn) {
+    const modal = document.getElementById('universal-modal');
+    if (!modal) { if (confirm(desc)) actionFn(); return; }
+    document.getElementById('modal-title').innerText = title;
+    document.getElementById('modal-desc').innerText = desc;
+    const btn = document.getElementById('modal-confirm-btn');
+    btn.innerText = confirmLabel;
+    btn.onclick = () => { actionFn(); closeModal(); };
+    modal.style.setProperty('display', 'flex', 'important');
+}
+
+function closeModal() { document.getElementById('universal-modal').style.display = 'none'; }
+
+function logout() {
+    showPopup("Esci", "Vuoi disconnetterti?", "Esci", () => {
+        state.mode = null; state.currentPin = null; location.reload();
+    });
+}
+
+function toggleSecurity() { document.querySelector('.security-box')?.classList.toggle('open'); }
+
+// 9. AZIONI SPECIFICHE
+function adminReset(pin) {
+    showPopup("Reset", "Azzera progressi?", "Resetta", () => {
+        dbUsers[pin].progress = {}; dbUsers[pin].activeProgress = {}; saveMasterDB(); renderProfile();
+    });
+}
+
+function adminDelete(pin) {
+    showPopup("Elimina", "Elimina utente?", "Elimina", () => {
+        delete dbUsers[pin]; saveMasterDB(); renderProfile();
+    });
+}
+
+function userChangePin() {
+    const n = prompt("Nuovo PIN (4 cifre):");
+    if (n && n.length === 4) {
+        const d = dbUsers[state.currentPin]; delete dbUsers[state.currentPin];
+        dbUsers[n] = d; state.currentPin = n; saveMasterDB(); alert("PIN Cambiato");
+    }
+}
+
+function userSelfDelete() {
+    showPopup("Elimina", "Elimina il tuo profilo?", "Elimina", () => {
+        delete dbUsers[state.currentPin]; saveMasterDB(); location.reload();
+    });
+}
+
+function renderL5(lang) {
+    document.getElementById('content-area').innerHTML = `<h3>Esame ${lang}</h3><p>In arrivo...</p><button class="btn-apple" onclick="renderLevels('${lang}')">Indietro</button>`;
 }
