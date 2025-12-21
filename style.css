@@ -40,56 +40,55 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
 .back-link { color: var(--accent); cursor: pointer; font-size: 17px; }
 @keyframes slideIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-/* La testata trasparente stile iOS */.glass-header {
-    position: relative; /* Necessario per i figli assoluti */
-    display: flex;
-    justify-content: center; /* Centra il titolo perfettamente */
-    align-items: center;
+/* La barra fissa in alto */
+.glass-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
     height: 44px;
-    padding: 0 16px;
     background: var(--bg);
     border-bottom: 0.5px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
 }
+
+/* Il contenitore interno che gestisce i 3 spazi */
+.nav-container {
+    width: 100%;
+    max-width: 600px; /* Evita che su tablet sia troppo largo */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    position: relative;
+}
+
+.nav-side {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+#right-nav { justify-content: flex-end; }
+#back-nav { justify-content: flex-start; }
 
 #app-title {
+    flex: 2;
     font-size: 17px;
     font-weight: 600;
-    margin: 0;
     text-align: center;
+    margin: 0;
 }
 
-/* Posizionamento forzato ai bordi */
-#back-nav {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%); /* Centra verticalmente */
+/* Lo spazio vuoto che impedisce la sovrapposizione */
+.header-spacer {
+    height: 44px;
+    width: 100%;
 }
 
-#right-nav {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%); /* Centra verticalmente */
-}
-
-/* Stili Testo Apple */
-.back-link {
-    color: #007aff !important;
-    font-size: 17px;
-    cursor: pointer;
-}
-
-.logout-link {
-    color: #ff3b30 !important; /* Forza il rosso Apple */
-    font-size: 17px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.back-link:active, .logout-link:active {
-    opacity: 0.3;
-}
+/* Stili Apple */
+.back-link { color: #007aff !important; font-size: 17px; cursor: pointer; }
+.logout-link { color: #ff3b30 !important; font-size: 17px; font-weight: 600; cursor: pointer; }
