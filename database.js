@@ -1,4 +1,4 @@
-{
+const quizDB = {
   "Python": {
     "L1": [
       {"q":"Come si dichiara una variabile in Python?","options":["var x = 5","x = 5","int x = 5","let x = 5"],"correct":1,"exp":"In Python basta assegnare un valore a un nome.","code":"x = 5"},
