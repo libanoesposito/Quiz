@@ -41,8 +41,8 @@ function saveMasterDB() {
     if (state.mode === 'user' && state.currentPin) {
         dbUsers[state.currentPin].progress = state.progress;
         dbUsers[state.currentPin].history = state.history;
+        localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
     }
-    localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
 }
 
 // 4. LOGIN E PIN
@@ -124,24 +124,17 @@ function renderLevels(lang) {
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = lang;
     let html = ""; 
-    const comp = state.progress[lang] || 0;
+    const comp = state.progress[lang] || 1;
     
     for(let i=1; i<=5; i++) {
         const key = "L" + i;
         const totalQ = (domandaRepo[lang] && domandaRepo[lang][key]) ? domandaRepo[lang][key].length : 0;
-        
-        let savedIdx = 0;
-        if(state.mode !== 'guest' && state.currentPin) {
-            savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${i}`]) || 0;
-        }
-        
+        const savedIdx = (state.mode !== 'guest' && dbUsers[state.currentPin]?.activeProgress) ? dbUsers[state.currentPin].activeProgress[`${lang}_${i}`] || 0 : 0;
         const percentage = totalQ > 0 ? (savedIdx / totalQ) * 100 : 0;
         
-        let isLocked = false;
-        if (state.mode === 'user') {
-            if ((i === 4 || i === 5) && comp < 3) isLocked = true;
-            else if (i > comp + 1) isLocked = true;
-        }
+        let isLocked = i > comp;
+        if (state.mode === 'user' && i === 5 && comp < 4) isLocked = true;
+        if (state.mode === 'guest') isLocked = false;
 
         html += `
             <div class="level-card ${isLocked ? 'locked' : ''}" onclick="${isLocked ? '' : `startQuiz('${lang}', ${i})`}" style="margin-bottom:10px; padding:18px; position:relative">
@@ -161,10 +154,7 @@ function renderLevels(lang) {
 function startQuiz(lang, lvl) {
     if(lvl === 5) { renderL5(lang); return; }
     state.currentQuiz = { lang, level: lvl };
-    let savedIdx = 0;
-    if(state.mode !== 'guest' && state.currentPin) {
-        savedIdx = (dbUsers[state.currentPin]?.activeProgress && dbUsers[state.currentPin].activeProgress[`${lang}_${lvl}`]) || 0;
-    }
+    const savedIdx = (state.mode !== 'guest' && dbUsers[state.currentPin]?.activeProgress) ? dbUsers[state.currentPin].activeProgress[`${lang}_${lvl}`] || 0 : 0;
     state.currentQuestionIndex = savedIdx;
     updateNav(true, `renderLevels('${lang}')`);
     renderQuestion();
@@ -222,10 +212,8 @@ function nextQuestion() {
 }
 
 function finishQuiz(lang, level) {
-    if (state.mode !== 'guest' && dbUsers[state.currentPin]?.activeProgress) {
-        dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = 0;
-    }
-    state.progress[lang] = Math.max(state.progress[lang] || 0, level);
+    if (state.mode !== 'guest' && dbUsers[state.currentPin]?.activeProgress) dbUsers[state.currentPin].activeProgress[`${lang}_${level}`] = 0;
+    state.progress[lang] = Math.max(state.progress[lang] || 1, level + 1);
     saveMasterDB();
     alert("Livello completato con successo!");
     renderLevels(lang);
@@ -266,7 +254,43 @@ function renderProfile() {
     document.getElementById('content-area').innerHTML = html;
 }
 
-// 8. POPUP E AZIONI
+// 9. LIVELLO 5 - EDITOR
+function renderL5(lang) {
+    updateNav(true, `renderLevels('${lang}')`);
+    const tasks = {
+        "python": "Scrivi una funzione 'print' per stampare un testo.",
+        "javascript": "Usa un ciclo 'for' o 'while' per contare.",
+        "html": "Usa il tag 'li' per una lista."
+    };
+    const currentTask = tasks[lang.toLowerCase()] || "Scrivi il codice corretto per questa lingua.";
+    
+    document.getElementById('content-area').innerHTML = `
+        <h3 style="margin-bottom:15px">${lang} Exam</h3>
+        <p style="font-size:14px; opacity:0.7; margin-bottom:15px">${currentTask}</p>
+        <textarea id="code-editor" class="btn-apple" style="width:100%; height:180px; background:var(--card); font-family:monospace; text-align:left; padding:15px; resize:none" placeholder="// Scrivi qui..."></textarea>
+        <div id="l5-msg" style="margin-top:10px; font-size:13px"></div>
+        <button class="btn-apple btn-primary" style="margin-top:15px" onclick="verifyL5('${lang}')">Verifica Codice</button>`;
+}
+
+function verifyL5(lang) {
+    const code = document.getElementById('code-editor').value.toLowerCase();
+    const msg = document.getElementById('l5-msg');
+    const checks = { "python": "print", "javascript": "for", "html": "li" };
+    const key = checks[lang.toLowerCase()] || "";
+
+    if (code.includes(key)) {
+        msg.style.color = "#34c759";
+        msg.innerText = "Corretto! Esame superato.";
+        state.progress[lang] = 5;
+        saveMasterDB();
+        setTimeout(() => renderLevels(lang), 1500);
+    } else {
+        msg.style.color = "#ff3b30";
+        msg.innerText = "Errore: Logica mancante.";
+    }
+}
+
+// AZIONI POPUP
 function showPopup(title, desc, confirmLabel, actionFn) {
     const modal = document.getElementById('universal-modal');
     if (!modal) { if (confirm(desc)) actionFn(); return; }
@@ -287,28 +311,6 @@ function userChangePin() {
         dbUsers[n] = d; state.currentPin = n; saveMasterDB(); alert("PIN Cambiato");
     }
 }
-
-// 9. LIVELLO 5
-function renderL5(lang) {
-    updateNav(true, `renderLevels('${lang}')`);
-    document.getElementById('content-area').innerHTML = `
-        <div style="text-align:left; margin-bottom:15px">
-            <h3 style="font-size:16px; color:var(--accent)">Esercizio di Logica</h3>
-            <p style="font-size:14px; opacity:0.8">Scrivi il codice necessario per completare la sfida.</p>
-        </div>
-        <div style="background:#1e1e1e; border-radius:8px; overflow:hidden; border:1px solid #3c3c3c; font-family:monospace; text-align:left">
-            <div style="background:#323233; padding:8px 15px; color:#cccccc; font-size:11px">Editor</div>
-            <textarea id="code-editor" style="width:100%; height:150px; background:#1e1e1e; color:#d4d4d4; border:none; padding:15px; font-size:14px; outline:none; resize:none"></textarea>
-        </div>
-        <div id="l5-feedback" style="margin-top:10px"></div>
-        <button class="btn-apple btn-primary" style="margin-top:15px" onclick="verifyL5('${lang}')">Esegui (Run)</button>
-        <div id="console-output" style="display:none; margin-top:20px; background:#1e1e1e; padding:12px; font-family:monospace; text-align:left">
-            <div style="color:#007acc; font-size:10px; margin-bottom:5px">OUTPUT</div>
-            <div style="color:#ffffff; font-size:12px">Esecuzione completata...</div>
-        </div>`;
-}
-
-function verifyL5(lang) {
-    document.getElementById('console-output').style.display = "block";
-    if (state.mode === 'user') { state.progress[lang] = 5; saveMasterDB(); }
-}
+function userSelfDelete() { showPopup("Elimina", "Elimina il tuo profilo?", "Elimina", () => { delete dbUsers[state.currentPin]; saveMasterDB(); location.reload(); }); }
+function adminReset(pin) { showPopup("Reset", "Azzera progressi?", "Resetta", () => { dbUsers[pin].progress = {}; dbUsers[pin].activeProgress = {}; saveMasterDB(); renderProfile(); }); }
+function adminDelete(pin) { showPopup("Elimina", "Elimina utente?", "Elimina", () => { delete dbUsers[pin]; saveMasterDB(); renderProfile(); }); }
