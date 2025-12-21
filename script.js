@@ -219,6 +219,14 @@ function check(isOk) {
     if(state.mode === 'user') {
         if(!state.history[session.lang]) state.history[session.lang] = [];
         state.history[session.lang].push({ q: data.q, ok: isOk, exp: data.exp });
+        
+        // --- NUOVO: Salva il progresso parziale ---
+        if (!dbUsers[state.currentPin].activeProgress) {
+            dbUsers[state.currentPin].activeProgress = {};
+        }
+        // Salviamo l'indice della prossima domanda (idx + 1)
+        dbUsers[state.currentPin].activeProgress[`${session.lang}_${session.lvl}`] = session.idx + 1;
+        
         saveMasterDB();
     }
     document.getElementById('opts').style.pointerEvents = "none";
@@ -229,6 +237,7 @@ function check(isOk) {
             <button class="btn-apple btn-primary" onclick="next()">Continua</button>
         </div>`;
 }
+
 
 function next() {
     session.idx++; 
