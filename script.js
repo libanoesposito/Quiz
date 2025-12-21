@@ -64,11 +64,16 @@ function renderLogin() {
 
 function uiPin(type) {
     updateNav(true, "renderLogin()");
+    let title = type === 'login' ? 'Bentornato' : 'Crea Profilo';
+    let nameField = type === 'register' ? 
+        `<input type="text" id="name-field" class="btn-apple" placeholder="Il tuo Nome" style="margin-bottom:10px; text-align:center">` : '';
+
     document.getElementById('content-area').innerHTML = `
         <div style="text-align:center">
-            <h3 style="margin-bottom:20px">${type === 'login' ? 'Bentornato' : 'Crea il tuo PIN (4 cifre)'}</h3>
-            <div id="pin-error" style="color:#ff3b30; font-size:13px; margin-bottom:10px; display:none"></div>
-            <input type="password" id="pin-field" class="btn-apple" style="text-align:center; font-size:24px; letter-spacing:8px" maxlength="4" inputmode="numeric">
+            <h3 style="margin-bottom:20px">${title}</h3>
+            <div id="pin-error" style="color:#ff3b30; font-size:13px; margin-bottom:10px; display:none; padding:0 20px"></div>
+            ${nameField}
+            <input type="password" id="pin-field" class="btn-apple" style="text-align:center; font-size:24px; letter-spacing:8px" maxlength="4" inputmode="numeric" placeholder="PIN">
             <button class="btn-apple btn-primary" style="margin-top:20px" onclick="validatePin('${type}')">Conferma</button>
         </div>`;
 }
@@ -76,22 +81,77 @@ function uiPin(type) {
 function validatePin(type) {
     const pin = document.getElementById('pin-field').value;
     const errorEl = document.getElementById('pin-error');
+    errorEl.style.display = "none";
+
+    // 1. Controllo base
     if(pin.length !== 4) {
-        errorEl.innerText = "Inserisci 4 cifre";
+        errorEl.innerText = "Il PIN deve essere di 4 cifre";
         errorEl.style.display = "block";
         return;
     }
-    if(type === 'register') {
-        localStorage.setItem('devUserId', pin);
-        state.userId = pin;
-    } else if(pin !== state.userId) {
-        errorEl.innerText = "PIN errato!";
-        errorEl.style.display = "block";
+
+    // 2. Controllo PIN Amministratore
+    if (pin === ADMIN_PIN) {
+        state.mode = 'admin';
+        state.currentUser = "Creatore";
+        showHome(); // L'admin entra in home normalmente
         return;
     }
+
+    // 3. Blocchi di sicurezza per nuovi utenti
+    if (type === 'register') {
+        const name = document.getElementById('name-field').value.trim();
+        if(!name) { errorEl.innerText = "Inserisci il tuo nome"; errorEl.style.display = "block"; return; }
+        
+        // Controllo ripetuti (1111, 2222...)
+        if (/^(\d)\1{3}$/.test(pin)) {
+            errorEl.innerText = "PIN troppo semplice (cifre ripetute)";
+            errorEl.style.display = "block";
+            return;
+        }
+        // Controllo consecutivi (1234, 4567...)
+        if ("0123456789876543210".includes(pin)) {
+            errorEl.innerText = "PIN non valido (sequenza numerica)";
+            errorEl.style.display = "block";
+            return;
+        }
+        // Controllo se già in uso
+        if (dbUsers[pin]) {
+            errorEl.innerText = "Questo PIN è già in uso";
+            errorEl.style.display = "block";
+            return;
+        }
+
+        // Se tutto ok, crea l'utente
+        dbUsers[pin] = { name: name, progress: {}, history: {} };
+        saveMasterDB();
+    } else {
+        // Login: controlla se esiste
+        if (!dbUsers[pin]) {
+            errorEl.innerText = "PIN errato o utente inesistente";
+            errorEl.style.display = "block";
+            return;
+        }
+    }
+
+    // Caricamento dati utente
+    state.currentPin = pin;
+    state.currentUser = dbUsers[pin].name;
     state.mode = 'user';
+    state.progress = dbUsers[pin].progress || {};
+    state.history = dbUsers[pin].history || {};
     showHome();
 }
+
+// Funzione di utilità per salvare
+function saveMasterDB() {
+    if (state.mode === 'user' && state.currentPin) {
+        dbUsers[state.currentPin].progress = state.progress;
+        dbUsers[state.currentPin].history = state.history;
+    }
+    localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
+}
+
 
 function setGuest() { state.mode = 'guest'; showHome(); }
 
