@@ -622,3 +622,22 @@ function checkAnswer(isCorrect) {
 
     // ... prosegui con renderQuestion() o fine quiz ...
 }
+function renderQuestion() {
+    const { lang, level } = state.currentQuiz;
+    const q = quizData[lang][level][state.currentQuestionIndex];
+    
+    let html = `
+        <div class="quiz-container">
+            <p style="font-size:14px; opacity:0.6">Domanda ${state.currentQuestionIndex + 1}</p>
+            <h2 style="margin-bottom:20px">${q.question}</h2>
+            <div style="display:flex; flex-direction:column; gap:10px">
+    `;
+
+    q.options.forEach((opt, idx) => {
+        html += `<button class="btn-apple" onclick="checkAnswer(${idx})">${opt}</button>`;
+    });
+
+    html += `</div></div>`;
+    document.getElementById('content-area').innerHTML = html;
+}
+
