@@ -33,10 +33,8 @@ function updateNav(showBack, backTarget) {
     const b = document.getElementById('back-nav');
     const r = document.getElementById('right-nav');
 
-    // Inserisce il link Indietro solo se serve
     b.innerHTML = showBack ? `<span class="back-link" onclick="${backTarget}">\u2039 Indietro</span>` : "";
-
-    // Inserisce Esci solo se l'utente è loggato
+    
     if (state.mode) {
         r.innerHTML = `<span class="logout-link" onclick="logout()">Esci</span>`;
     } else {
@@ -360,19 +358,4 @@ function confirmLogout() {
     state.history = {};
     session = null;
     renderLogin();
-}
-
-function updateNav(showBack, backTarget) {
-    const b = document.getElementById('back-nav');
-    const r = document.getElementById('right-nav');
-
-    // Se deve mostrare il tasto, inserisce lo span, altrimenti svuota il div
-    b.innerHTML = showBack ? `<span class="back-link" onclick="${backTarget}">\u2039 Indietro</span>` : "";
-
-    // Se l'utente è loggato, mostra Esci (rosso)
-    if (state.mode) {
-        r.innerHTML = `<span class="logout-link" onclick="logout()">Esci</span>`;
-    } else {
-        r.innerHTML = "";
-    }
 }
