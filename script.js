@@ -285,8 +285,11 @@ function userSelfDelete() { showPopup("Elimina", "Elimina il tuo profilo?", "Eli
 function renderL5(lang) { document.getElementById('content-area').innerHTML = `<h3>Esame ${lang}</h3><button class="btn-apple" onclick="showLevels('${lang}')">Indietro</button>`; }
 
 function renderL5(lang) {
+    const q = challenges5[lang][state.currentL5QuestionIndex];
+
     const html = `
         <h3>Esame ${lang}</h3>
+        <p style="margin-top:10px; font-weight:600">${q.task}</p>
         <button class="btn-apple" onclick="showLevels('${lang}')">Indietro</button>
         <div id="level5-container"></div>
         <textarea id="editor" spellcheck="false" placeholder="Scrivi qui il codice..." 
@@ -296,10 +299,8 @@ function renderL5(lang) {
     `;
     document.getElementById('content-area').innerHTML = html;
 
-    // Mostra i pallini verdi/rossi
     generateLevel5List(challenges5);
 
-    // Collega pulsante Esegui
     document.getElementById("run-button").addEventListener("click", () => {
         const code = document.getElementById("editor").value;
         testLevel5(code, lang);
@@ -307,21 +308,33 @@ function renderL5(lang) {
 }
 
 function testLevel5(userCode, lang) {
-    const challenge = challenges5[lang];
+    const index = state.currentL5QuestionIndex;
+    const challenge = challenges5[lang][index];
     if (!challenge) return alert("Lingua non trovata");
 
-    if(userCode.includes(challenge.logic)) {
-    if(state.mode !== 'guest') challenge.userStatus = "corretto";
-    displayConsoleOutput(challenge.output);
-    alert("Logica corretta!");
-} else {
-    if(state.mode !== 'guest') challenge.userStatus = "sbagliato";
-    alert("Logica sbagliata, riprova!");
-}
+    if (userCode.includes(challenge.logic)) {
+        if(state.mode !== 'guest') challenge.userStatus = "corretto";
+        displayConsoleOutput(challenge.output);
+        alert("Logica corretta!");
+    } else {
+        if(state.mode !== 'guest') challenge.userStatus = "sbagliato";
+        alert("Logica sbagliata, riprova!");
+        return; // non avanza se sbagliato
+    }
 
     // Aggiorna la lista dei pallini
     document.getElementById("level5-container").remove();
     generateLevel5List(challenges5);
+
+    // Passa alla domanda successiva
+    state.currentL5QuestionIndex++;
+    if(state.currentL5QuestionIndex < challenges5[lang].length) {
+        renderL5(lang);
+    } else {
+        alert("Hai completato tutte le domande!");
+        showLevels(lang);
+        state.currentL5QuestionIndex = 0; // reset per prossimo accesso
+    }
 }
 
 function displayConsoleOutput(output) {
