@@ -195,7 +195,7 @@ function checkAnswer(isOk, exp) {
     document.getElementById('fb').innerHTML = `
         <div class="feedback-box ${isOk?'correct':'wrong'}" style="margin-top:25px; padding:20px; border-radius:15px; animation: slideUp 0.3s ease">
             <strong style="font-size:18px">${isOk?'Ottimo!':'Riprova'}</strong>
-            <p style="margin:10px 0; font-size:15px; line-height:1.4 opacity:0.9">${exp}</p>
+            <p style="margin:10px 0; font-size:15px; line-height:1.4; opacity:0.9">${exp}</p>
             <button class="btn-apple btn-primary" onclick="nextQuestion()">Continua</button>
         </div>`;
 }
@@ -283,50 +283,27 @@ function userSelfDelete() { showPopup("Elimina", "Elimina il tuo profilo?", "Eli
 // SEZIONE LIVELLO 5 - MODIFICA SOLO QUI SOTTO
 // ==========================================
 
-const sfideL5 = {
-    "HTML": { q: "Crea una lista puntata usando il tag corretto.", ok: "li" },
-    "Python": { q: "Qual è il comando per stampare un messaggio?", ok: "print" },
-    "JavaScript": { q: "Come scrivi un ciclo che si ripete (for)?", ok: "for" }
+const challenges5 = {
+    "HTML": { task: "Usa il tag per creare un elemento di una lista.", logic: "li" },
+    "Python": { task: "Scrivi il comando per stampare un testo.", logic: "print" },
+    "JavaScript": { task: "Scrivi il comando per creare un ciclo for.", logic: "for" }
 };
 
 function renderL5(lang) {
-    updateNav(true, `renderLevels('${lang}')`);
-    const sfida = sfideL5[lang] || { q: "Scrivi il codice corretto per procedere.", ok: "" };
-    
+    const c = challenges5[lang] || { task: "In arrivo", logic: "" };
     document.getElementById('content-area').innerHTML = `
-        <div style="text-align:left; width:100%">
-            <h2 style="margin-bottom:10px">Esame ${lang}</h2>
-            <p style="margin-bottom:20px; opacity:0.8; font-size:15px">${sfira.q}</p>
-            
-            <textarea id="editorL5" 
-                style="width:100%; height:180px; background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:12px; padding:15px; font-family:monospace; font-size:16px; resize:none"
-                placeholder="Scrivi qui..."></textarea>
-            
-            <div id="msgL5" style="margin-top:15px; font-size:14px; display:none"></div>
-            
-            <button class="btn-apple btn-primary" style="margin-top:20px" onclick="verifyL5('${lang}')">Verifica Esame</button>
-        </div>
-    `;
+        <h3>ESAMINATI: ${lang}</h3>
+        <p style="font-size:14px; margin-bottom:10px">${c.task}</p>
+        <textarea id="ed" class="code-editor" style="width:100%; height:150px; font-size:16px"></textarea>
+        <button class="btn-apple btn-primary" style="margin-top:10px" onclick="runL5('${lang}')">Verifica</button>
+        <div id="l5-err" style="color:#ff3b30; display:none; margin-top:10px">Codice non corretto.</div>`;
 }
 
-function verifyL5(lang) {
-    const code = document.getElementById('editorL5').value.toLowerCase();
-    const msg = document.getElementById('msgL5');
-    const target = sfideL5[lang]?.ok || "";
-
-    if (code.includes(target) && code.length > 2) {
-        msg.style.display = "block";
-        msg.style.color = "var(--accent)";
-        msg.innerText = "Complimenti! Esame superato con successo.";
-        
-        // Sblocca progresso
-        state.progress[lang] = 5;
+function runL5(l) {
+    const v = document.getElementById('ed').value;
+    if(v.includes(challenges5[l].logic)) {
+        state.progress[l] = 5;
         saveMasterDB();
-        
-        setTimeout(() => renderLevels(lang), 1500);
-    } else {
-        msg.style.display = "block";
-        msg.style.color = "#ff3b30";
-        msg.innerText = "Risposta non corretta. Controlla la logica e riprova.";
-    }
+        showHome();
+    } else { document.getElementById('l5-err').style.display = "block"; }
 }
