@@ -82,10 +82,11 @@ function validatePin(type) {
     }
 
     if (type === 'register') {
-        const name = document.getElementById('name-field')?.value.trim();
+        const nameInput = document.getElementById('name-field');
+        const name = nameInput ? nameInput.value.trim() : "";
         if(!name) { errorEl.innerText = "Inserisci il tuo nome"; errorEl.style.display = "block"; return; }
         if (dbUsers[pin]) { errorEl.innerText = "Questo PIN è già in uso"; errorEl.style.display = "block"; return; }
-        dbUsers[pin] = { name: name, progress: {}, history: {}, activeProgress: {} };
+        dbUsers[pin] = { name: name, progress: {}, history: {} };
         saveMasterDB();
     } else {
         if (!dbUsers[pin]) { errorEl.innerText = "PIN errato"; errorEl.style.display = "block"; return; }
@@ -124,38 +125,37 @@ function renderLevels(lang) {
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = lang;
     let html = ""; 
-    const prog = state.progress[lang] || []; // Array di livelli completati es. [1, 2]
+    const currentMax = state.progress[lang] || 0; // Il livello massimo completato
     
     for(let i=1; i<=5; i++) {
         let isLocked = false;
         
-        // Logica di sblocco Utente vs Guest
+        // Logica richiesta: Utente blocca 4 e 5 se non ha finito 1,2,3. Guest sbloccato.
         if (state.mode !== 'guest') {
-            const completatiBase = [1, 2, 3].every(n => prog.includes(n));
-            if ((i === 4 || i === 5) && !completatiBase) {
+            if ((i === 4 || i === 5) && currentMax < 3) {
                 isLocked = true;
             }
         }
 
         html += `
-            <div class="level-card ${isLocked ? 'locked' : ''}" onclick="${isLocked ? '' : `startQuiz('${lang}', ${i})`}" style="margin-bottom:10px; padding:18px; position:relative">
+            <div class="level-card ${isLocked ? 'locked' : ''}" onclick="${isLocked ? '' : `startQuiz('${lang}', ${i})`}" style="margin-bottom:10px; padding:18px; position:relative; background:var(--card); border-radius:12px; border:1px solid var(--border)">
                 <div style="display:flex; justify-content:space-between; align-items:center">
                     <span style="font-weight:600">${i === 5 ? 'ESAMINATI' : 'Livello ' + i} ${isLocked ? '🔒' : ''}</span>
-                    <span style="font-size:12px; opacity:0.5">${prog.includes(i) ? 'Completato ✅' : ''}</span>
+                    <span style="font-size:12px; opacity:0.5">${currentMax >= i ? 'Completato ✅' : ''}</span>
                 </div>
             </div>`;
     }
     document.getElementById('content-area').innerHTML = html;
 }
 
-// 6. LOGICA QUIZ (RANDOM 15 DOMANDE)
+// 6. LOGICA QUIZ (15 DOMANDE CASUALI)
 function startQuiz(lang, lvl) {
     if(lvl === 5) { renderL5(lang); return; }
     
     const allQuestions = domandaRepo[lang]["L" + lvl];
-    if(!allQuestions) return;
+    if(!allQuestions || allQuestions.length === 0) return;
 
-    // Mescola e pesca 15 domande
+    // Mescola e pesca 15
     const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
     const selection = shuffled.slice(0, 15).map(raw => {
         const p = raw.split("|");
@@ -195,11 +195,11 @@ function checkAnswer(isOk, exp) {
     const { lang } = state.currentQuiz;
     if(state.mode === 'user') {
         if(!state.history[lang]) state.history[lang] = [];
-        state.history[lang].push({ q: "Q" + (state.currentQuestionIndex+1), ok: isOk });
+        state.history[lang].push({ q: "Liv " + state.currentQuiz.level, ok: isOk });
     }
     document.getElementById('opts').style.pointerEvents = "none";
     document.getElementById('fb').innerHTML = `
-        <div class="feedback-box ${isOk?'correct':'wrong'}" style="margin-top:25px; padding:20px; border-radius:15px; animation: slideUp 0.3s ease">
+        <div class="feedback-box ${isOk?'correct':'wrong'}" style="margin-top:25px; padding:20px; border-radius:15px">
             <strong style="font-size:18px">${isOk?'Ottimo!':'Riprova'}</strong>
             <p style="margin:10px 0; font-size:15px; line-height:1.4 opacity:0.9">${exp}</p>
             <button class="btn-apple btn-primary" onclick="nextQuestion()">Continua</button>
@@ -214,68 +214,54 @@ function nextQuestion() {
 function finishQuiz() {
     const { lang, level } = state.currentQuiz;
     if (state.mode === 'user') {
-        if (!state.progress[lang]) state.progress[lang] = [];
-        if (!state.progress[lang].includes(level)) {
-            state.progress[lang].push(level);
-        }
+        // Salva il livello come completato se è maggiore di quello salvato prima
+        state.progress[lang] = Math.max(state.progress[lang] || 0, level);
         saveMasterDB();
     }
-    alert("Livello completato!");
+    alert("Livello completato con successo!");
     renderLevels(lang);
 }
 
-// 7. PROFILO E ALTRE AZIONI (Invariate)
+// 7. PROFILO E AZIONI
 function renderProfile() {
     updateNav(true, "showHome()");
-    let html = "";
-    if (state.mode === 'admin') {
-        document.getElementById('app-title').innerText = "GESTIONE";
-        Object.keys(dbUsers).forEach(pin => {
-            if (pin === ADMIN_PIN) return;
-            html += `<div class="review-card" style="margin-bottom:12px; padding:15px; display:flex; justify-content:space-between">
-                <div><strong>${dbUsers[pin].name}</strong></div>
-                <button onclick="adminDelete('${pin}')">🗑️</button>
-            </div>`;
-        });
-    } else {
-        document.getElementById('app-title').innerText = "PROFILO";
-        html += `<h3>Ciao, ${state.currentUser}</h3><button class="btn-apple" onclick="userSelfDelete()">Elimina Profilo</button>`;
+    let html = `<h3>Profilo di ${state.currentUser || 'Guest'}</h3>`;
+    if (state.mode === 'user') {
+        html += `<button class="btn-apple" style="color:#ff3b30; margin-top:20px" onclick="userSelfDelete()">Elimina Account</button>`;
     }
     document.getElementById('content-area').innerHTML = html;
 }
 
-function showPopup(title, desc, confirmLabel, actionFn) { if (confirm(desc)) actionFn(); }
 function logout() { state.mode = null; location.reload(); }
-function adminDelete(pin) { delete dbUsers[pin]; saveMasterDB(); renderProfile(); }
-function userSelfDelete() { delete dbUsers[state.currentPin]; saveMasterDB(); location.reload(); }
+function userSelfDelete() { if(confirm("Eliminare il profilo?")) { delete dbUsers[state.currentPin]; localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers)); location.reload(); } }
 
 // ==========================================
 // SEZIONE LIVELLO 5 - MODIFICA SOLO QUI SOTTO
 // ==========================================
 
 const challenges5 = {
-    "HTML": { task: "Usa il tag per creare un elemento di una lista.", logic: "li" },
-    "Python": { task: "Scrivi il comando per stampare un testo.", logic: "print" },
-    "JavaScript": { task: "Scrivi il comando per creare un ciclo for.", logic: "for" }
+    "HTML": { task: "Crea un elemento lista puntata.", logic: "li" },
+    "Python": { task: "Stampa la parola 'Ciao'.", logic: "print" },
+    "JavaScript": { task: "Crea un ciclo for.", logic: "for" }
 };
 
 function renderL5(lang) {
     updateNav(true, `renderLevels('${lang}')`);
-    const c = challenges5[lang] || { task: "In arrivo", logic: "" };
+    const c = challenges5[lang] || { task: "Completa la sfida", logic: "" };
+    document.getElementById('app-title').innerText = "ESAMINATI";
     document.getElementById('content-area').innerHTML = `
-        <h3>ESAMINATI: ${lang}</h3>
-        <p style="font-size:14px; margin-bottom:10px">${c.task}</p>
-        <textarea id="ed" style="width:100%; height:150px; background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:10px; padding:10px; font-size:16px"></textarea>
-        <button class="btn-apple btn-primary" style="margin-top:10px" onclick="runL5('${lang}')">Verifica</button>
-        <div id="l5-err" style="color:#ff3b30; display:none; margin-top:10px">Codice non corretto.</div>`;
+        <h3 style="margin-bottom:15px">${lang}</h3>
+        <p style="font-size:15px; margin-bottom:20px; opacity:0.8">${c.task}</p>
+        <textarea id="ed" style="width:100%; height:150px; background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:12px; padding:15px; font-family:monospace; font-size:16px"></textarea>
+        <button class="btn-apple btn-primary" style="margin-top:20px" onclick="runL5('${lang}')">Verifica Codice</button>
+        <div id="l5-err" style="color:#ff3b30; display:none; margin-top:15px">Codice errato, riprova.</div>`;
 }
 
 function runL5(l) {
     const v = document.getElementById('ed').value.toLowerCase();
     if(v.includes(challenges5[l].logic)) {
         if (state.mode === 'user') {
-            if (!state.progress[l]) state.progress[l] = [];
-            if (!state.progress[l].includes(5)) state.progress[l].push(5);
+            state.progress[l] = 5;
             saveMasterDB();
         }
         alert("Esame superato!");
