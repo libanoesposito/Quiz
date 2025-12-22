@@ -800,28 +800,85 @@ function adminDeleteUser(userId) {
     );
 }
 
-function showUserHistory(userId) {
-    const u = findUserById(userId);
+// Mostra i dettagli completi di un utente per l'admin
+function showUserDetails(pin) {
+    const u = dbUsers[pin];
     if (!u) return;
 
-    let html = `<div style="width:100%">`;
+    const stats = calcUserStats(u);
 
+    // Progressi dettagliati per ogni linguaggio
+    const totalLevels = Object.keys(domandaRepo);
+    let progHtml = '';
+    totalLevels.forEach(lang => {
+        const comp = u.progress[lang] || 0;
+        progHtml += `<div style="margin-bottom:10px; cursor:pointer" onclick="toggleLangDetails(this)">
+                        <strong>${lang}</strong> <span class="chevron">›</span>
+                        <div style="display:none; margin-top:5px">`;
+        for (let i = 1; i <= 5; i++) {
+            let correct = 0, wrong = 0, total = 15;
+            if (u.history[lang]) {
+                u.history[lang].forEach(h => { if(i <= comp) { if(h.ok) correct++; else wrong++; } });
+            }
+            const notStudied = total - correct - wrong;
+            const percent = total ? Math.round((correct/total)*100) : 0;
+            progHtml += `<div style="margin-bottom:6px; font-size:12px">
+                            Livello ${i}:
+                            <div class="progress-container" style="position:relative; height:8px; border-radius:6px; background:#e0e0e0; overflow:hidden">
+                                <div class="progress-bar-fill" style="width:${(correct/total)*100}%; background:#34c759; height:100%"></div>
+                                <div class="progress-bar-fill" style="width:${(wrong/total)*100}%; background:#ff3b30; position:absolute; left:${(correct/total)*100}%; height:100%"></div>
+                                <div class="progress-bar-fill" style="width:${(notStudied/total)*100}%; background:#ffd60a; position:absolute; left:${(correct+wrong)/total*100}%; height:100%"></div>
+                            </div>
+                            <div style="text-align:right; font-size:11px">${percent}% corrette</div>
+                         </div>`;
+        }
+        progHtml += `</div></div>`;
+    });
+
+    // Storico
+    let historyHtml = '';
     Object.entries(u.history || {}).forEach(([lang, arr]) => {
-        html += `<h4 style="margin-top:15px">${lang}</h4>`;
-        arr.slice(-10).forEach(h => {
-            html += `
-                <div class="review-card ${h.ok ? 'is-ok' : 'is-err'}">
-                    <div style="font-size:13px">${h.q}</div>
-                </div>
-            `;
+        historyHtml += `<div style="margin-top:10px"><strong>${lang}</strong></div>`;
+        arr.forEach((h, idx) => {
+            const status = h.ok ? "✅" : h.notStudied ? "🟡" : "❌";
+            historyHtml += `<div style="font-size:12px; margin-bottom:2px">
+                                ${status} Q${idx+1}: ${h.q}
+                                <br><em style="opacity:0.6">Risposta corretta: ${h.correctAns || '—'}</em>
+                            </div>`;
         });
     });
 
-    html += `</div>`;
+    document.getElementById('content-area').innerHTML = `
+        <div style="width:100%; display:flex; flex-direction:column; gap:15px">
+            <div class="glass-card">
+                <div><strong>Nome:</strong> ${u.name}</div>
+                <div><strong>ID Utente:</strong> ${u.userId}</div>
+            </div>
 
-    updateNav(true, "renderAdminPanel()");
-    document.getElementById('app-title').innerText = "STORICO";
-    document.getElementById('content-area').innerHTML = html;
+            <div class="glass-card">
+                <div><strong>Statistiche generali</strong></div>
+                <div style="margin-top:10px; display:flex; flex-direction:column; gap:6px">
+                    <div>Corrette: ${stats.correct}</div>
+                    <div>Sbagliate: ${stats.total - stats.correct}</div>
+                    <div>Non studiate: ${0}</div>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <strong>Progressi dettagliati</strong>
+                <div style="margin-top:10px">${progHtml}</div>
+            </div>
+
+            <div class="glass-card">
+                <strong>Storico risposte</strong>
+                <div style="margin-top:10px; max-height:300px; overflow-y:auto">${historyHtml || "<em>Nessuna domanda fatta</em>"}</div>
+            </div>
+
+            <div class="glass-card" style="text-align:right">
+                <button class="btn-apple btn-light" onclick="renderAdminPanel()">Indietro</button>
+            </div>
+        </div>
+    `;
 }
 
 function findUserById(id) {
