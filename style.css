@@ -47,7 +47,7 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.4); /* Scurisce lo sfondo del sito */
-    display: none !important;      /* Lo tiene nascosto all'inizio */
+    display: none;      /* Lo tiene nascosto all'inizio */
     justify-content: center;
     align-items: flex-end;         /* Lo spinge in basso (stile iOS) */
     z-index: 10000;                /* Lo mette sopra a ogni altra cosa */
