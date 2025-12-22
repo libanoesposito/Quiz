@@ -108,7 +108,7 @@ function setGuest() {
 }
 
 function showHome() {
-    updateNav(true, "renderLogin()");
+    updateNav(false);
     document.getElementById('app-title').innerText = "PERCORSI";
     let html = `<div class="lang-grid">`;
     Object.keys(domandaRepo).forEach(l => {
