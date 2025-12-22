@@ -133,19 +133,20 @@ function showLevels(lang) {
     
     for(let i=1; i<=5; i++) {
         let label = (i === 5) ? "ESAMINATI" : "Livello " + i;
-        let isLocked = (state.mode === 'user' && i > 1 && (state.progress[lang] || 0) < i - 1);
-        
-        // Logica specifica sblocco 4 e 5 che avevi chiesto
-        if (state.mode === 'user') {
-            if (i === 4 && comp < 3) isLocked = true;
-            if (i === 5 && comp < 3) isLocked = true;
-        }
-        
-        // Amministratore e Guest hanno tutto sbloccato
-        if (state.mode === 'admin' || state.mode === 'guest') isLocked = false;
+        let isLocked = false;
 
+        if (state.mode === 'user') {
+            // Utente: 1, 2, 3 liberi subito. 4 e 5 bloccati se non ha finito i primi 3.
+            if ((i === 4 || i === 5) && comp < 3) isLocked = true;
+        } else if (state.mode === 'guest') {
+            // Guest: 4 e 5 sempre bloccati (Demo)
+            if (i === 4 || i === 5) isLocked = true;
+        } 
+        // Admin: isLocked rimane sempre false.
+
+        // Recupero progresso (Solo per Admin e User)
         let currentIdx = 0;
-        if (state.mode === 'user' && dbUsers[state.currentPin]?.activeProgress) {
+        if (state.mode !== 'guest' && dbUsers[state.currentPin]?.activeProgress) {
             currentIdx = dbUsers[state.currentPin].activeProgress[`${lang}_${i}`] || 0;
         }
         if (comp >= i) currentIdx = 15;
@@ -155,47 +156,55 @@ function showLevels(lang) {
             <button class="btn-apple" ${isLocked ? 'disabled' : ''} onclick="startStep('${lang}',${i})" style="display:block; text-align:left; padding: 15px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; width:100%">
                     <span>${label} ${isLocked ? '🔒' : ''}</span>
-                    ${(state.mode === 'user' && !isLocked) ? `<span style="font-size:12px; opacity:0.6">${currentIdx}/15</span>` : ''}
+                    ${(state.mode !== 'guest' && !isLocked) ? `<span style="font-size:12px; opacity:0.6">${currentIdx}/15</span>` : ''}
                 </div>
-                ${(state.mode === 'user' && !isLocked) ? `
+                ${(state.mode !== 'guest' && !isLocked) ? `
                     <div class="progress-container">
                         <div class="progress-bar-fill" style="width: ${percentage}%"></div>
                     </div>` : ''}
+                ${(state.mode === 'guest' && isLocked) ? `<div style="font-size:10px; color:var(--accent); margin-top:5px">Registrati per sbloccare</div>` : ''}
             </button>`;
     }
     document.getElementById('content-area').innerHTML = html;
 }
 
+
 function startStep(lang, lvl) {
-    if(lvl === 5 && state.mode === 'user' && (state.progress[lang] || 0) < 3) return;
     if(lvl === 5) { renderL5(lang); return; }
     
     const key = "L" + lvl;
     const stringhe = domandaRepo[lang][key];
     const storageKey = `${lang}_${lvl}`;
+    
+    // Impostiamo il limite: 3 domande per guest, 15 per gli altri
+    const limiteDomande = (state.mode === 'guest') ? 3 : 15;
 
     let selezione;
-    if (state.mode === 'user' && dbUsers[state.currentPin].savedQuizzes?.[storageKey]) {
+    // Se utente o admin, cerchiamo il quiz salvato
+    if (state.mode !== 'guest' && dbUsers[state.currentPin]?.savedQuizzes?.[storageKey]) {
         selezione = dbUsers[state.currentPin].savedQuizzes[storageKey];
     } else {
+        // Altrimenti rimescoliamo
         const rimescolate = [...stringhe].sort(() => 0.5 - Math.random());
-        selezione = rimescolate.slice(0, 15).map(r => {
+        selezione = rimescolate.slice(0, limiteDomande).map(r => {
             const p = r.split("|");
             return { q: p[0], options: [p[1], p[2], p[3]], correct: parseInt(p[4]), exp: p[5] };
         });
-        if (state.mode === 'user') {
+
+        // Salviamo solo se non è guest
+        if (state.mode !== 'guest') {
             if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
             dbUsers[state.currentPin].savedQuizzes[storageKey] = selezione;
+            saveMasterDB();
         }
     }
 
     let savedIdx = 0;
-    if (state.mode === 'user') {
+    if (state.mode !== 'guest') {
         savedIdx = dbUsers[state.currentPin].activeProgress?.[storageKey] || 0;
     }
 
     session = { lang: lang, lvl: lvl, q: selezione, idx: savedIdx };
-    saveMasterDB();
     renderQ();
 }
 
@@ -240,16 +249,20 @@ function next() {
     if(session.idx < session.q.length) {
         renderQ(); 
     } else { 
-        if (state.mode === 'user') {
+        if (state.mode !== 'guest') {
             state.progress[session.lang] = Math.max(state.progress[session.lang]||0, session.lvl); 
             const sk = `${session.lang}_${session.lvl}`;
-            dbUsers[state.currentPin].activeProgress[sk] = 0;
-            delete dbUsers[state.currentPin].savedQuizzes[sk];
+            if(dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress[sk] = 0;
+            if(dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[sk];
             saveMasterDB();
+            alert("Livello completato!");
+        } else {
+            alert("Fine della Demo! Registrati per accedere a tutte le 15 domande e ai livelli avanzati.");
         }
         showLevels(session.lang); 
     }
 }
+
 
 function logout() {
     state.mode = null; state.currentPin = null; session = null; renderLogin();
