@@ -505,26 +505,20 @@ function toggleLangDetails(el){
 }
 
 function toggleCard(el) {
-    console.log('toggleCard chiamata');
+    const content = el.querySelector('.security-content, #detailed-progress');
+    if (!content) return;
 
-    if (!el) {
-        console.log('el è null');
-        return;
+    // Chiudi tutte le altre card tranne questa
+    document.querySelectorAll('.glass-card .security-content, #detailed-progress').forEach(c => {
+        if (c !== content) c.style.display = 'none';
+    });
+
+    // Mostra/nascondi il contenuto della card cliccata
+    if (content.style.display === 'none' || content.style.display === '') {
+        content.style.display = 'flex'; // <- qui
+    } else {
+        content.style.display = 'none';
     }
-
-    const content = el.children[1];
-
-    if (!content) {
-        console.log('content NON trovato');
-        return;
-    }
-
-    console.log('content trovato');
-
-    content.style.display =
-        content.style.display === 'none' || content.style.display === ''
-            ? 'block'
-            : 'none';
 }
 
 
