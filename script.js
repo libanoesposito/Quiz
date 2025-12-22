@@ -1,5 +1,35 @@
 // Database globale degli utenti (caricato da memoria locale)
 let dbUsers = JSON.parse(localStorage.getItem('quiz_master_db')) || {};
+const challenges5 = {
+    "HTML": { 
+        task: "Crea un link (tag 'a') che punta a 'https://google.com' con il testo 'Cerca'.", 
+        // Accetta spazi e diversi tipi di apici
+        check: (code) => /<a\s+href=["']https:\/\/google\.com["']\s*>Cerca<\/a>/i.test(code.trim())
+    },
+    "CSS": { 
+        task: "Cambia il colore di tutti i tag h1 in rosso (red).", 
+        check: (code) => {
+            const clean = code.replace(/\s/g, '').toLowerCase();
+            return clean.includes('h1{color:red') || clean.includes('h1{color:#ff0000');
+        }
+    },
+    "JS": { 
+        task: "Scrivi una funzione 'saluta' che restituisce la stringa 'ciao'.", 
+        check: (code) => {
+            const clean = code.replace(/\s/g, '');
+            return (clean.includes('functionsaluta()') || clean.includes('constsaluta=()=>')) && 
+                   (clean.includes('return"ciao"') || clean.includes("return'ciao'"));
+        }
+    },
+    "PYTHON": {
+        task: "Crea una variabile 'x' con valore 10 e stampala.",
+        check: (code) => {
+            const clean = code.trim().split('\n').map(line => line.trim());
+            return clean.includes('x=10') || clean.includes('x = 10') && 
+                   (clean.includes('print(x)') || clean.includes('print (x)'));
+        }
+    }
+};
 
 let state = {
     mode: null,      
