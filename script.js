@@ -520,13 +520,6 @@ function toggleCard(el) {
             : 'none';
 }
 
-    // Mostra/nascondi il contenuto della card cliccata
-    if(content.style.display === 'none') {
-        content.style.display = 'flex'; // <- così sicurezza mostra i pulsanti
-    } else {
-        content.style.display = 'none';
-    }
-}
 
 function resetStats() {
     openModal(
