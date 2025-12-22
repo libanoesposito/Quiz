@@ -413,36 +413,94 @@ function guestLimitReached(lvl, idx) {
     return GUEST_LIMITS[lvl] !== undefined && idx >= GUEST_LIMITS[lvl];
 }
 
-// Override soft di startStep
+// Override startStep per guest
 const _startStep = startStep;
-startStep = function (lang, lvl) {
+startStep = function(lang, lvl) {
 
     if (state.mode === 'guest') {
+        if (lvl >= 4) {
+            showGuestLocked();
+            return;
+        }
 
-        if(lvl>=4) {
-    showGuestLocked();
-    return;
-}
+        // Domande fisse per demo
+        const fixedQuestions = {
+            1: [
+                { q: "Domanda 1 L1?", options: ["A","B","C"], correct: 0, exp: "Spiegazione 1" },
+                { q: "Domanda 2 L1?", options: ["A","B","C"], correct: 1, exp: "Spiegazione 2" },
+                { q: "Domanda 3 L1?", options: ["A","B","C"], correct: 2, exp: "Spiegazione 3" }
+            ],
+            2: [
+                { q: "Domanda 1 L2?", options: ["A","B","C"], correct: 0, exp: "Spiegazione 1" },
+                { q: "Domanda 2 L2?", options: ["A","B","C"], correct: 1, exp: "Spiegazione 2" }
+            ],
+            3: [
+                { q: "Domanda 1 L3?", options: ["A","B","C"], correct: 2, exp: "Spiegazione 1" }
+            ]
+        };
 
-        const key = "L" + lvl;
-        const all = domandaRepo[lang][key];
-        const maxQ = GUEST_LIMITS[lvl];
-
-        const selezione = [...all]
-            .sort(() => 0.5 - Math.random())
-            .slice(0, maxQ)
-            .map(r => {
-                const p = r.split("|");
-                return { q: p[0], options: [p[1], p[2], p[3]], correct: parseInt(p[4]), exp: p[5] };
-            });
-
-        session = { lang, lvl, q: selezione, idx: 0 };
+        session = { lang, lvl, q: fixedQuestions[lvl], idx: 0 };
         renderQ();
         return;
     }
 
     _startStep(lang, lvl);
 };
+
+// Override renderQ per guest
+const _renderQ = renderQ;
+renderQ = function() {
+    if (state.mode === 'guest') {
+        const data = session.q[session.idx];
+
+        if (!data) {
+            showGuestEndModal();
+            return;
+        }
+
+        document.getElementById('content-area').innerHTML = `
+            <h2 style="font-size:18px; margin-bottom:20px">${data.q}</h2>
+            <div id="opts">
+                ${data.options.map((o,i)=>`<button class="btn-apple" onclick="check(${i===data.correct})">${o}</button>`).join("")}
+            </div>
+            <div style="font-size:12px; opacity:0.5; margin-top:10px">
+                Demo: ${session.idx + 1}/${session.q.length}
+            </div>
+            <div id="fb"></div>
+        `;
+        updateNav(true, `showLevels('${session.lang}')`);
+        return;
+    }
+
+    _renderQ();
+};
+
+// Override next per guest
+const _next = next;
+next = function() {
+    if (state.mode === 'guest') {
+        session.idx++;
+        renderQ();
+        return;
+    }
+    _next();
+};
+
+function showGuestEndModal() {
+    openModal(
+        "Demo terminata",
+        "Registrati per sbloccare tutti i livelli e salvare i progressi.",
+        () => { closeModal(); renderLogin(); }
+    );
+}
+
+function showGuestLocked() {
+    openModal(
+        "Accesso bloccato",
+        "Registrati per accedere ai livelli avanzati.",
+        () => { closeModal(); renderLogin(); }
+    );
+}
 
 // Override soft di renderQ
 const _renderQ = renderQ;
