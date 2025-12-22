@@ -405,7 +405,7 @@ function renderProfile() {
         progHtml += `</div>`;
     });
 
-    // Genera tutto l'HTML in un solo innerHTML
+    // Tutto in un unico innerHTML
     document.getElementById('content-area').innerHTML = `
         <div style="width:100%; display:flex; flex-direction:column; gap:15px">
 
@@ -476,7 +476,6 @@ function renderProfile() {
         </div>
     `;
 
-    // Toggle per progressi generali
     window.toggleGeneralProgress = function(card) {
         const detailed = document.getElementById('detailed-progress');
         detailed.style.display = detailed.style.display === 'none' ? 'block' : 'none';
