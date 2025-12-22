@@ -370,6 +370,10 @@ function calcStats() {
     };
 }
 
+/* =========================
+   PROFILO UTENTE (FIXED)
+   ========================= */
+
 function renderProfile() {
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = "IL MIO PROFILO";
@@ -378,7 +382,7 @@ function renderProfile() {
     const stats = calcStats();
     const totalLevels = Object.keys(domandaRepo);
 
-    // 1. Calcolo del blocco Progressi Dettagliati (mantenendo la tua logica dei colori)
+    // 1. Costruzione HTML progressi dettagliati
     let progHtml = '';
     totalLevels.forEach(lang => {
         const comp = state.progress[lang] || 0;
@@ -386,10 +390,7 @@ function renderProfile() {
         for(let i=1; i<=5; i++){
             let correct=0, wrong=0, total=15;
             if(u.history && u.history[lang]){
-                u.history[lang].forEach(h => {
-                    // Nota: qui ho usato h.ok per dividere i colori come nel tuo originale
-                    if(h.ok) correct++; else wrong++;
-                });
+                u.history[lang].forEach(h => { if(h.ok) correct++; else wrong++; });
             }
             const notStudied = total - correct - wrong;
             const percent = total ? Math.round((correct/total)*100) : 0;
@@ -406,7 +407,7 @@ function renderProfile() {
         progHtml += `</div>`;
     });
 
-    // 2. Render dell'intera interfaccia con le TUE classi originali
+    // 2. Render UI principale
     document.getElementById('content-area').innerHTML = `
         <div style="width:100%; display:flex; flex-direction:column; gap:15px">
             <div class="glass-card">
@@ -420,63 +421,80 @@ function renderProfile() {
                     <div>
                         <div style="font-size:12px; margin-bottom:2px">Corrette: ${stats.correct}</div>
                         <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                            <div class="progress-bar-fill" style="width:${(stats.correct/stats.total)*100}%; background:#34c759; height:100%; transition:0.3s"></div>
+                            <div class="progress-bar-fill" style="width:${(stats.correct/stats.total)*100 || 0}%; background:#34c759; height:100%"></div>
                         </div>
                     </div>
                     <div>
                         <div style="font-size:12px; margin-bottom:2px">Sbagliate: ${stats.wrong}</div>
                         <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                            <div class="progress-bar-fill" style="width:${(stats.wrong/stats.total)*100}%; background:#ff3b30; height:100%; transition:0.3s"></div>
+                            <div class="progress-bar-fill" style="width:${(stats.wrong/stats.total)*100 || 0}%; background:#ff3b30; height:100%"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="glass-card" onclick="toggleCard(this)" style="cursor:pointer">
-                <strong>Progressi generali</strong>
+            <div class="glass-card" onclick="toggleDetailedProgress()" style="cursor:pointer">
+                <strong>Progressi generali ▼</strong>
             </div>
-            <div class="glass-card" id="detailed-progress" style="display:none">
+
+            <div class="glass-card" id="detailed-progress-area" style="display:none">
                 <strong>Progressi dettagliati</strong>
                 <div style="margin-top:10px">${progHtml}</div>
             </div>
 
-            <div class="glass-card">
-                <div class="security-box">
-                    <div class="security-header" onclick="toggleSecurity(this)">
-                        Sicurezza
-                        <span class="chevron">›</span>
-                    </div>
-                    <div class="security-content">
-                        <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
-                        <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
-                        <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
-                    </div>
+            <div class="glass-card security-box">
+                <div class="security-header" onclick="toggleSecurity(this)">
+                    Sicurezza <span class="chevron">›</span>
+                </div>
+                <div class="security-content" style="display:none; flex-direction:column; gap:10px; margin-top:10px">
+                    <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
+                    <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
+                    <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
                 </div>
             </div>
 
-            <div class="glass-card">
-                <div class="security-box">
-                    <div class="security-header" onclick="toggleHistory(this)">
-                        Storico
-                        <span class="chevron">›</span>
-                    </div>
-                    <div class="security-content" id="history-content" style="display:none; max-height:400px; overflow-y:auto">
-                        ${generateHistoryHTML(u)}
-                    </div>
+            <div class="glass-card security-box">
+                <div class="security-header" onclick="toggleHistory(this)">
+                    Storico <span class="chevron">›</span>
+                </div>
+                <div class="security-content" style="display:none; max-height:400px; overflow-y:auto; margin-top:10px">
+                    ${generateHistoryHTML(u)}
                 </div>
             </div>
         </div>`;
 }
 
-// Funzioni di supporto (assicurati che siano presenti nel file)
-function toggleCard(el) {
-    const content = document.getElementById('detailed-progress');
-    content.style.display = content.style.display === 'none' ? 'block' : 'none';
+// FUNZIONI DI SUPPORTO (Da mettere fuori da renderProfile)
+
+function toggleDetailedProgress() {
+    const el = document.getElementById('detailed-progress-area');
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
 function toggleSecurity(el) {
-    el.parentElement.classList.toggle("open");
+    const content = el.nextElementSibling;
+    const chevron = el.querySelector('.chevron');
+    if (content.style.display === "none" || content.style.display === "") {
+        content.style.display = "flex";
+        chevron.style.transform = "rotate(90deg)";
+    } else {
+        content.style.display = "none";
+        chevron.style.transform = "rotate(0deg)";
+    }
 }
+
+function toggleHistory(el) {
+    const content = el.nextElementSibling;
+    const chevron = el.querySelector('.chevron');
+    if (content.style.display === "none" || content.style.display === "") {
+        content.style.display = "block";
+        chevron.style.transform = "rotate(90deg)";
+    } else {
+        content.style.display = "none";
+        chevron.style.transform = "rotate(0deg)";
+    }
+}
+
 
 
 
