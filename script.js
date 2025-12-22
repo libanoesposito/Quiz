@@ -472,7 +472,7 @@ function renderProfile() {
     </div>
 </div>
 
-    // Funzione per espandere progressi generali
+
     window.toggleGeneralProgress = function(card) {
         const detailed = document.getElementById('detailed-progress');
         detailed.style.display = detailed.style.display === 'none' ? 'block' : 'none';
