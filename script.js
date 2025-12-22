@@ -222,6 +222,10 @@ function showLevels(lang) {
 }
 
 function startStep(lang, lvl) {
+    // Mostra sempre tasto esci
+    updateNav(true, "showLevels('" + lang + "')");
+
+    // Controllo livello 5 utente
     if(lvl === 5 && state.mode === 'user' && (state.progress[lang] || 0) < 3) return;
     if(lvl === 5) { renderL5(lang); return; }
     
