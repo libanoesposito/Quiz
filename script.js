@@ -585,27 +585,31 @@ function renderAdminPanel() {
 
     let html = `<div style="width:100%">`;
 
-    users.forEach(u => {
-        html += `
-            <div class="review-card ${u.deleted ? 'is-err' : 'is-ok'}">
-                <div style="display:flex; justify-content:space-between; align-items:center">
-                    <div>
-                        <strong>${u.name}</strong>
-                        <div style="font-size:12px; opacity:0.6">ID ${u.id}</div>
+    if (users.length === 0) {
+        html += `<div style="text-align:center; padding:20px; color:#666">Nessun utente registrato</div>`;
+    } else {
+        users.forEach(u => {
+            const statsText = u.stats.total ? `${u.stats.correct}/${u.stats.total} corrette · ${u.stats.perc}%` : "Nessun progresso";
+            html += `
+                <div class="review-card ${u.deleted ? 'is-err' : 'is-ok'}">
+                    <div style="display:flex; justify-content:space-between; align-items:center">
+                        <div>
+                            <strong>${u.name}</strong>
+                            <div style="font-size:12px; opacity:0.6">ID ${u.id}</div>
+                        </div>
+                        <div style="display:flex; gap:10px">
+                            <span style="cursor:pointer" onclick="showUserHistory(${u.id})">⏳</span>
+                            <span style="cursor:pointer" onclick="recalcUser(${u.id})">🔄</span>
+                            <span style="cursor:pointer; color:#ff3b30" onclick="adminDeleteUser(${u.id})">🗑</span>
+                        </div>
                     </div>
-                    <div style="display:flex; gap:10px">
-                        <span style="cursor:pointer" onclick="showUserHistory(${u.id})">⏳</span>
-                        <span style="cursor:pointer" onclick="recalcUser(${u.id})">🔄</span>
-                        <span style="cursor:pointer; color:#ff3b30" onclick="adminDeleteUser(${u.id})">🗑</span>
+                    <div style="margin-top:8px; font-size:13px">
+                        ${statsText}
                     </div>
                 </div>
-
-                <div style="margin-top:8px; font-size:13px">
-                    ${u.stats.correct}/${u.stats.total} corrette · ${u.stats.perc}%
-                </div>
-            </div>
-        `;
-    });
+            `;
+        });
+    }
 
     html += `</div>`;
     document.getElementById('content-area').innerHTML = html;
