@@ -290,28 +290,37 @@ function check(isOk) {
 
 function next() {
     session.idx++; 
+    
+    // Se ci sono ancora domande nella sessione attuale
     if(session.idx < session.q.length) {
         renderQ(); 
-    } else { 
+    } 
+    // Se il livello è terminato (raggiunta la 15esima)
+    else { 
         if (state.mode === 'user') {
-            state.progress[session.lang] = Math.max(state.progress[session.lang]||0, session.lvl); 
+            // 1. Aggiorna il progresso massimo raggiunto (per sbloccare livelli successivi)
+            state.progress[session.lang] = Math.max(state.progress[session.lang] || 0, session.lvl); 
             
-            // 1. Resetta il contatore numerico
+            const storageKey = `${session.lang}_${session.lvl}`;
+
+            // 2. Resetta il contatore numerico (torna a 0/15 per la prossima volta)
             if (dbUsers[state.currentPin].activeProgress) {
-                dbUsers[state.currentPin].activeProgress[`${session.lang}_${session.lvl}`] = 0;
+                dbUsers[state.currentPin].activeProgress[storageKey] = 0;
             }
             
-            // 2. ELIMINA IL QUIZ SALVATO per poterne generare uno nuovo random al prossimo giro
+            // 3. ELIMINA IL QUIZ SALVATO: così la prossima volta startStep ne creerà uno nuovo random
             if (dbUsers[state.currentPin].savedQuizzes) {
-                delete dbUsers[state.currentPin].savedQuizzes[`${session.lang}_${session.lvl}`];
+                delete dbUsers[state.currentPin].savedQuizzes[storageKey];
             }
             
             saveMasterDB();
         }
+        
         alert("Complimenti! Livello completato!");
         showLevels(session.lang); 
     }
 }
+
 
 
 
