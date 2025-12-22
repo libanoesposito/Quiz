@@ -378,50 +378,65 @@ function renderProfile() {
     const stats = calcStats();
     const totalLevels = Object.keys(domandaRepo);
 
-    let progHtml = '';
+    // Livello 1: panoramica generale
+    let overviewHtml = `
+        <div class="glass-card">
+            <strong>Panoramica generale</strong>
+            <div style="margin-top:10px">
+                <div>Corrette: ${stats.correct}</div>
+                <div>Sbagliate: ${stats.wrong}</div>
+                <div>Non studiate: ${stats.total - stats.correct - stats.wrong}</div>
+            </div>
+        </div>`;
+
+    // Livello 2: panoramica per linguaggio (click espande dettagli)
+    let langsHtml = '';
     totalLevels.forEach(lang => {
-        // Calcolo generale per il linguaggio
-        let correct = 0, wrong = 0, notStudied = 0;
+        let langCorrect = 0, langWrong = 0, langNotStudied = 0;
         for(let i=1;i<=5;i++){
             let total = 15;
             if(u.history[lang]){
                 u.history[lang].forEach(h=>{
                     if(i <= (state.progress[lang]||0)){
-                        if(h.ok) correct++; else wrong++;
+                        if(h.ok) langCorrect++; else langWrong++;
                     }
                 });
             }
-            notStudied += total - correct - wrong;
+            langNotStudied += total - langCorrect - langWrong;
         }
-        progHtml += `
+
+        // Dettaglio livelli (livello 3)
+        let detailsHtml = [1,2,3,4,5].map(i=>{
+            let lvlCorrect=0, lvlWrong=0, total=15;
+            if(u.history[lang]){
+                u.history[lang].forEach(h=>{
+                    if(i <= (state.progress[lang]||0)){
+                        if(h.ok) lvlCorrect++; else lvlWrong++;
+                    }
+                });
+            }
+            let lvlNotStudied = total - lvlCorrect - lvlWrong;
+            let percent = total ? Math.round((lvlCorrect/total)*100) : 0;
+            return `
+                <div style="margin-bottom:8px">
+                    <div style="font-size:13px">Livello ${i}</div>
+                    <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
+                        <div class="progress-bar-fill" style="width:${(lvlCorrect/total)*100}%; background:#34c759; height:100%"></div>
+                        <div class="progress-bar-fill" style="width:${(lvlWrong/total)*100}%; background:#ff3b30; position:absolute; left:${(lvlCorrect/total)*100}%; height:100%"></div>
+                        <div class="progress-bar-fill" style="width:${(lvlNotStudied/total)*100}%; background:#aaa; position:absolute; left:${((lvlCorrect+lvlWrong)/total)*100}%; height:100%"></div>
+                    </div>
+                    <div style="font-size:11px; text-align:right; margin-top:2px">${percent}% corrette</div>
+                </div>`;
+        }).join('');
+
+        langsHtml += `
         <div class="lang-overview">
-            <div class="lang-header" onclick="toggleCard(this)">
-                <strong>${lang}</strong> - ${correct} corrette · ${wrong} sbagliate · ${notStudied} non studiate
+            <div class="lang-header" onclick="toggleLangDetails(this)">
+                <strong>${lang}</strong> - ${langCorrect} corrette · ${langWrong} sbagliate · ${langNotStudied} non studiate
+                <span class="chevron">›</span>
             </div>
             <div class="lang-details" style="display:none; margin-top:8px; margin-left:10px">
-                ${[1,2,3,4,5].map(i=>{
-                    let lvlCorrect=0, lvlWrong=0, total=15;
-                    if(u.history[lang]){
-                        u.history[lang].forEach(h=>{
-                            if(i <= (state.progress[lang]||0)){
-                                if(h.ok) lvlCorrect++; else lvlWrong++;
-                            }
-                        });
-                    }
-                    let lvlNotStudied = total - lvlCorrect - lvlWrong;
-                    let percent = total ? Math.round((lvlCorrect/total)*100) : 0;
-                    return `
-                    <div style="margin-bottom:8px">
-                        <div style="font-size:13px">Livello ${i}</div>
-                        <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                            <div class="progress-bar-fill" style="width:${(lvlCorrect/total)*100}%; background:#34c759; height:100%"></div>
-                            <div class="progress-bar-fill" style="width:${(lvlWrong/total)*100}%; background:#ff3b30; position:absolute; left:${(lvlCorrect/total)*100}%; height:100%"></div>
-                            <div class="progress-bar-fill" style="width:${(lvlNotStudied/total)*100}%; background:#aaa; position:absolute; left:${((lvlCorrect+lvlWrong)/total)*100}%; height:100%"></div>
-                        </div>
-                        <div style="font-size:11px; text-align:right; margin-top:2px">${percent}% corrette</div>
-                    </div>
-                    `;
-                }).join('')}
+                ${detailsHtml}
             </div>
         </div>`;
     });
@@ -432,23 +447,11 @@ function renderProfile() {
                 <div><strong>Nome:</strong> ${u.name}</div>
                 <div><strong>ID Utente:</strong> ${u.userId}</div>
             </div>
-
+            ${overviewHtml}
             <div class="glass-card">
-                <div><strong>Statistiche generali</strong></div>
-                <div style="margin-top:10px">
-                    <div>Domande totali: ${stats.total}</div>
-                    <div>Corrette: ${stats.correct}</div>
-                    <div>Sbagliate: ${stats.wrong}</div>
-                    <div>Non studiate: ${stats.total - stats.correct - stats.wrong}</div>
-                    <div>Percentuale: ${stats.perc}%</div>
-                </div>
+                <strong>Progressi per linguaggio</strong>
+                <div style="margin-top:10px">${langsHtml}</div>
             </div>
-
-            <div class="glass-card">
-                <strong>Progressi</strong>
-                <div style="margin-top:10px">${progHtml}</div>
-            </div>
-
             <div class="glass-card">
                 <div class="security-box">
                     <div class="security-header" onclick="toggleSecurity(this)">
@@ -462,14 +465,15 @@ function renderProfile() {
                     </div>
                 </div>
             </div>
-        </div>
-    `;
+        </div>`;
 }
 
-// Toggle card helper
-function toggleCard(el){
+// Toggle per linguaggio
+function toggleLangDetails(el){
     const content = el.nextElementSibling;
     if(content) content.style.display = content.style.display==='none'?'block':'none';
+    const chevron = el.querySelector('.chevron');
+    if(chevron) chevron.style.transform = content.style.display==='block'?'rotate(90deg)':'rotate(0deg)';
 }
 
 function toggleCard(el) {
