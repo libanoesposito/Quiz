@@ -405,10 +405,9 @@ function renderProfile() {
         progHtml += `</div>`;
     });
 
-    // HTML generale
+    // HTML completo unito
     document.getElementById('content-area').innerHTML = `
         <div style="width:100%; display:flex; flex-direction:column; gap:15px">
-
             <div class="glass-card">
                 <div><strong>Nome:</strong> ${u.name}</div>
                 <div><strong>ID Utente:</strong> ${u.userId}</div>
@@ -472,10 +471,10 @@ function renderProfile() {
                     </div>
                 </div>
             </div>
-
         </div>
     `;
 
+    // Toggle dettagli progressi
     window.toggleGeneralProgress = function(card) {
         const detailed = document.getElementById('detailed-progress');
         detailed.style.display = detailed.style.display === 'none' ? 'block' : 'none';
