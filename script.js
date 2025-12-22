@@ -419,10 +419,10 @@ startStep = function (lang, lvl) {
 
     if (state.mode === 'guest') {
 
-        if (lvl >= 4) {
-            showGuestLocked();
-            return;
-        }
+        if (!canAccessLevel(lvl)) {
+    alert("Completa prima tutti i livelli precedenti per sbloccare questo livello.");
+    return;
+}
 
         const key = "L" + lvl;
         const all = domandaRepo[lang][key];
@@ -667,10 +667,10 @@ function findUserById(id) {
 const _showHome = showHome;
 showHome = function () {
     _showHome();
-    if (state.mode === 'admin') {
+    if (state.mode === 'admin' && !document.getElementById('admin-btn')) {
         document.getElementById('content-area').innerHTML += `
             <div style="margin-top:15px">
-                <button class="btn-apple btn-primary" onclick="renderAdminPanel()">
+                <button id="admin-btn" class="btn-apple btn-primary" onclick="renderAdminPanel()">
                     Vai al pannello Admin
                 </button>
             </div>
