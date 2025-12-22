@@ -505,13 +505,20 @@ function toggleLangDetails(el){
 }
 
 function toggleCard(el) {
-    const content = el.querySelector('.security-content, #detailed-progress');
+    const content = el.querySelector('.security-content');
     if (!content) return;
 
-    // Chiudi tutte le altre card tranne questa
-    document.querySelectorAll('.glass-card .security-content, #detailed-progress').forEach(c => {
+    // chiude le altre card
+    document.querySelectorAll('.glass-card .security-content').forEach(c => {
         if (c !== content) c.style.display = 'none';
     });
+
+    // apre / chiude questa
+    content.style.display =
+        content.style.display === 'none' || !content.style.display
+            ? 'block'
+            : 'none';
+}
 
     // Mostra/nascondi il contenuto della card cliccata
     if(content.style.display === 'none') {
