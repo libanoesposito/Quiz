@@ -452,17 +452,19 @@ function renderProfile() {
         <div style="margin-top:10px">${progHtml}</div>
     </div>
 
-    <div class="glass-card">
-    <div class="security-box">
-        <div class="security-header" onclick="toggleSecurity(this)">
-            Sicurezza
-            <span class="chevron">›</span>
-        </div>
-        <div class="security-content">
-            <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
-            <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
-            <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
-        </div>
+    <div class="glass-card" onclick="toggleCard(this)" style="cursor:pointer">
+    <strong>Sicurezza</strong>
+    <div class="security-content" style="display:none; margin-top:10px; flex-direction:column; gap:6px">
+        <button class="btn-apple" onclick="userChangePin(); event.stopPropagation()">Cambia PIN</button>
+        <button class="btn-apple" onclick="resetStats(); event.stopPropagation()">Azzera statistiche</button>
+        <button class="btn-apple btn-destruct" onclick="deleteAccount(); event.stopPropagation()">Elimina account</button>
+    </div>
+</div>
+
+<div class="glass-card" onclick="toggleCard(this)" style="cursor:pointer">
+    <strong>Storico</strong>
+    <div class="security-content" id="history-content" style="display:none; max-height:400px; overflow-y:auto; margin-top:10px; flex-direction:column; gap:6px">
+        ${generateHistoryHTML(u)}
     </div>
 </div>
 
@@ -521,20 +523,16 @@ function toggleLangDetails(el){
 }
 
 function toggleCard(el) {
-    const content = el.querySelector('.security-content, #detailed-progress');
+    const content = el.querySelector('.security-content');
     if (!content) return;
 
     // Chiudi tutte le altre card tranne questa
-    document.querySelectorAll('.glass-card .security-content, #detailed-progress').forEach(c => {
+    document.querySelectorAll('.glass-card .security-content').forEach(c => {
         if (c !== content) c.style.display = 'none';
     });
 
     // Mostra/nascondi il contenuto della card cliccata
-    if (content.style.display === 'none' || content.style.display === '') {
-        content.style.display = 'flex'; // <- qui
-    } else {
-        content.style.display = 'none';
-    }
+    content.style.display = content.style.display === 'none' ? 'flex' : 'none';
 }
 
 
