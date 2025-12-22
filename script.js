@@ -262,6 +262,7 @@ function renderQ() {
     updateNav(true, `showLevels('${session.lang}')`);
     const data = session.q[session.idx];
     const progress = (session.idx / session.q.length) * 100;
+
     document.getElementById('content-area').innerHTML = `
         <div style="width:100%; margin-bottom:15px">
             <div style="display:flex; justify-content:space-between; font-size:11px; opacity:0.5; margin-bottom:5px">
@@ -272,8 +273,52 @@ function renderQ() {
             </div>
         </div>
         <h2 style="font-size:18px; margin-bottom:20px">${data.q}</h2>
-        <div id="opts" style="width:100%">${data.options.map((o,i)=>`<button class="btn-apple" onclick="check(${i===data.correct})">${o}</button>`).join('')}</div>
-        <div id="fb"></div>`;
+        <div id="opts" style="width:100%">
+            ${data.options.map((o,i) => `<button class="btn-apple" onclick="checkAnswer(${i})">${o}</button>`).join('')}
+        </div>
+        <div id="fb" style="margin-top:10px"></div>`;
+
+    // Funzione interna per gestire la risposta
+    window.checkAnswer = function(selectedIdx) {
+        const correct = selectedIdx === data.correct;
+        const fbEl = document.getElementById('fb');
+        fbEl.innerHTML = `<div style="margin-top:10px; font-size:13px">${data.exp}</div>`;
+
+        if (!correct) {
+            // Mostra il pulsante "Non l'ho studiato"
+            const optsEl = document.getElementById('opts');
+            if (!document.getElementById('not-studied-btn')) {
+                const btn = document.createElement('button');
+                btn.id = 'not-studied-btn';
+                btn.className = 'btn-apple';
+                btn.style.marginTop = '10px';
+                btn.innerText = "Non l'ho studiato";
+                btn.onclick = () => {
+                    const pin = state.currentPin;
+                    if (!dbUsers[pin].ripasso) dbUsers[pin].ripasso = {};
+                    if (!dbUsers[pin].ripasso[session.lang]) dbUsers[pin].ripasso[session.lang] = [];
+                    dbUsers[pin].ripasso[session.lang].push({
+                        q: data.q,
+                        options: data.options,
+                        correct: data.correct,
+                        exp: data.exp
+                    });
+                    saveMasterDB();
+                    btn.disabled = true;
+                    btn.innerText = "Aggiunto al ripasso";
+                };
+                optsEl.appendChild(btn);
+            }
+        }
+
+        // Salvataggio automatico dei progressi utente (già esistente)
+        if (state.mode === 'user') {
+            const key = `${session.lang}_L${session.lvl}`;
+            if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
+            dbUsers[state.currentPin].activeProgress[key] = session.idx + 1;
+            saveMasterDB();
+        }
+    };
 }
 
 function check(isOk) {
