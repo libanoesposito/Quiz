@@ -511,18 +511,8 @@ function toggleLangDetails(el){
 }
 
 function toggleCard(el) {
-    const content = el.querySelector('.security-content'); // figlio diretto
-    if (!content) {
-        console.error("toggleCard: content non trovato", el);
-        return;
-    }
-
-    // Chiudi tutte le altre card tranne questa
-    document.querySelectorAll('.glass-card .security-content').forEach(c => {
-        if (c !== content) c.style.display = 'none';
-    });
-
-    // Mostra/nascondi
+    const content = el.querySelector('.security-content');
+    if (!content) return;
     content.style.display = content.style.display === 'none' ? 'flex' : 'none';
 }
 
