@@ -264,3 +264,60 @@ pre[class*="language-"] {
     padding: 0 !important;
     background: transparent !important;
 }
+/* Colori Tema VS Code Dark+ */
+.token.keyword { color: #569cd6 !important; }    /* if, for, return, function */
+.token.string { color: #ce9178 !important; }     /* "stringhe" */
+.token.function { color: #dcdcaa !important; }   /* nomiFunzione() */
+.token.boolean { color: #569cd6 !important; }    /* true/false */
+.token.number { color: #b5cea8 !important; }     /* 123 */
+.token.operator { color: #d4d4d4 !important; }   /* +, -, = */
+.token.comment { color: #6a9955 !important; }    /* // commenti */
+.token.class-name { color: #4ec9b0 !important; }
+
+/* Allineamento Perfetto */
+.editor-wrapper {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    background: #1e1e1e;
+    border-radius: 12px;
+    border: 1px solid #3c3c3c;
+    overflow: hidden;
+}
+
+.code-input, .code-highlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 15px !important;
+    box-sizing: border-box;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important; /* Fondamentale: deve essere uguale per entrambi */
+    white-space: pre !important;
+    overflow: auto !important;
+}
+
+.code-input {
+    z-index: 2;
+    background: transparent !important;
+    color: transparent !important;
+    caret-color: #fff; /* Cursore bianco */
+    resize: none;
+    outline: none;
+    border: none;
+}
+
+.code-highlight {
+    z-index: 1;
+    pointer-events: none;
+    background: #1e1e1e !important;
+}
+
+/* Nasconde la barra di scorrimento del blocco highlight per non raddoppiarla */
+.code-highlight::-webkit-scrollbar {
+    display: none;
+}
