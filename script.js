@@ -443,7 +443,6 @@ function renderProfile() {
                         <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
                         <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
                     </div>
-                    // Dentro renderProfile(), dopo la sezione Sicurezza
 
 <div class="glass-card">
     <div class="security-box">
