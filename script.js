@@ -515,7 +515,11 @@ function toggleCard(el) {
     });
 
     // Mostra/nascondi il contenuto della card cliccata
-    content.style.display = content.style.display === 'none' ? 'flex' : 'none';
+    if(content.style.display === 'none') {
+        content.style.display = 'flex'; // <- così sicurezza mostra i pulsanti
+    } else {
+        content.style.display = 'none';
+    }
 }
 
 function resetStats() {
