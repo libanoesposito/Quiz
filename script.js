@@ -254,6 +254,137 @@ function next() {
 function logout() {
     state.mode = null; state.currentPin = null; session = null; renderLogin();
 }
+/* =========================
+   PROFILO UTENTE
+   ========================= */
+
+function ensureUserId() {
+    if (state.mode !== 'user') return;
+    const u = dbUsers[state.currentPin];
+    if (!u.userId) {
+        const ids = Object.values(dbUsers)
+            .map(x => x.userId)
+            .filter(x => typeof x === 'number');
+        u.userId = ids.length ? Math.max(...ids) + 1 : 1;
+        saveMasterDB();
+    }
+}
+
+function calcStats() {
+    let tot = 0;
+    let ok = 0;
+    Object.values(state.history || {}).forEach(arr => {
+        arr.forEach(h => {
+            tot++;
+            if (h.ok) ok++;
+        });
+    });
+    return {
+        total: tot,
+        correct: ok,
+        wrong: tot - ok,
+        perc: tot ? Math.round((ok / tot) * 100) : 0
+    };
+}
+
+function renderProfile() {
+    ensureUserId();
+    updateNav(true, "showHome()");
+    document.getElementById('app-title').innerText = "PROFILO";
+
+    const u = dbUsers[state.currentPin];
+    const stats = calcStats();
+
+    let progHtml = "";
+    Object.keys(domandaRepo).forEach(l => {
+        const p = state.progress[l] || 0;
+        progHtml += `
+            <div style="margin-bottom:10px; font-size:14px">
+                <strong>${l}</strong>
+                <div class="progress-container">
+                    <div class="progress-bar-fill" style="width:${(p/5)*100}%"></div>
+                </div>
+                <div style="font-size:12px; opacity:0.6">Livello ${p}/5</div>
+            </div>
+        `;
+    });
+
+    document.getElementById('content-area').innerHTML = `
+        <div style="width:100%">
+            <div class="review-card">
+                <div><strong>Nome:</strong> ${u.name}</div>
+                <div><strong>ID Utente:</strong> ${u.userId}</div>
+            </div>
+
+            <div class="review-card">
+                <div><strong>Domande totali:</strong> ${stats.total}</div>
+                <div><strong>Corrette:</strong> ${stats.correct}</div>
+                <div><strong>Sbagliate:</strong> ${stats.wrong}</div>
+                <div><strong>Percentuale:</strong> ${stats.perc}%</div>
+            </div>
+
+            <div class="review-card">
+                <strong>Progressi</strong>
+                <div style="margin-top:10px">${progHtml}</div>
+            </div>
+
+            <div class="security-box">
+                <div class="security-header" onclick="toggleSecurity(this)">
+                    Sicurezza
+                    <span class="chevron">›</span>
+                </div>
+                <div class="security-content">
+                    <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
+                    <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
+                    <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function toggleSecurity(el) {
+    el.parentElement.classList.toggle("open");
+}
+
+function resetStats() {
+    openModal(
+        "Azzera statistiche",
+        "Perderai progressi e storico. Operazione irreversibile.",
+        () => {
+            state.progress = {};
+            state.history = {};
+            dbUsers[state.currentPin].activeProgress = {};
+            dbUsers[state.currentPin].savedQuizzes = {};
+            saveMasterDB();
+            renderProfile();
+        }
+    );
+}
+
+function deleteAccount() {
+    openModal(
+        "Elimina account",
+        "Il tuo profilo verrà rimosso. L'admin manterrà i dati.",
+        () => {
+            dbUsers[state.currentPin].deleted = true;
+            saveMasterDB();
+            logout();
+        }
+    );
+}
+
+function openModal(title, desc, onConfirm) {
+    document.getElementById("modal-title").innerText = title;
+    document.getElementById("modal-desc").innerText = desc;
+    const btn = document.getElementById("modal-confirm-btn");
+    btn.onclick = () => { closeModal(); onConfirm(); };
+    document.getElementById("universal-modal").style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById("universal-modal").style.display = "none";
+}
 
 // Inserisci qui le tue funzioni renderProfile, adminReset, adminDelete, userChangePin che hai nel file
 // (Mantenile come sono, sono corrette nel tuo originale)
