@@ -506,15 +506,15 @@ function toggleLangDetails(el){
 }
 
 function toggleCard(el) {
-    const content = el.querySelector('.security-content');
+    const content = el.querySelector('.security-content, #detailed-progress');
     if (!content) return;
 
-    // Chiudi tutte le altre card aperte dello stesso tipo
+    // Chiudi tutte le altre card tranne questa
     document.querySelectorAll('.glass-card .security-content, #detailed-progress').forEach(c => {
         if (c !== content) c.style.display = 'none';
     });
 
-    // Apri/chiudi quella cliccata
+    // Mostra/nascondi il contenuto della card cliccata
     content.style.display = content.style.display === 'none' ? 'flex' : 'none';
 }
 
