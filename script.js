@@ -443,6 +443,19 @@ function renderProfile() {
                         <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
                         <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
                     </div>
+                    // Dentro renderProfile(), dopo la sezione Sicurezza
+
+<div class="glass-card">
+    <div class="security-box">
+        <div class="security-header" onclick="toggleHistory(this)">
+            Storico
+            <span class="chevron">›</span>
+        </div>
+        <div class="security-content" id="history-content" style="display:none; max-height:400px; overflow-y:auto">
+            ${generateHistoryHTML(u)}
+        </div>
+    </div>
+</div>
                 </div>
             </div>
         </div>
@@ -453,6 +466,31 @@ function renderProfile() {
         const detailed = document.getElementById('detailed-progress');
         detailed.style.display = detailed.style.display === 'none' ? 'block' : 'none';
     };
+}
+function toggleHistory(el) {
+    const content = el.nextElementSibling;
+    if(content.style.display === "none") {
+        content.style.display = "block";
+        el.querySelector(".chevron").innerText = "˅";
+    } else {
+        content.style.display = "none";
+        el.querySelector(".chevron").innerText = "›";
+    }
+}
+
+function generateHistoryHTML(u) {
+    let html = "";
+    Object.keys(u.history || {}).forEach(lang => {
+        html += `<div style="margin-bottom:10px"><strong>${lang}</strong></div>`;
+        u.history[lang].forEach((h, idx) => {
+            const status = h.ok ? "✅" : h.notStudied ? "🟡" : "❌";
+            html += `<div style="font-size:12px; margin-bottom:4px">
+                        ${status} Q${idx+1}: ${h.q}<br>
+                        <em style="opacity:0.6">Risposta corretta: ${h.correctAns}</em>
+                     </div>`;
+        });
+    });
+    return html || "<div style='font-size:12px; opacity:0.6'>Nessuna domanda fatta</div>";
 }
 
 // Toggle per linguaggio
