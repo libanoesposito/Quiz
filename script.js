@@ -722,20 +722,6 @@ function findUserById(id) {
     return Object.values(dbUsers).find(u => u.userId === id);
 }
 
-/* hook home */
-const _showHome = showHome;
-showHome = function () {
-    _showHome();
-    if (state.mode === 'admin' && !document.getElementById('admin-btn')) {
-        document.getElementById('content-area').innerHTML += `
-            <div style="margin-top:15px">
-                <button id="admin-btn" class="btn-apple btn-primary" onclick="renderAdminPanel()">
-                    Vai al pannello Admin
-                </button>
-            </div>
-        `;
-    }
-};
 
 /* Cambia PIN */
 function userChangePin() {
