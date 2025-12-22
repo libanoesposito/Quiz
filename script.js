@@ -452,34 +452,47 @@ function renderProfile() {
         <div style="margin-top:10px">${progHtml}</div>
     </div>
 
-    <!-- Card principale cliccabile -->
-<div class="glass-card" onclick="toggleGeneralContent('security-content')">
-    <strong>Sicurezza</strong>
-</div>
+    <div class="glass-card" onclick="toggleGeneralContent('security-content')" style="cursor:pointer">
+        <strong>Sicurezza</strong>
+    </div>
+    <div class="glass-card" id="security-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px">
+        <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
+        <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
+        <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
+    </div>
 
-<!-- Contenuto separato, nascosto di default -->
-<div class="glass-card" id="security-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px">
-    <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
-    <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
-    <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
-</div>
-
-<!-- Card principale cliccabile per lo storico -->
-<div class="glass-card" onclick="toggleGeneralContent('history-content')">
-    <strong>Storico</strong>
-</div>
-
-<!-- Contenuto separato, nascosto di default -->
-<div class="glass-card" id="history-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px; max-height:400px; overflow-y:auto">
-    ${generateHistoryHTML(u)}
+    <div class="glass-card" onclick="toggleGeneralContent('history-content')" style="cursor:pointer">
+        <strong>Storico</strong>
+    </div>
+    <div class="glass-card" id="history-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px; max-height:400px; overflow-y:auto">
+        ${generateHistoryHTML(u)}
+    </div>
 </div>
 `;
 
-    // Funzione per espandere progressi generali
-    
+    // Funzione toggle progressi
     window.toggleGeneralProgress = function(card) {
         const detailed = document.getElementById('detailed-progress');
         detailed.style.display = detailed.style.display === 'none' ? 'block' : 'none';
+        if (detailed.style.display === 'block') detailed.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    // Funzione toggle per contenuti sicurezza/storico
+    window.toggleGeneralContent = function(id) {
+        const content = document.getElementById(id);
+        if (!content) return;
+
+        // Chiudi tutte le altre card simili
+        document.querySelectorAll('#security-content, #history-content').forEach(c => {
+            if (c !== content) c.style.display = 'none';
+        });
+
+        // Mostra/nascondi contenuto
+        const isHidden = content.style.display === 'none';
+        content.style.display = isHidden ? 'flex' : 'none';
+
+        // Scroll verso la card aperta
+        if (isHidden) content.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 }
 
