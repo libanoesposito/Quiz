@@ -452,20 +452,26 @@ function renderProfile() {
         <div style="margin-top:10px">${progHtml}</div>
     </div>
 
-    <div class="glass-card" onclick="toggleCard(this)" style="cursor:pointer">
+    <!-- Card principale cliccabile -->
+<div class="glass-card" onclick="toggleGeneralContent('security-content')">
     <strong>Sicurezza</strong>
-    <div class="security-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px">
-        <button class="btn-apple" onclick="userChangePin(); event.stopPropagation()">Cambia PIN</button>
-        <button class="btn-apple" onclick="resetStats(); event.stopPropagation()">Azzera statistiche</button>
-        <button class="btn-apple btn-destruct" onclick="deleteAccount(); event.stopPropagation()">Elimina account</button>
-    </div>
 </div>
 
-<div class="glass-card" onclick="toggleCard(this)" style="cursor:pointer">
+<!-- Contenuto separato, nascosto di default -->
+<div class="glass-card" id="security-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px">
+    <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
+    <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
+    <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
+</div>
+
+<!-- Card principale cliccabile per lo storico -->
+<div class="glass-card" onclick="toggleGeneralContent('history-content')">
     <strong>Storico</strong>
-    <div class="security-content" id="history-content" style="display:none; max-height:400px; overflow-y:auto; margin-top:10px; flex-direction:column; gap:6px">
-        ${generateHistoryHTML(u)}
-    </div>
+</div>
+
+<!-- Contenuto separato, nascosto di default -->
+<div class="glass-card" id="history-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px; max-height:400px; overflow-y:auto">
+    ${generateHistoryHTML(u)}
 </div>
 `;
 
