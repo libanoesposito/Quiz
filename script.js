@@ -384,6 +384,7 @@ function renderProfile() {
     const stats = calcStats();
     const totalLevels = Object.keys(domandaRepo);
 
+    // Progressi dettagliati
     let progHtml = '';
     totalLevels.forEach(lang => {
         const comp = state.progress[lang] || 0;
@@ -410,8 +411,10 @@ function renderProfile() {
         progHtml += `</div>`;
     });
 
+    // HTML generale
     document.getElementById('content-area').innerHTML = `
 <div style="width:100%; display:flex; flex-direction:column; gap:15px">
+
     <div class="glass-card">
         <div><strong>Nome:</strong> ${u.name}</div>
         <div><strong>ID Utente:</strong> ${u.userId}</div>
@@ -444,13 +447,12 @@ function renderProfile() {
     <div class="glass-card" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
         <strong>Progressi generali</strong>
     </div>
-
     <div class="glass-card" id="detailed-progress" style="display:none">
         <strong>Progressi dettagliati</strong>
         <div style="margin-top:10px">${progHtml}</div>
     </div>
 
-    <div class="glass-card" onclick="toggleGeneralContent('security-content')">
+    <div class="glass-card" onclick="toggleGeneralContent('security-content')" style="cursor:pointer">
         <strong>Sicurezza</strong>
     </div>
     <div class="glass-card" id="security-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px">
@@ -459,7 +461,7 @@ function renderProfile() {
         <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
     </div>
 
-    <div class="glass-card" onclick="toggleGeneralContent('history-content')">
+    <div class="glass-card" onclick="toggleGeneralContent('history-content')" style="cursor:pointer">
         <strong>Storico</strong>
     </div>
     <div class="glass-card" id="history-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px; max-height:400px; overflow-y:auto">
@@ -467,9 +469,10 @@ function renderProfile() {
     </div>
 </div>
 `;
+
 }
 
-// Funzioni toggle fuori da renderProfile
+// Funzioni toggle **fuori da renderProfile**
 window.toggleGeneralProgress = function(card) {
     const detailed = document.getElementById('detailed-progress');
     detailed.style.display = detailed.style.display === 'none' ? 'block' : 'none';
@@ -480,7 +483,7 @@ window.toggleGeneralContent = function(id) {
     const content = document.getElementById(id);
     if (!content) return;
 
-    // Chiudi tutte le altre card simili
+    // Chiudi le altre card simili
     document.querySelectorAll('#security-content, #history-content').forEach(c => {
         if (c !== content) c.style.display = 'none';
     });
