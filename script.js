@@ -385,6 +385,342 @@ function openModal(title, desc, onConfirm) {
 function closeModal() {
     document.getElementById("universal-modal").style.display = "none";
 }
+/* =========================
+   LOGICA GUEST (DEMO)
+   ========================= */
 
+const GUEST_LIMITS = {
+    1: 3,
+    2: 2,
+    3: 1
+};
+
+function guestLimitReached(lvl, idx) {
+    return GUEST_LIMITS[lvl] !== undefined && idx >= GUEST_LIMITS[lvl];
+}
+
+// Override soft di startStep
+const _startStep = startStep;
+startStep = function (lang, lvl) {
+
+    if (state.mode === 'guest') {
+
+        if (lvl >= 4) {
+            showGuestLocked();
+            return;
+        }
+
+        const key = "L" + lvl;
+        const all = domandaRepo[lang][key];
+        const maxQ = GUEST_LIMITS[lvl];
+
+        const selezione = [...all]
+            .sort(() => 0.5 - Math.random())
+            .slice(0, maxQ)
+            .map(r => {
+                const p = r.split("|");
+                return { q: p[0], options: [p[1], p[2], p[3]], correct: parseInt(p[4]), exp: p[5] };
+            });
+
+        session = { lang, lvl, q: selezione, idx: 0 };
+        renderQ();
+        return;
+    }
+
+    _startStep(lang, lvl);
+};
+
+// Override soft di renderQ
+const _renderQ = renderQ;
+renderQ = function () {
+
+    if (state.mode === 'guest') {
+
+        if (guestLimitReached(session.lvl, session.idx)) {
+            showGuestEndModal();
+            return;
+        }
+
+        updateNav(true, `showLevels('${session.lang}')`);
+        const data = session.q[session.idx];
+
+        document.getElementById('content-area').innerHTML = `
+            <h2 style="font-size:18px; margin-bottom:20px">${data.q}</h2>
+            <div id="opts">
+                ${data.options.map((o,i)=>`
+                    <button class="btn-apple" onclick="check(${i===data.correct})">${o}</button>
+                `).join("")}
+            </div>
+            <div style="font-size:12px; opacity:0.5; margin-top:10px">
+                Demo: ${session.idx + 1}/${session.q.length}
+            </div>
+            <div id="fb"></div>
+        `;
+        return;
+    }
+
+    _renderQ();
+};
+
+// Override soft di next
+const _next = next;
+next = function () {
+
+    if (state.mode === 'guest') {
+        session.idx++;
+        renderQ();
+        return;
+    }
+
+    _next();
+};
+
+function showGuestEndModal() {
+    openModal(
+        "Demo terminata",
+        "Registrati per sbloccare tutti i livelli, salvare i progressi e vedere le statistiche.",
+        () => {
+            closeModal();
+            renderLogin();
+        }
+    );
+}
+
+function showGuestLocked() {
+    openModal(
+        "Accesso bloccato",
+        "Registrati per accedere ai livelli avanzati.",
+        () => {
+            closeModal();
+            renderLogin();
+        }
+    );
+}
+
+/* =========================
+   PANNELLO ADMIN
+   ========================= */
+
+function renderAdminPanel() {
+    updateNav(true, "showHome()");
+    document.getElementById('app-title').innerText = "ADMIN";
+
+    const users = Object.entries(dbUsers)
+        .filter(([_, u]) => u.userId)
+        .map(([pin, u]) => ({
+            pin,
+            id: u.userId,
+            name: u.name,
+            stats: calcUserStats(u),
+            deleted: u.deleted
+        }))
+        .sort((a, b) => b.stats.perc - a.stats.perc);
+
+    let html = `<div style="width:100%">`;
+
+    users.forEach(u => {
+        html += `
+            <div class="review-card ${u.deleted ? 'is-err' : 'is-ok'}">
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <div>
+                        <strong>${u.name}</strong>
+                        <div style="font-size:12px; opacity:0.6">ID ${u.id}</div>
+                    </div>
+                    <div style="display:flex; gap:10px">
+                        <span style="cursor:pointer" onclick="showUserHistory(${u.id})">⏳</span>
+                        <span style="cursor:pointer" onclick="recalcUser(${u.id})">🔄</span>
+                        <span style="cursor:pointer; color:#ff3b30" onclick="adminDeleteUser(${u.id})">🗑</span>
+                    </div>
+                </div>
+
+                <div style="margin-top:8px; font-size:13px">
+                    ${u.stats.correct}/${u.stats.total} corrette · ${u.stats.perc}%
+                </div>
+            </div>
+        `;
+    });
+
+    html += `</div>`;
+    document.getElementById('content-area').innerHTML = html;
+}
+
+function calcUserStats(user) {
+    let tot = 0;
+    let ok = 0;
+    Object.values(user.history || {}).forEach(arr => {
+        arr.forEach(h => {
+            tot++;
+            if (h.ok) ok++;
+        });
+    });
+    return {
+        total: tot,
+        correct: ok,
+        perc: tot ? Math.round((ok / tot) * 100) : 0
+    };
+}
+
+function recalcUser(userId) {
+    const u = findUserById(userId);
+    if (!u) return;
+    openModal(
+        "Ricalcola statistiche",
+        "Aggiorna le statistiche di questo utente.",
+        () => {
+            // stats sono sempre live, qui forziamo solo refresh UI
+            renderAdminPanel();
+        }
+    );
+}
+
+function adminDeleteUser(userId) {
+    const u = findUserById(userId);
+    if (!u) return;
+    openModal(
+        "Elimina utente",
+        "L’utente verrà marcato come eliminato.",
+        () => {
+            u.deleted = true;
+            saveMasterDB();
+            renderAdminPanel();
+        }
+    );
+}
+
+function showUserHistory(userId) {
+    const u = findUserById(userId);
+    if (!u) return;
+
+    let html = `<div style="width:100%">`;
+
+    Object.entries(u.history || {}).forEach(([lang, arr]) => {
+        html += `<h4 style="margin-top:15px">${lang}</h4>`;
+        arr.slice(-10).forEach(h => {
+            html += `
+                <div class="review-card ${h.ok ? 'is-ok' : 'is-err'}">
+                    <div style="font-size:13px">${h.q}</div>
+                </div>
+            `;
+        });
+    });
+
+    html += `</div>`;
+
+    updateNav(true, "renderAdminPanel()");
+    document.getElementById('app-title').innerText = "STORICO";
+    document.getElementById('content-area').innerHTML = html;
+}
+
+function findUserById(id) {
+    return Object.values(dbUsers).find(u => u.userId === id);
+}
+
+/* hook home */
+const _showHome = showHome;
+showHome = function () {
+    _showHome();
+    if (state.mode === 'admin') {
+        document.getElementById('content-area').innerHTML += `
+            <div style="margin-top:15px">
+                <button class="btn-apple btn-primary" onclick="renderAdminPanel()">
+                    Vai al pannello Admin
+                </button>
+            </div>
+        `;
+    }
+};
+
+function renderProfile() {
+    updateNav(true, "showHome()");
+    document.getElementById('app-title').innerText = "IL MIO PROFILO";
+
+    const user = dbUsers[state.currentPin];
+    const stats = calcUserStats(user);
+
+    let html = `
+        <div class="glass-card">
+            <div><strong>Nome:</strong> ${user.name}</div>
+            <div><strong>ID:</strong> ${user.userId}</div>
+            <div style="margin-top:10px"><strong>Statistiche:</strong> ${stats.correct}/${stats.total} corrette (${stats.perc}%)</div>
+            
+            <div style="margin-top:20px">
+                <button class="btn-apple btn-primary" onclick="userChangePin()">Cambia PIN</button>
+                <button class="btn-apple" onclick="userResetStats()">Azzera statistiche</button>
+                <button class="btn-apple btn-destruct" onclick="userDeleteAccount()">Elimina account</button>
+            </div>
+        </div>
+    `;
+    document.getElementById('content-area').innerHTML = html;
+}
+
+/* Cambia PIN */
+function userChangePin() {
+    openModal("Cambia PIN", `
+        Inserisci il nuovo PIN a 4 cifre:
+        <input type="password" id="new-pin-field" maxlength="4" inputmode="numeric" style="margin-top:10px; text-align:center; width:80%; padding:8px; border-radius:8px; border:1px solid #ccc">
+    `, () => {
+        const newPin = document.getElementById('new-pin-field').value;
+        if(newPin.length !== 4) { alert("Il PIN deve essere di 4 cifre"); return; }
+        if(dbUsers[newPin]) { alert("PIN già in uso"); return; }
+
+        dbUsers[newPin] = dbUsers[state.currentPin];
+        delete dbUsers[state.currentPin];
+        state.currentPin = newPin;
+        saveMasterDB();
+        renderProfile();
+    });
+}
+
+/* Azzera statistiche */
+function userResetStats() {
+    openModal("Azzera statistiche", "Vuoi azzerare tutte le tue statistiche?", () => {
+        const u = dbUsers[state.currentPin];
+        u.progress = {};
+        u.history = {};
+        u.activeProgress = {};
+        saveMasterDB();
+        renderProfile();
+    });
+}
+
+/* Elimina account */
+function userDeleteAccount() {
+    openModal("Elimina account", "Vuoi eliminare il tuo account? I dati resteranno visibili all'admin.", () => {
+        const u = dbUsers[state.currentPin];
+        u.deleted = true;
+        saveMasterDB();
+        state.mode = 'guest';
+        state.currentPin = null;
+        session = null;
+        renderLogin();
+    });
+}
+
+/* MODALE GENERICO */
+function openModal(title, content, onConfirm) {
+    let overlay = document.getElementById('modal-overlay');
+    if(!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'modal-overlay';
+        overlay.className = 'modal-overlay';
+        overlay.innerHTML = `
+            <div class="modal-content">
+                <h3 id="modal-title"></h3>
+                <div id="modal-body"></div>
+                <button class="modal-btn btn-primary" id="modal-confirm">Conferma</button>
+                <button class="modal-btn btn-cancel" id="modal-cancel">Annulla</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    document.getElementById('modal-title').innerText = title;
+    document.getElementById('modal-body').innerHTML = content;
+
+    overlay.style.display = 'flex';
+
+    document.getElementById('modal-confirm').onclick = () => { onConfirm(); overlay.style.display='none'; };
+    document.getElementById('modal-cancel').onclick = () => { overlay.style.display='none'; };
+}
 // Inserisci qui le tue funzioni renderProfile, adminReset, adminDelete, userChangePin che hai nel file
 // (Mantenile come sono, sono corrette nel tuo originale)
