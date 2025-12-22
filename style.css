@@ -274,50 +274,54 @@ pre[class*="language-"] {
 .token.comment { color: #6a9955 !important; }    /* // commenti */
 .token.class-name { color: #4ec9b0 !important; }
 
-/* Allineamento Perfetto */
 .editor-wrapper {
     position: relative;
     width: 100%;
-    height: 200px;
+    height: 250px;
     background: #1e1e1e;
-    border-radius: 12px;
+    border-radius: 8px;
     border: 1px solid #3c3c3c;
-    overflow: hidden;
+    margin: 15px 0;
 }
 
-.code-input, .code-highlight {
+/* Regola d'oro: Input e Highlight devono avere lo STESSO font e padding */
+.code-input, .code-highlight, #highlighting-content {
+    margin: 0 !important;
+    padding: 15px !important;
+    border: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    box-sizing: border-box !important;
+    font-family: 'Consolas', 'Monaco', monospace !important;
+    font-size: 14px !important;
+    line-height: 20px !important; /* Valore fisso in pixel per precisione */
+    tab-size: 4;
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 15px !important;
-    box-sizing: border-box;
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
-    font-size: 14px !important;
-    line-height: 1.5 !important; /* Fondamentale: deve essere uguale per entrambi */
-    white-space: pre !important;
+    white-space: pre !important; /* Impedisce l'andata a capo automatica che sballa i colori */
     overflow: auto !important;
 }
 
 .code-input {
     z-index: 2;
     background: transparent !important;
-    color: transparent !important;
-    caret-color: #fff; /* Cursore bianco */
+    color: transparent !important; /* Nasconde il testo nero */
+    caret-color: #fff; /* Mostra il cursore */
     resize: none;
     outline: none;
-    border: none;
+    -webkit-text-fill-color: transparent; /* Per Safari/iOS */
 }
 
 .code-highlight {
     z-index: 1;
     pointer-events: none;
-    background: #1e1e1e !important;
+    background: transparent !important;
 }
 
-/* Nasconde la barra di scorrimento del blocco highlight per non raddoppiarla */
-.code-highlight::-webkit-scrollbar {
-    display: none;
-}
+/* Colori VS Code Dark+ */
+.token.keyword { color: #569cd6 !important; }
+.token.string { color: #ce9178 !important; }
+.token.function { color: #dcdcaa !important; }
+.token.operator { color: #d4d4d4 !important; }
+.token.comment { color: #6a9955 !important; }
