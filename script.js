@@ -476,10 +476,16 @@ function renderProfile() {
 `;
 
     // Funzione per espandere progressi generali
+    
     window.toggleGeneralProgress = function(card) {
         const detailed = document.getElementById('detailed-progress');
         detailed.style.display = detailed.style.display === 'none' ? 'block' : 'none';
     };
+}
+
+function toggleGeneralContent(id) {
+    const el = document.getElementById(id);
+    el.style.display = el.style.display === 'none' ? 'flex' : 'none';
 }
    
 function toggleHistory(el) {
