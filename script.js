@@ -371,115 +371,36 @@ function calcStats() {
 }
 
 
-function renderProfile() {
-    updateNav(true, "showHome()");
-    document.getElementById('app-title').innerText = "IL MIO PROFILO";
-
-    const u = dbUsers[state.currentPin];
-    const stats = calcStats();
-    const totalLevels = Object.keys(domandaRepo);
-
-    // Progressi dettagliati (Tua logica originale)
-    let progHtml = '';
-    totalLevels.forEach(lang => {
-        const comp = state.progress[lang] || 0;
-        progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
-        for(let i=1;i<=5;i++){
-            let correct=0, wrong=0, total=15;
-            if(u.history[lang]){
-                u.history[lang].forEach(h=>{
-                    if(i<=comp){ if(h.ok) correct++; else wrong++; }
-                });
-            }
-            const notStudied = total - correct - wrong;
-            const percent = total ? Math.round((correct/total)*100) : 0;
-            progHtml += `<div style="margin-bottom:8px">
-                <div style="font-size:13px">Livello ${i}</div>
-                <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                    <div class="progress-bar-fill" style="width:${(correct/total)*100}%; background:#34c759; height:100%"></div>
-                    <div class="progress-bar-fill" style="width:${(wrong/total)*100}%; background:#ff3b30; position:absolute; left:${(correct/total)*100}%; height:100%"></div>
-                    <div class="progress-bar-fill" style="width:${(notStudied/total)*100}%; background:#aaa; position:absolute; left:${((correct+wrong)/total)*100}%; height:100%"></div>
-                </div>
-                <div style="font-size:11px; text-align:right; margin-top:2px">${percent}% corrette</div>
-            </div>`;
-        }
-        progHtml += `</div>`;
-    });
-
-    // HTML UNIFICATO (Senza interruzioni errate)
-    document.getElementById('content-area').innerHTML = `
-        <div style="width:100%; display:flex; flex-direction:column; gap:15px">
-            <div class="glass-card">
-                <div><strong>Nome:</strong> ${u.name}</div>
-                <div><strong>ID Utente:</strong> ${u.userId}</div>
-            </div>
-
-            <div class="glass-card">
-                <div><strong>Statistiche</strong></div>
-                <div style="margin-top:10px; display:flex; flex-direction:column; gap:6px">
-                    <div>
-                        <div style="font-size:12px; margin-bottom:2px">Corrette: ${stats.correct}</div>
-                        <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                            <div class="progress-bar-fill" style="width:${(stats.correct/stats.total)*100}%; background:#34c759; height:100%; transition:0.3s"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div style="font-size:12px; margin-bottom:2px">Sbagliate: ${stats.wrong}</div>
-                        <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                            <div class="progress-bar-fill" style="width:${(stats.wrong/stats.total)*100}%; background:#ff3b30; height:100%; transition:0.3s"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div style="font-size:12px; margin-bottom:2px">Non studiate: ${stats.total - stats.correct - stats.wrong}</div>
-                        <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                            <div class="progress-bar-fill" style="width:${((stats.total - stats.correct - stats.wrong)/stats.total)*100}%; background:#ffd60a; height:100%; transition:0.3s"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="glass-card" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
-                <strong>Progressi generali</strong>
-            </div>
-
-            <div class="glass-card" id="detailed-progress" style="display:none">
-                <strong>Progressi dettagliati</strong>
-                <div style="margin-top:10px">${progHtml}</div>
-            </div>
-
-            <div class="glass-card">
+          <div class="glass-card">
                 <div class="security-box">
                     <div class="security-header" onclick="toggleSecurity(this)">
                         Sicurezza
                         <span class="chevron">›</span>
                     </div>
-                    <div class="security-content" style="display:none; flex-direction:column; gap:10px; margin-top:10px">
+                    
+                    <div class="security-content">
                         <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
                         <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
                         <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
                     </div>
+                   </div> 
+
+<div class="glass-card">
+    <div class="security-box">
+        <div class="security-header" onclick="toggleHistory(this)">
+            Storico
+            <span class="chevron">›</span>
+        </div>
+        <div class="security-content" id="history-content" style="display:none; max-height:400px; overflow-y:auto">
+            ${generateHistoryHTML(u)}
+        </div>
+    </div>
+</div>
                 </div>
             </div>
+        </div>
 
-            <div class="glass-card">
-                <div class="security-box">
-                    <div class="security-header" onclick="toggleHistory(this)">
-                        Storico
-                        <span class="chevron">›</span>
-                    </div>
-                    <div class="security-content" id="history-content" style="display:none; max-height:400px; overflow-y:auto; margin-top:10px">
-                        ${generateHistoryHTML(u)}
-                    </div>
-                </div>
-            </div>
-        </div>`;
 
-    // Funzione interna per il toggle dei progressi
-    window.toggleGeneralProgress = function(card) {
-        const detailed = document.getElementById('detailed-progress');
-        detailed.style.display = detailed.style.display === 'none' ? 'block' : 'none';
-    };
-}
 
 function toggleSecurity(el) {
     const content = el.nextElementSibling;
