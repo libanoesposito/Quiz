@@ -955,5 +955,49 @@ function openModal(title, content, onConfirm) {
     document.getElementById('modal-cancel').onclick = () => { overlay.style.display='none'; };
 }
 
+/*CONTROLLORE*/
+(function () {
+    const box = document.createElement("div");
+    box.id = "debug-box";
+    box.style = `
+        position:fixed;
+        bottom:10px;
+        right:10px;
+        max-width:90%;
+        max-height:40%;
+        overflow:auto;
+        background:#111;
+        color:#ff6b6b;
+        font-size:12px;
+        padding:10px;
+        border-radius:8px;
+        z-index:9999;
+        display:none;
+        white-space:pre-wrap;
+        box-shadow:0 0 10px rgba(0,0,0,0.4)
+    `;
+    document.body.appendChild(box);
+
+    function show(msg) {
+        box.style.display = "block";
+        box.textContent += msg + "\n";
+    }
+
+    window.onerror = function (msg, url, line, col) {
+        show(`JS ERROR:
+${msg}
+line: ${line}:${col}`);
+        return false;
+    };
+
+    window.onunhandledrejection = function (e) {
+        show(`PROMISE ERROR:
+${e.reason}`);
+    };
+
+    window.debug = function (label, value) {
+        show(`DEBUG → ${label}: ${value}`);
+    };
+})();
 // Inserisci qui le tue funzioni renderProfile, adminReset, adminDelete, userChangePin che hai nel file
 // (Mantenile come sono, sono corrette nel tuo originale)
