@@ -370,6 +370,12 @@ function calcStats() {
     };
 }
 
+function toggleSecurity(el) {
+    const content = el.nextElementSibling; // il div .security-content
+    if (!content) return;
+    content.style.display = content.style.display === 'none' ? 'flex' : 'none';
+}
+
 function renderProfile() {
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = "IL MIO PROFILO";
