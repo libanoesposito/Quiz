@@ -208,6 +208,7 @@ function startStep(lang, lvl) {
     renderQ();
 }
 
+// AGGIORNA QUESTA FUNZIONE: Aggiunta sincronizzazione scroll
 function renderL5(lang) {
     const c = challenges5[lang];
     document.getElementById('content-area').innerHTML = `
@@ -215,18 +216,51 @@ function renderL5(lang) {
         <p style="font-size:14px; opacity:0.8; text-align:center">${c.task}</p>
         
         <div class="editor-wrapper">
-            <pre class="code-highlight"><code id="highlighting-content" class="language-javascript"></code></pre>
+            <pre class="code-highlight" id="pre-highlight"><code id="highlighting-content" class="language-javascript"></code></pre>
             <textarea id="ed" class="code-input" 
                 spellcheck="false" 
                 autocorrect="off" 
                 autocapitalize="off" 
                 placeholder="Scrivi il tuo codice qui..."
                 oninput="updateEditor(this.value)"
+                onscroll="syncScroll(this)"
                 onkeydown="handleTab(event, this)"></textarea>
         </div>
 
         <button class="btn-apple btn-primary" style="margin-top:10px" onclick="runL5('${lang}')">Verifica Codice</button>
         <div id="l5-err" style="color:#ff3b30; display:none; margin-top:10px; text-align:center">Il codice non soddisfa i requisiti logici.</div>`;
+}
+
+// NUOVA FUNZIONE: Sincronizza lo scroll per evitare che il colore "scappi" via dal testo
+function syncScroll(el) {
+    const pre = document.getElementById('pre-highlight');
+    pre.scrollTop = el.scrollTop;
+    pre.scrollLeft = el.scrollLeft;
+}
+
+// AGGIORNA QUESTA FUNZIONE: Migliorata la stabilità del click
+function showHome() {
+    updateNav(true, "renderLogin()");
+    document.getElementById('app-title').innerText = "PERCORSI";
+    let html = `<div class="lang-grid">`;
+    
+    // Assicurati che domandaRepo esista prima di ciclare
+    if (typeof domandaRepo !== 'undefined') {
+        Object.keys(domandaRepo).forEach(l => {
+            const icon = (l === 'HTML') ? 'html5' : l.toLowerCase();
+            html += `
+            <div class="lang-item" onclick="showLevels('${l}')" style="cursor:pointer">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${icon}/${icon}-original.svg" width="35" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1005/1005141.png'">
+                <div style="margin-top:10px; font-weight:700; font-size:13px">${l}</div>
+            </div>`;
+        });
+    }
+
+    if(state.mode !== 'guest') {
+        html += `<div class="lang-item profile-slot" onclick="renderProfile()"><div style="font-weight:700">${state.mode==='admin'?'PANNELLO ADMIN':'IL MIO PROFILO'}</div></div>`;
+    }
+    html += `</div>`;
+    document.getElementById('content-area').innerHTML = html;
 }
 
 // Funzione per sincronizzare testo e colori
