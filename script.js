@@ -383,21 +383,21 @@ function renderProfile() {
     totalLevels.forEach(lang => {
         const comp = state.progress[lang] || 0;
         progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
-        for(let i=1;i<=5;i++){
-            let correct=0, wrong=0, total=15;
-            if(u.history[lang]){
-                u.history[lang].forEach(h=>{
-                    if(i<=comp){ if(h.ok) correct++; else wrong++; }
+        for (let i = 1; i <= 5; i++) {
+            let correct = 0, wrong = 0, total = 15;
+            if (u.history[lang]) {
+                u.history[lang].forEach(h => {
+                    if (i <= comp) { if (h.ok) correct++; else wrong++; }
                 });
             }
             const notStudied = total - correct - wrong;
-            const percent = total ? Math.round((correct/total)*100) : 0;
+            const percent = total ? Math.round((correct / total) * 100) : 0;
             progHtml += `<div style="margin-bottom:8px">
                 <div style="font-size:13px">Livello ${i}</div>
                 <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                    <div class="progress-bar-fill" style="width:${(correct/total)*100}%; background:#34c759; height:100%"></div>
-                    <div class="progress-bar-fill" style="width:${(wrong/total)*100}%; background:#ff3b30; position:absolute; left:${(correct/total)*100}%; height:100%"></div>
-                    <div class="progress-bar-fill" style="width:${(notStudied/total)*100}%; background:#aaa; position:absolute; left:${((correct+wrong)/total)*100}%; height:100%"></div>
+                    <div class="progress-bar-fill" style="width:${(correct / total) * 100}%; background:#34c759; height:100%"></div>
+                    <div class="progress-bar-fill" style="width:${(wrong / total) * 100}%; background:#ff3b30; position:absolute; left:${(correct / total) * 100}%; height:100%"></div>
+                    <div class="progress-bar-fill" style="width:${(notStudied / total) * 100}%; background:#aaa; position:absolute; left:${((correct + wrong) / total) * 100}%; height:100%"></div>
                 </div>
                 <div style="font-size:11px; text-align:right; margin-top:2px">${percent}% corrette</div>
             </div>`;
@@ -405,9 +405,10 @@ function renderProfile() {
         progHtml += `</div>`;
     });
 
-    // HTML completo unito
+    // Genera tutto l'HTML in un solo innerHTML
     document.getElementById('content-area').innerHTML = `
         <div style="width:100%; display:flex; flex-direction:column; gap:15px">
+
             <div class="glass-card">
                 <div><strong>Nome:</strong> ${u.name}</div>
                 <div><strong>ID Utente:</strong> ${u.userId}</div>
@@ -419,19 +420,19 @@ function renderProfile() {
                     <div>
                         <div style="font-size:12px; margin-bottom:2px">Corrette: ${stats.correct}</div>
                         <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                            <div class="progress-bar-fill" style="width:${(stats.correct/stats.total)*100}%; background:#34c759; height:100%; transition:0.3s"></div>
+                            <div class="progress-bar-fill" style="width:${(stats.correct / stats.total) * 100}%; background:#34c759; height:100%; transition:0.3s"></div>
                         </div>
                     </div>
                     <div>
                         <div style="font-size:12px; margin-bottom:2px">Sbagliate: ${stats.wrong}</div>
                         <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                            <div class="progress-bar-fill" style="width:${(stats.wrong/stats.total)*100}%; background:#ff3b30; height:100%; transition:0.3s"></div>
+                            <div class="progress-bar-fill" style="width:${(stats.wrong / stats.total) * 100}%; background:#ff3b30; height:100%; transition:0.3s"></div>
                         </div>
                     </div>
                     <div>
                         <div style="font-size:12px; margin-bottom:2px">Non studiate: ${stats.total - stats.correct - stats.wrong}</div>
                         <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                            <div class="progress-bar-fill" style="width:${((stats.total - stats.correct - stats.wrong)/stats.total)*100}%; background:#ffd60a; height:100%; transition:0.3s"></div>
+                            <div class="progress-bar-fill" style="width:${((stats.total - stats.correct - stats.wrong) / stats.total) * 100}%; background:#ffd60a; height:100%; transition:0.3s"></div>
                         </div>
                     </div>
                 </div>
@@ -471,10 +472,11 @@ function renderProfile() {
                     </div>
                 </div>
             </div>
+
         </div>
     `;
 
-    // Toggle dettagli progressi
+    // Toggle per progressi generali
     window.toggleGeneralProgress = function(card) {
         const detailed = document.getElementById('detailed-progress');
         detailed.style.display = detailed.style.display === 'none' ? 'block' : 'none';
