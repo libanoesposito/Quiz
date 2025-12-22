@@ -370,8 +370,7 @@ function calcStats() {
     };
 }
 
-
-          function renderProfile() {
+function renderProfile() {
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = "IL MIO PROFILO";
 
@@ -408,70 +407,72 @@ function calcStats() {
 
     // HTML generale
     document.getElementById('content-area').innerHTML = `
-        <div style="width:100%; display:flex; flex-direction:column; gap:15px">
-            <div class="glass-card">
-                <div><strong>Nome:</strong> ${u.name}</div>
-                <div><strong>ID Utente:</strong> ${u.userId}</div>
-            </div>
+<div style="width:100%; display:flex; flex-direction:column; gap:15px">
+    <div class="glass-card">
+        <div><strong>Nome:</strong> ${u.name}</div>
+        <div><strong>ID Utente:</strong> ${u.userId}</div>
+    </div>
 
-            <div class="glass-card">
-    <div><strong>Statistiche</strong></div>
-    <div style="margin-top:10px; display:flex; flex-direction:column; gap:6px">
-        <div>
-            <div style="font-size:12px; margin-bottom:2px">Corrette: ${stats.correct}</div>
-            <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                <div class="progress-bar-fill" style="width:${(stats.correct/stats.total)*100}%; background:#34c759; height:100%; transition:0.3s"></div>
+    <div class="glass-card">
+        <div><strong>Statistiche</strong></div>
+        <div style="margin-top:10px; display:flex; flex-direction:column; gap:6px">
+            <div>
+                <div style="font-size:12px; margin-bottom:2px">Corrette: ${stats.correct}</div>
+                <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
+                    <div class="progress-bar-fill" style="width:${(stats.correct/stats.total)*100}%; background:#34c759; height:100%; transition:0.3s"></div>
+                </div>
+            </div>
+            <div>
+                <div style="font-size:12px; margin-bottom:2px">Sbagliate: ${stats.wrong}</div>
+                <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
+                    <div class="progress-bar-fill" style="width:${(stats.wrong/stats.total)*100}%; background:#ff3b30; height:100%; transition:0.3s"></div>
+                </div>
+            </div>
+            <div>
+                <div style="font-size:12px; margin-bottom:2px">Non studiate: ${stats.total - stats.correct - stats.wrong}</div>
+                <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
+                    <div class="progress-bar-fill" style="width:${((stats.total - stats.correct - stats.wrong)/stats.total)*100}%; background:#ffd60a; height:100%; transition:0.3s"></div>
+                </div>
             </div>
         </div>
-        <div>
-            <div style="font-size:12px; margin-bottom:2px">Sbagliate: ${stats.wrong}</div>
-            <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                <div class="progress-bar-fill" style="width:${(stats.wrong/stats.total)*100}%; background:#ff3b30; height:100%; transition:0.3s"></div>
+    </div>
+
+    <div class="glass-card" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
+        <strong>Progressi generali</strong>
+    </div>
+
+    <div class="glass-card" id="detailed-progress" style="display:none">
+        <strong>Progressi dettagliati</strong>
+        <div style="margin-top:10px">${progHtml}</div>
+    </div>
+
+    <div class="glass-card">
+        <div class="security-box">
+            <div class="security-header" onclick="toggleSecurity(this)">
+                Sicurezza
+                <span class="chevron">›</span>
+            </div>
+            <div class="security-content">
+                <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
+                <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
+                <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
             </div>
         </div>
-        <div>
-            <div style="font-size:12px; margin-bottom:2px">Non studiate: ${stats.total - stats.correct - stats.wrong}</div>
-            <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                <div class="progress-bar-fill" style="width:${((stats.total - stats.correct - stats.wrong)/stats.total)*100}%; background:#ffd60a; height:100%; transition:0.3s"></div>
+    </div>
+
+    <div class="glass-card">
+        <div class="security-box">
+            <div class="security-header" onclick="toggleHistory(this)">
+                Storico
+                <span class="chevron">›</span>
+            </div>
+            <div class="security-content" id="history-content" style="display:none; max-height:400px; overflow-y:auto">
+                ${generateHistoryHTML(u)}
             </div>
         </div>
     </div>
 </div>
-
-            <div class="glass-card" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
-                <strong>Progressi generali</strong>
-            </div>
-
-            <div class="glass-card" id="detailed-progress" style="display:none">
-                <strong>Progressi dettagliati</strong>
-                <div style="margin-top:10px">${progHtml}</div>
-            </div>
-
-  <div class="glass-card">
-    <div class="security-box">
-        <div class="security-header" onclick="toggleSecurity(this)">
-            Sicurezza
-            <span class="chevron">›</span>
-        </div>
-        <div class="security-content">
-            <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
-            <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
-            <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
-        </div>
-    </div>
-</div>
-
-<div class="glass-card">
-    <div class="security-box">
-        <div class="security-header" onclick="toggleHistory(this)">
-            Storico
-            <span class="chevron">›</span>
-        </div>
-        <div class="security-content" id="history-content" style="display:none; max-height:400px; overflow-y:auto">
-            ${generateHistoryHTML(u)}
-        </div>
-    </div>
-</div>
+`;
 
     // Funzione per espandere progressi generali
     window.toggleGeneralProgress = function(card) {
@@ -479,6 +480,7 @@ function calcStats() {
         detailed.style.display = detailed.style.display === 'none' ? 'block' : 'none';
     };
 }
+   
 function toggleHistory(el) {
     const content = el.nextElementSibling;
     if(content.style.display === "none") {
