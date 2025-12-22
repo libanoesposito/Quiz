@@ -537,7 +537,10 @@ function toggleCard(el) {
 
     // Scroll verso la card se si apre
     if (isHidden) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // scroll dell'intera finestra fino al top della card
+        const rect = el.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        window.scrollTo({ top: rect.top + scrollTop - 20, behavior: 'smooth' }); // -20 per margine superiore
     }
 }
 
