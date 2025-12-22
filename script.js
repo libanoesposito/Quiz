@@ -256,11 +256,21 @@ function next() {
     session.idx++; 
     if(session.idx < session.q.length) renderQ(); 
     else { 
-        state.progress[session.lang] = Math.max(state.progress[session.lang]||0, session.lvl); 
-        saveMasterDB();
+        if (state.mode === 'user') {
+            state.progress[session.lang] = Math.max(state.progress[session.lang]||0, session.lvl); 
+            
+            // RESETTA IL PROGRESSO PARZIALE PERCHÉ IL LIVELLO È FINITO
+            if (dbUsers[state.currentPin].activeProgress) {
+                dbUsers[state.currentPin].activeProgress[`${session.lang}_${session.lvl}`] = 0;
+            }
+            
+            saveMasterDB();
+        }
+        alert("Ottimo lavoro!");
         showLevels(session.lang); 
     }
 }
+
 
 function renderProfile() {
     updateNav(true, "showHome()");
