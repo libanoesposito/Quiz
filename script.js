@@ -447,20 +447,20 @@ function renderProfile() {
     </div>
 
     <div class="glass-card" onclick="toggleCard(this)" style="cursor:pointer">
-        <strong>Sicurezza</strong> <span class="chevron">›</span>
-        <div class="security-content" style="display:none; margin-top:10px; flex-direction:column; gap:6px">
-            <button class="btn-apple" onclick="userChangePin(); event.stopPropagation()">Cambia PIN</button>
-            <button class="btn-apple" onclick="resetStats(); event.stopPropagation()">Azzera statistiche</button>
-            <button class="btn-apple btn-destruct" onclick="deleteAccount(); event.stopPropagation()">Elimina account</button>
-        </div>
+    <strong>Sicurezza</strong>
+    <div class="security-content" style="display:none; margin-top:10px; flex-direction:column; gap:6px">
+        <button class="btn-apple" onclick="userChangePin(); event.stopPropagation()">Cambia PIN</button>
+        <button class="btn-apple" onclick="resetStats(); event.stopPropagation()">Azzera statistiche</button>
+        <button class="btn-apple btn-destruct" onclick="deleteAccount(); event.stopPropagation()">Elimina account</button>
     </div>
+</div>
 
-    <div class="glass-card" onclick="toggleCard(this)" style="cursor:pointer">
-        <strong>Storico</strong> <span class="chevron">›</span>
-        <div class="security-content" id="history-content" style="display:none; max-height:400px; overflow-y:auto; margin-top:10px; flex-direction:column; gap:6px">
-            ${generateHistoryHTML(u)}
-        </div>
+<div class="glass-card" onclick="toggleCard(this)" style="cursor:pointer">
+    <strong>Storico</strong>
+    <div class="security-content" id="history-content" style="display:none; max-height:400px; overflow-y:auto; margin-top:10px; flex-direction:column; gap:6px">
+        ${generateHistoryHTML(u)}
     </div>
+</div>
 </div>
 `;
 
