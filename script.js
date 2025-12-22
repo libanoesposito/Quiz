@@ -326,6 +326,23 @@ function next() {
 function logout() {
     state.mode = null; state.currentPin = null; session = null; renderLogin();
 }
+function runL5(lang) {
+    const code = document.getElementById('ed').value;
+    const challenge = challenges5[lang];
+    const errorEl = document.getElementById('l5-err');
+    
+    if (challenge.check(code)) {
+        errorEl.style.display = "none";
+        alert("Esame Superato! Sei un esperto di " + lang);
+        // Segna come completato il livello 5
+        state.progress[lang] = 5;
+        saveMasterDB();
+        showLevels(lang);
+    } else {
+        errorEl.style.display = "block";
+        errorEl.innerText = "Logica errata. Controlla i requisiti dell'esame.";
+    }
+}
 
 // Inserisci qui le tue funzioni renderProfile, adminReset, adminDelete, userChangePin che hai nel file
 // (Mantenile come sono, sono corrette nel tuo originale)
