@@ -270,92 +270,70 @@ function ensureUserId() {
     }
 }
 
-function calcStats(user) {
-    let total = 0, correct = 0, wrong = 0;
-    Object.values(user.history || {}).forEach(arr => {
+function calcStats() {
+    let tot = 0;
+    let ok = 0;
+    Object.values(state.history || {}).forEach(arr => {
         arr.forEach(h => {
-            total++;
-            if(h.ok) correct++;
-            else wrong++;
+            tot++;
+            if (h.ok) ok++;
         });
     });
     return {
-        total,
-        correct,
-        wrong,
-        perc: total ? Math.round((correct/total)*100) : 0
+        total: tot,
+        correct: ok,
+        wrong: tot - ok,
+        perc: tot ? Math.round((ok / tot) * 100) : 0
     };
 }
 
 function renderProfile() {
-    if(state.mode !== 'user') return;
-    ensureUserId();
-
-    const u = dbUsers[state.currentPin];
-    const stats = calcStats(u);
-
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = "IL MIO PROFILO";
 
+    const userData = dbUsers[state.currentPin];
+    const totalLevels = Object.keys(domandaRepo);
     let html = `<div class="glass-card">`;
 
-    // Dati generali
-    html += `
-        <div class="review-card">
-            <div><strong>Nome:</strong> ${u.name}</div>
-            <div><strong>ID Utente:</strong> ${u.userId}</div>
-        </div>
-        <div class="review-card">
-            <div><strong>Domande totali:</strong> ${stats.total}</div>
-            <div><strong>Corrette:</strong> ${stats.correct}</div>
-            <div><strong>Sbagliate:</strong> ${stats.wrong}</div>
-            <div><strong>Percentuale:</strong> ${stats.perc}%</div>
-        </div>
-    `;
-
-    // Progressi per linguaggi e livelli
-    Object.keys(domandaRepo).forEach(lang => {
-        html += `<div style="margin-top:10px"><h4>${lang}</h4>`;
+    totalLevels.forEach(lang => {
+        const comp = state.progress[lang] || 0;
+        html += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
         for(let i=1;i<=5;i++){
-            const totalQ = 15;
-            let correct = 0, wrong = 0;
-            if(u.history[lang]){
-                u.history[lang].forEach(h=>{
-                    correct += h.ok ? 1 : 0;
-                    wrong += !h.ok ? 1 : 0;
+            let correct = 0, wrong = 0, total = 15;
+            if(userData.history[lang]){
+                userData.history[lang].forEach(h=>{
+                    if(i<=comp){
+                        if(h.ok) correct++; else wrong++;
+                    }
                 });
             }
-            const notStudied = totalQ - correct - wrong;
-            html += `
-                <div style="margin-bottom:8px">
-                    <div style="font-size:13px">Livello ${i}</div>
-                    <div class="progress-container">
-                        <div class="progress-bar-fill" style="width:${(correct/totalQ)*100}%; background:#34c759"></div>
-                        <div class="progress-bar-fill" style="width:${(wrong/totalQ)*100}%; background:#ff3b30; position:absolute; left:${(correct/totalQ)*100}%"></div>
-                        <div class="progress-bar-fill" style="width:${(notStudied/totalQ)*100}%; background:#aaa; position:absolute; left:${((correct+wrong)/totalQ)*100}%"></div>
-                    </div>
-                    <div style="font-size:11px; text-align:right">${Math.round((correct/totalQ)*100)}% corrette</div>
+            const notStudied = total - correct - wrong;
+            const percent = total ? Math.round((correct/total)*100) : 0;
+            html += `<div style="margin-bottom:8px">
+                <div style="font-size:13px">Livello ${i}</div>
+                <div class="progress-container">
+                    <div class="progress-bar-fill" style="width:${(correct/total)*100}%; background:#34c759"></div>
+                    <div class="progress-bar-fill" style="width:${(wrong/total)*100}%; background:#ff3b30; position:absolute; left:${(correct/total)*100}%"></div>
+                    <div class="progress-bar-fill" style="width:${(notStudied/total)*100}%; background:#aaa; position:absolute; left:${((correct+wrong)/total)*100}%"></div>
                 </div>
-            `;
+                <div style="font-size:11px; text-align:right">${percent}% corrette</div>
+            </div>`;
         }
         html += `</div>`;
     });
 
-    // Azioni utente
-    html += `
-        <div class="security-box">
-            <div class="security-header" onclick="toggleSecurity(this)">
-                Azioni Profilo <span class="chevron">\u276F</span>
-            </div>
-            <div class="security-content">
-                <button class="modal-btn btn-primary" onclick="userChangePin()">Cambia PIN</button>
-                <button class="modal-btn btn-destruct" onclick="userResetStats()">Reset Statistiche</button>
-                <button class="modal-btn btn-destruct" onclick="userDeleteAccount()">Elimina Profilo</button>
-            </div>
+    html += `<div class="security-box">
+        <div class="security-header" onclick="this.parentElement.classList.toggle('open')">
+            Azioni Profilo <span class="chevron">\u276F</span>
         </div>
-    `;
+        <div class="security-content">
+            <button class="modal-btn btn-primary" onclick="userChangePin()">Cambia PIN</button>
+            <button class="modal-btn btn-destruct" onclick="userResetStats()">Reset Statistiche</button>
+            <button class="modal-btn btn-destruct" onclick="userDeleteAccount()">Elimina Profilo</button>
+        </div>
+    </div>`;
 
-    html += `</div>`; 
+    html += `</div>`;
     document.getElementById('content-area').innerHTML = html;
 }
 
@@ -363,74 +341,113 @@ function toggleSecurity(el) {
     el.parentElement.classList.toggle("open");
 }
 
-function userChangePin() {
-    openModal("Cambia PIN", `
-        Inserisci il nuovo PIN a 4 cifre:
-        <input type="password" id="new-pin-field" maxlength="4" inputmode="numeric" style="margin-top:10px; text-align:center; width:80%; padding:8px; border-radius:8px; border:1px solid #ccc">
-    `, () => {
-        const newPin = document.getElementById('new-pin-field').value;
-        if(newPin.length !== 4) { alert("Il PIN deve essere di 4 cifre"); return; }
-        if(dbUsers[newPin]) { alert("PIN già in uso"); return; }
-
-        dbUsers[newPin] = dbUsers[state.currentPin];
-        delete dbUsers[state.currentPin];
-        state.currentPin = newPin;
-        saveMasterDB();
-        renderProfile();
-    });
+function resetStats() {
+    openModal(
+        "Azzera statistiche",
+        "Perderai progressi e storico. Operazione irreversibile.",
+        () => {
+            state.progress = {};
+            state.history = {};
+            dbUsers[state.currentPin].activeProgress = {};
+            dbUsers[state.currentPin].savedQuizzes = {};
+            saveMasterDB();
+            renderProfile();
+        }
+    );
 }
 
-function userResetStats() {
-    openModal("Azzera statistiche", "Vuoi azzerare tutte le tue statistiche?", () => {
-        const u = dbUsers[state.currentPin];
-        u.progress = {};
-        u.history = {};
-        u.activeProgress = {};
-        u.savedQuizzes = {};
-        saveMasterDB();
-        renderProfile();
-    });
+function deleteAccount() {
+    openModal(
+        "Elimina account",
+        "Il tuo profilo verrà rimosso. L'admin manterrà i dati.",
+        () => {
+            dbUsers[state.currentPin].deleted = true;
+            saveMasterDB();
+            logout();
+        }
+    );
 }
 
-function userDeleteAccount() {
-    openModal("Elimina account", "Vuoi eliminare il tuo account? I dati resteranno visibili all'admin.", () => {
-        const u = dbUsers[state.currentPin];
-        u.deleted = true;
-        saveMasterDB();
-        state.mode = 'guest';
-        state.currentPin = null;
-        session = null;
-        renderLogin();
-    });
+function openModal(title, desc, onConfirm) {
+    document.getElementById("modal-title").innerText = title;
+    document.getElementById("modal-desc").innerText = desc;
+    const btn = document.getElementById("modal-confirm-btn");
+    btn.onclick = () => { closeModal(); onConfirm(); };
+    document.getElementById("universal-modal").style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById("universal-modal").style.display = "none";
 }
 
 /* =========================
-   MODALE GENERICO
+   LOGICA GUEST (DEMO)
    ========================= */
 
-function openModal(title, content, onConfirm) {
-    let overlay = document.getElementById('modal-overlay');
-    if(!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'modal-overlay';
-        overlay.className = 'modal-overlay';
-        overlay.innerHTML = `
-            <div class="modal-content">
-                <h3 id="modal-title"></h3>
-                <div id="modal-body"></div>
-                <button class="modal-btn btn-primary" id="modal-confirm">Conferma</button>
-                <button class="modal-btn btn-cancel" id="modal-cancel">Annulla</button>
+const GUEST_LIMITS = { 1:3, 2:2, 3:1 };
+
+function guestLimitReached(lvl, idx) {
+    return GUEST_LIMITS[lvl] !== undefined && idx >= GUEST_LIMITS[lvl];
+}
+
+const _startStep = startStep;
+startStep = function(lang, lvl){
+    if(state.mode === 'guest'){
+        if(lvl >= 4){ showGuestLocked(); return; }
+        const all = domandaRepo[lang]["L"+lvl];
+        const maxQ = GUEST_LIMITS[lvl];
+        const selezione = [...all].sort(()=>0.5-Math.random()).slice(0,maxQ)
+            .map(r=>{
+                const p = r.split("|");
+                return { q:p[0], options:[p[1],p[2],p[3]], correct:parseInt(p[4]), exp:p[5] };
+            });
+        session = { lang, lvl, q:selezione, idx:0 };
+        renderQ();
+        return;
+    }
+    _startStep(lang, lvl);
+};
+
+const _renderQ = renderQ;
+renderQ = function(){
+    if(state.mode === 'guest'){
+        if(guestLimitReached(session.lvl, session.idx)){ showGuestEndModal(); return; }
+        updateNav(true, `showLevels('${session.lang}')`);
+        const data = session.q[session.idx];
+        document.getElementById('content-area').innerHTML = `
+            <h2 style="font-size:18px; margin-bottom:20px">${data.q}</h2>
+            <div id="opts">
+                ${data.options.map((o,i)=>`<button class="btn-apple" onclick="check(${i===data.correct})">${o}</button>`).join("")}
+            </div>
+            <div style="font-size:12px; opacity:0.5; margin-top:10px">
+                Demo: ${session.idx + 1}/${session.q.length}
             </div>
         `;
-        document.body.appendChild(overlay);
+        return;
     }
+    _renderQ();
+};
 
-    document.getElementById('modal-title').innerText = title;
-    document.getElementById('modal-body').innerHTML = content;
+const _next = next;
+next = function(){
+    if(state.mode === 'guest'){ session.idx++; renderQ(); return; }
+    _next();
+};
 
-    overlay.style.display = 'flex';
-    document.getElementById('modal-confirm').onclick = () => { onConfirm(); overlay.style.display='none'; };
-    document.getElementById('modal-cancel').onclick = () => { overlay.style.display='none'; };
+function showGuestEndModal() {
+    openModal(
+        "Demo terminata",
+        "Registrati per sbloccare tutti i livelli, salvare i progressi e vedere le statistiche.",
+        () => { closeModal(); renderLogin(); }
+    );
+}
+
+function showGuestLocked() {
+    openModal(
+        "Accesso bloccato",
+        "Registrati per accedere ai livelli avanzati.",
+        () => { closeModal(); renderLogin(); }
+    );
 }
 
 /* =========================
@@ -438,102 +455,124 @@ function openModal(title, content, onConfirm) {
    ========================= */
 
 function renderAdminPanel() {
-    if(state.mode !== 'admin') return;
     updateNav(true, "showHome()");
-    document.getElementById('app-title').innerText = "PANNELLO ADMIN";
+    document.getElementById('app-title').innerText = "ADMIN";
 
-    const users = Object.values(dbUsers)
-        .filter(u => u.userId)
-        .map(u => ({
-            id: u.userId,
-            name: u.name,
-            pin: Object.keys(dbUsers).find(k=>dbUsers[k]===u),
-            stats: calcStats(u),
-            deleted: u.deleted || false
-        }))
-        .sort((a,b)=>b.stats.perc - a.stats.perc);
+    const users = Object.entries(dbUsers)
+        .filter(([_, u]) => u.userId)
+        .map(([pin, u]) => ({ pin, id: u.userId, name: u.name, stats: calcUserStats(u), deleted: u.deleted }))
+        .sort((a, b) => b.stats.perc - a.stats.perc);
 
-    let html = `<div class="glass-card">`;
+    let html = `<div style="width:100%">`;
     users.forEach(u=>{
-        html += `
-            <div class="review-card ${u.deleted ? 'is-err' : 'is-ok'}">
-                <div style="display:flex; justify-content:space-between; align-items:center">
-                    <div>
-                        <strong>${u.name}</strong><br>
-                        <span style="font-size:12px; opacity:0.6">ID ${u.id}</span>
-                    </div>
-                    <div style="display:flex; gap:6px">
-                        <button class="modal-btn btn-primary" onclick="showUserHistory(${u.id})">⏳</button>
-                        <button class="modal-btn btn-cancel" onclick="recalcUser(${u.id})">🔄</button>
-                        <button class="modal-btn btn-destruct" onclick="adminDeleteUser(${u.id})">🗑</button>
-                        <button class="modal-btn btn-destruct" onclick="adminResetUserStats(${u.id})">♻️</button>
-                    </div>
-                </div>
-                <div style="margin-top:8px; font-size:13px">
-                    ${u.stats.correct}/${u.stats.total} corrette · ${u.stats.perc}%
+        html += `<div class="review-card ${u.deleted?'is-err':'is-ok'}">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+                <div><strong>${u.name}</strong><div style="font-size:12px; opacity:0.6">ID ${u.id}</div></div>
+                <div style="display:flex; gap:10px">
+                    <span style="cursor:pointer" onclick="showUserHistory(${u.id})">⏳</span>
+                    <span style="cursor:pointer" onclick="recalcUser(${u.id})">🔄</span>
+                    <span style="cursor:pointer; color:#ff3b30" onclick="adminDeleteUser(${u.id})">🗑</span>
                 </div>
             </div>
-        `;
+            <div style="margin-top:8px; font-size:13px">${u.stats.correct}/${u.stats.total} corrette · ${u.stats.perc}%</div>
+        </div>`;
     });
     html += `</div>`;
     document.getElementById('content-area').innerHTML = html;
 }
 
-function findUserById(id) {
-    return Object.values(dbUsers).find(u => u.userId === id);
+function calcUserStats(user) {
+    let tot=0, ok=0;
+    Object.values(user.history||{}).forEach(arr=>arr.forEach(h=>{tot++; if(h.ok) ok++;}));
+    return { total: tot, correct: ok, perc: tot ? Math.round((ok/tot)*100):0 };
 }
 
 function recalcUser(userId) {
     const u = findUserById(userId);
-    if (!u) return;
-    openModal("Ricalcola statistiche", "Aggiorna le statistiche di questo utente.", () => {
-        renderAdminPanel();
-    });
+    if(!u) return;
+    openModal("Ricalcola statistiche","Aggiorna le statistiche di questo utente.",()=>{ renderAdminPanel(); });
 }
 
 function adminDeleteUser(userId) {
     const u = findUserById(userId);
-    if (!u) return;
-    openModal("Elimina utente", "L’utente verrà marcato come eliminato.", () => {
-        u.deleted = true;
-        saveMasterDB();
-        renderAdminPanel();
-    });
-}
-
-function adminResetUserStats(userId) {
-    const u = findUserById(userId);
-    if (!u) return;
-    openModal("Reset Statistiche", "Vuoi azzerare le statistiche di questo utente?", () => {
-        u.progress = {};
-        u.history = {};
-        u.activeProgress = {};
-        u.savedQuizzes = {};
-        saveMasterDB();
-        renderAdminPanel();
-    });
+    if(!u) return;
+    openModal("Elimina utente","L’utente verrà marcato come eliminato.",()=>{ u.deleted=true; saveMasterDB(); renderAdminPanel(); });
 }
 
 function showUserHistory(userId) {
     const u = findUserById(userId);
-    if (!u) return;
-
-    let html = `<div style="width:100%">`;
-    Object.entries(u.history || {}).forEach(([lang, arr]) => {
-        html += `<h4 style="margin-top:15px">${lang}</h4>`;
-        arr.slice(-10).forEach(h => {
-            html += `
-                <div class="review-card ${h.ok ? 'is-ok' : 'is-err'}">
-                    <div style="font-size:13px">${h.q}</div>
-                </div>
-            `;
-        });
+    if(!u) return;
+    let html=`<div style="width:100%">`;
+    Object.entries(u.history||{}).forEach(([lang, arr])=>{
+        html+=`<h4 style="margin-top:15px">${lang}</h4>`;
+        arr.slice(-10).forEach(h=>html+=`<div class="review-card ${h.ok?'is-ok':'is-err'}"><div style="font-size:13px">${h.q}</div></div>`);
     });
-    html += `</div>`;
+    html+=`</div>`;
+    updateNav(true,"renderAdminPanel()");
+    document.getElementById('app-title').innerText="STORICO";
+    document.getElementById('content-area').innerHTML=html;
+}
 
-    updateNav(true, "renderAdminPanel()");
-    document.getElementById('app-title').innerText = "STORICO";
-    document.getElementById('content-area').innerHTML = html;
+function findUserById(id){ return Object.values(dbUsers).find(u=>u.userId===id); }
+
+/* hook home */
+const _showHome = showHome;
+showHome=function(){ _showHome(); if(state.mode==='admin'){ document.getElementById('content-area').innerHTML+=`<div style="margin-top:15px"><button class="btn-apple btn-primary" onclick="renderAdminPanel()">Vai al pannello Admin</button></div>`; } };
+
+/* Cambia PIN */
+function userChangePin() {
+    openModal("Cambia PIN",`Inserisci il nuovo PIN a 4 cifre:<input type="password" id="new-pin-field" maxlength="4" inputmode="numeric" style="margin-top:10px; text-align:center; width:80%; padding:8px; border-radius:8px; border:1px solid #ccc">`,()=>{
+        const newPin=document.getElementById('new-pin-field').value;
+        if(newPin.length!==4){alert("Il PIN deve essere di 4 cifre"); return;}
+        if(dbUsers[newPin]){alert("PIN già in uso"); return;}
+        dbUsers[newPin]=dbUsers[state.currentPin];
+        delete dbUsers[state.currentPin];
+        state.currentPin=newPin;
+        saveMasterDB();
+        renderProfile();
+    });
+}
+
+/* Azzera statistiche */
+function userResetStats() {
+    openModal("Azzera statistiche","Vuoi azzerare tutte le tue statistiche?",()=>{
+        const u=dbUsers[state.currentPin];
+        u.progress={};
+        u.history={};
+        u.activeProgress={};
+        saveMasterDB();
+        renderProfile();
+    });
+}
+
+/* Elimina account */
+function userDeleteAccount() {
+    openModal("Elimina account","Vuoi eliminare il tuo account? I dati resteranno visibili all'admin.",()=>{
+        const u=dbUsers[state.currentPin];
+        u.deleted=true;
+        saveMasterDB();
+        state.mode='guest';
+        state.currentPin=null;
+        session=null;
+        renderLogin();
+    });
+}
+
+/* MODALE GENERICO */
+function openModal(title, content, onConfirm) {
+    let overlay=document.getElementById('modal-overlay');
+    if(!overlay){
+        overlay=document.createElement('div');
+        overlay.id='modal-overlay';
+        overlay.className='modal-overlay';
+        overlay.innerHTML=`<div class="modal-content"><h3 id="modal-title"></h3><div id="modal-body"></div><button class="modal-btn btn-primary" id="modal-confirm">Conferma</button><button class="modal-btn btn-cancel" id="modal-cancel">Annulla</button></div>`;
+        document.body.appendChild(overlay);
+    }
+    document.getElementById('modal-title').innerText=title;
+    document.getElementById('modal-body').innerHTML=content;
+    overlay.style.display='flex';
+    document.getElementById('modal-confirm').onclick=()=>{ onConfirm(); overlay.style.display='none'; };
+    document.getElementById('modal-cancel').onclick=()=>{ overlay.style.display='none'; };
 }
 // Inserisci qui le tue funzioni renderProfile, adminReset, adminDelete, userChangePin che hai nel file
 // (Mantenile come sono, sono corrette nel tuo originale)
