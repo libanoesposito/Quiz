@@ -373,6 +373,35 @@ function runL5(lang) {
         errorEl.innerText = "Logica errata. Controlla i requisiti dell'esame.";
     }
 }
+// Funzione per mostrare le domande dei livelli 1-4
+function renderQ() {
+    const data = session.q[session.idx];
+    updateNav(true, `showLevels('${session.lang}')`);
+    
+    document.getElementById('content-area').innerHTML = `
+        <div style="margin-bottom:20px">
+            <small>Livello ${session.lvl} - Domanda ${session.idx + 1}/${session.q.length}</small>
+            <h3 style="margin-top:10px">${data.q}</h3>
+        </div>
+        <div id="opts" style="display:flex; flex-direction:column; gap:10px">
+            ${data.options.map((opt, i) => `
+                <button class="btn-apple" onclick="check(${i === data.correct})">${opt}</button>
+            `).join('')}
+        </div>
+        <div id="fb"></div>
+    `;
+}
+
+// Funzione Profilo (Semplice per sbloccare il sito)
+function renderProfile() {
+    updateNav(true, "showHome()");
+    document.getElementById('app-title').innerText = "PROFILO";
+    document.getElementById('content-area').innerHTML = `
+        <h3>Ciao, ${state.currentUser}</h3>
+        <p>Modalità: ${state.mode}</p>
+        <button class="btn-apple" onclick="logout()" style="color:#ff3b30">Scollegati</button>
+    `;
+}
 
 // Inserisci qui le tue funzioni renderProfile, adminReset, adminDelete, userChangePin che hai nel file
 // (Mantenile come sono, sono corrette nel tuo originale)
