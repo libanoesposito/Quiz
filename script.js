@@ -371,19 +371,95 @@ function calcStats() {
 }
 
 
-          <div class="glass-card">
-                <div class="security-box">
-                    <div class="security-header" onclick="toggleSecurity(this)">
-                        Sicurezza
-                        <span class="chevron">›</span>
-                    </div>
-                    
-                    <div class="security-content">
-                        <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
-                        <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
-                        <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
-                    </div>
-                   </div> 
+          function renderProfile() {
+    updateNav(true, "showHome()");
+    document.getElementById('app-title').innerText = "IL MIO PROFILO";
+
+    const u = dbUsers[state.currentPin];
+    const stats = calcStats();
+    const totalLevels = Object.keys(domandaRepo);
+
+    // Progressi dettagliati
+    let progHtml = '';
+    totalLevels.forEach(lang => {
+        const comp = state.progress[lang] || 0;
+        progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
+        for(let i=1;i<=5;i++){
+            let correct=0, wrong=0, total=15;
+            if(u.history[lang]){
+                u.history[lang].forEach(h=>{
+                    if(i<=comp){ if(h.ok) correct++; else wrong++; }
+                });
+            }
+            const notStudied = total - correct - wrong;
+            const percent = total ? Math.round((correct/total)*100) : 0;
+            progHtml += `<div style="margin-bottom:8px">
+                <div style="font-size:13px">Livello ${i}</div>
+                <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
+                    <div class="progress-bar-fill" style="width:${(correct/total)*100}%; background:#34c759; height:100%"></div>
+                    <div class="progress-bar-fill" style="width:${(wrong/total)*100}%; background:#ff3b30; position:absolute; left:${(correct/total)*100}%; height:100%"></div>
+                    <div class="progress-bar-fill" style="width:${(notStudied/total)*100}%; background:#aaa; position:absolute; left:${((correct+wrong)/total)*100}%; height:100%"></div>
+                </div>
+                <div style="font-size:11px; text-align:right; margin-top:2px">${percent}% corrette</div>
+            </div>`;
+        }
+        progHtml += `</div>`;
+    });
+
+    // HTML generale
+    document.getElementById('content-area').innerHTML = `
+        <div style="width:100%; display:flex; flex-direction:column; gap:15px">
+            <div class="glass-card">
+                <div><strong>Nome:</strong> ${u.name}</div>
+                <div><strong>ID Utente:</strong> ${u.userId}</div>
+            </div>
+
+            <div class="glass-card">
+    <div><strong>Statistiche</strong></div>
+    <div style="margin-top:10px; display:flex; flex-direction:column; gap:6px">
+        <div>
+            <div style="font-size:12px; margin-bottom:2px">Corrette: ${stats.correct}</div>
+            <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
+                <div class="progress-bar-fill" style="width:${(stats.correct/stats.total)*100}%; background:#34c759; height:100%; transition:0.3s"></div>
+            </div>
+        </div>
+        <div>
+            <div style="font-size:12px; margin-bottom:2px">Sbagliate: ${stats.wrong}</div>
+            <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
+                <div class="progress-bar-fill" style="width:${(stats.wrong/stats.total)*100}%; background:#ff3b30; height:100%; transition:0.3s"></div>
+            </div>
+        </div>
+        <div>
+            <div style="font-size:12px; margin-bottom:2px">Non studiate: ${stats.total - stats.correct - stats.wrong}</div>
+            <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
+                <div class="progress-bar-fill" style="width:${((stats.total - stats.correct - stats.wrong)/stats.total)*100}%; background:#ffd60a; height:100%; transition:0.3s"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+            <div class="glass-card" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
+                <strong>Progressi generali</strong>
+            </div>
+
+            <div class="glass-card" id="detailed-progress" style="display:none">
+                <strong>Progressi dettagliati</strong>
+                <div style="margin-top:10px">${progHtml}</div>
+            </div>
+
+  <div class="glass-card">
+    <div class="security-box">
+        <div class="security-header" onclick="toggleSecurity(this)">
+            Sicurezza
+            <span class="chevron">›</span>
+        </div>
+        <div class="security-content">
+            <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
+            <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
+            <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
+        </div>
+    </div>
+</div>
 
 <div class="glass-card">
     <div class="security-box">
@@ -396,34 +472,54 @@ function calcStats() {
         </div>
     </div>
 </div>
-                </div>
-            </div>
-        </div>
 
-
-
-function toggleSecurity(el) {
+    // Funzione per espandere progressi generali
+    window.toggleGeneralProgress = function(card) {
+        const detailed = document.getElementById('detailed-progress');
+        detailed.style.display = detailed.style.display === 'none' ? 'block' : 'none';
+    };
+}
+function toggleHistory(el) {
     const content = el.nextElementSibling;
-    const chev = el.querySelector('.chevron');
-    if (content.style.display === "none" || content.style.display === "") {
-        content.style.display = "flex";
-        chev.innerText = "˅";
+    if(content.style.display === "none") {
+        content.style.display = "block";
+        el.querySelector(".chevron").innerText = "˅";
     } else {
         content.style.display = "none";
-        chev.innerText = "›";
+        el.querySelector(".chevron").innerText = "›";
     }
 }
 
-function toggleHistory(el) {
+function generateHistoryHTML(u) {
+    let html = "";
+    Object.keys(u.history || {}).forEach(lang => {
+        html += `<div style="margin-bottom:10px"><strong>${lang}</strong></div>`;
+        u.history[lang].forEach((h, idx) => {
+            const status = h.ok ? "✅" : h.notStudied ? "🟡" : "❌";
+            html += `<div style="font-size:12px; margin-bottom:4px">
+                        ${status} Q${idx+1}: ${h.q}<br>
+                        <em style="opacity:0.6">Risposta corretta: ${h.correctAns}</em>
+                     </div>`;
+        });
+    });
+    return html || "<div style='font-size:12px; opacity:0.6'>Nessuna domanda fatta</div>";
+}
+
+// Toggle per linguaggio
+function toggleLangDetails(el){
     const content = el.nextElementSibling;
-    const chev = el.querySelector('.chevron');
-    if (content.style.display === "none" || content.style.display === "") {
-        content.style.display = "block";
-        chev.innerText = "˅";
-    } else {
-        content.style.display = "none";
-        chev.innerText = "›";
-    }
+    if(content) content.style.display = content.style.display==='none'?'block':'none';
+    const chevron = el.querySelector('.chevron');
+    if(chevron) chevron.style.transform = content.style.display==='block'?'rotate(90deg)':'rotate(0deg)';
+}
+
+function toggleCard(el) {
+    const content = el.nextElementSibling;
+    if (!content) return;
+    content.style.display = content.style.display === 'none' ? 'block' : 'none';
+}
+function toggleSecurity(el) {
+    el.parentElement.classList.toggle("open");
 }
 
 function resetStats() {
