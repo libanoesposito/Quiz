@@ -100,12 +100,35 @@ function validatePin(type) {
     }
 
     if (type === 'register') {
-        const nameInput = document.getElementById('name-field');
-        const name = nameInput ? nameInput.value.trim() : "";
-        if(!name) { errorEl.innerText = "Inserisci il tuo nome"; errorEl.style.display = "block"; return; }
-        if (dbUsers[pin]) { errorEl.innerText = "Questo PIN è già in uso"; errorEl.style.display = "block"; return; }
-        dbUsers[pin] = { name: name, progress: {}, history: {}, activeProgress: {}, savedQuizzes: {} };
-    } else {
+    const nameInput = document.getElementById('name-field');
+    const name = nameInput ? nameInput.value.trim() : "";
+
+    if (!name) {
+        errorEl.innerText = "Inserisci il tuo nome";
+        errorEl.style.display = "block";
+        return;
+    }
+
+    if (dbUsers[pin]) {
+        errorEl.innerText = "PIN non disponibile";
+        errorEl.style.display = "block";
+        return;
+    }
+
+    if (isWeakPin(pin)) {
+        errorEl.innerText = "PIN troppo semplice";
+        errorEl.style.display = "block";
+        return;
+    }
+
+    dbUsers[pin] = {
+        name,
+        progress: {},
+        history: {},
+        activeProgress: {},
+        savedQuizzes: {}
+    };
+} else {
         if (!dbUsers[pin]) { errorEl.innerText = "PIN errato o utente inesistente"; errorEl.style.display = "block"; return; }
     }
 
