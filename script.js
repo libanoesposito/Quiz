@@ -1,10 +1,10 @@
-// 1. Inizializzazione e Variabili Globali
+// 1. DATABASE E STATO (Inalterati)
 let dbUsers = JSON.parse(localStorage.getItem('quiz_master_db')) || {};
 let state = { mode: null, currentPin: null, currentUser: null, progress: {}, history: {} };
 let session = null;
 const ADMIN_PIN = "3473";
 
-// Sfide per il Livello 5
+// Sfide Livello 5 (Necessarie per l'esame)
 const challenges5 = {
     "HTML": { task: "Crea un link (tag 'a') a 'https://google.com' con testo 'Cerca'.", check: (c) => /<a\s+href=["']https:\/\/google\.com["']\s*>Cerca<\/a>/i.test(c.trim()) },
     "CSS": { task: "Cambia il colore di tutti i tag h1 in rosso (red).", check: (c) => { const s = c.replace(/\s/g, '').toLowerCase(); return s.includes('h1{color:red') || s.includes('h1{color:#ff0000'); } },
@@ -12,7 +12,7 @@ const challenges5 = {
     "PYTHON": { task: "Crea una variabile 'x' = 10 e stampala.", check: (c) => { const s = c.replace(/\s/g, ''); return s.includes('x=10') && s.includes('print(x)'); } }
 };
 
-// 2. Avvio
+// 2. FUNZIONI DI AVVIO (Identiche alle tue)
 window.onload = () => {
     initTheme();
     renderLogin();
@@ -30,20 +30,15 @@ function toggleTheme() {
     localStorage.setItem('theme', target);
 }
 
-// 3. Gestione Navigazione e Modali (Necessari per il tuo HTML)
+// 3. NAVIGAZIONE (Corretta per non dare errori)
 function updateNav(showBack, backTarget) {
     const b = document.getElementById('back-nav');
     const r = document.getElementById('right-nav');
     if(b) b.innerHTML = showBack ? `<span class="back-link" onclick="${backTarget}">\u2039 Indietro</span>` : "";
-    if(r) r.innerHTML = state.mode ? `<span class="logout-link" onclick="openLogoutModal()">Esci</span>` : "";
+    if(r) r.innerHTML = state.mode ? `<span class="logout-link" onclick="logout()">Esci</span>` : "";
 }
 
-function openLogoutModal() { document.getElementById('logout-modal').classList.add('active'); }
-function closeLogoutModal() { document.getElementById('logout-modal').classList.remove('active'); }
-function confirmLogout() { closeLogoutModal(); logout(); }
-function logout() { state.mode = null; state.currentPin = null; renderLogin(); }
-
-// 4. Autenticazione
+// 4. AUTENTICAZIONE (La tua logica originale)
 function renderLogin() {
     state.mode = null;
     updateNav(false);
@@ -59,11 +54,11 @@ function renderLogin() {
 function uiPin(type) {
     updateNav(true, "renderLogin()");
     let title = type === 'login' ? 'Bentornato' : 'Crea Profilo';
-    let nameField = type === 'register' ? `<input type="text" id="name-field" class="btn-apple" placeholder="Il tuo Nome" style="text-align:center; margin-bottom:10px">` : '';
+    let nameField = type === 'register' ? `<input type="text" id="name-field" class="btn-apple" placeholder="Nome" style="text-align:center; margin-bottom:10px">` : '';
     document.getElementById('content-area').innerHTML = `
         <div style="display:flex; flex-direction:column; align-items:center; width:100%">
-            <h3 style="margin-bottom:20px">${title}</h3>
-            <div id="pin-error" style="color:#ff3b30; font-size:13px; margin-bottom:10px; display:none"></div>
+            <h3>${title}</h3>
+            <div id="pin-error" style="color:#ff3b30; display:none; margin-bottom:10px"></div>
             ${nameField}
             <input type="password" id="pin-field" class="btn-apple" style="text-align:center; font-size:24px; letter-spacing:8px" maxlength="4" inputmode="numeric" placeholder="PIN">
             <button class="btn-apple btn-primary" style="margin-top:20px" onclick="validatePin('${type}')">Conferma</button>
@@ -80,9 +75,10 @@ function validatePin(type) {
     }
 
     if (type === 'register') {
-        const name = document.getElementById('name-field')?.value.trim();
+        const nameInput = document.getElementById('name-field');
+        const name = nameInput ? nameInput.value.trim() : "";
         if(!name) { errorEl.innerText = "Inserisci nome"; errorEl.style.display = "block"; return; }
-        if (dbUsers[pin]) { errorEl.innerText = "PIN già usato"; errorEl.style.display = "block"; return; }
+        if (dbUsers[pin]) { errorEl.innerText = "PIN occupato"; errorEl.style.display = "block"; return; }
         dbUsers[pin] = { name: name, progress: {}, history: {}, activeProgress: {}, savedQuizzes: {} };
     } else {
         if (!dbUsers[pin]) { errorEl.innerText = "PIN errato"; errorEl.style.display = "block"; return; }
@@ -107,7 +103,7 @@ function saveMasterDB() {
     localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
 }
 
-// 5. Home e Percorsi
+// 5. HOME E LIVELLI
 function showHome() {
     updateNav(true, "renderLogin()");
     document.getElementById('app-title').innerText = "PERCORSI";
@@ -116,7 +112,7 @@ function showHome() {
         Object.keys(domandaRepo).forEach(l => {
             const icon = (l === 'HTML') ? 'html5' : l.toLowerCase();
             html += `<div class="lang-item" onclick="showLevels('${l}')">
-                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${icon}/${icon}-original.svg" width="35" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1005/1005141.png'">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${icon}/${icon}-original.svg" width="35">
                 <div style="margin-top:10px; font-weight:700; font-size:13px">${l}</div>
             </div>`;
         });
@@ -133,19 +129,19 @@ function showLevels(lang) {
     document.getElementById('app-title').innerText = lang;
     let html = ""; const comp = state.progress[lang] || 0;
     for(let i=1; i<=5; i++) {
-        let label = (i === 5) ? "ESAME FINALE" : "Livello " + i;
+        let label = (i === 5) ? "ESAME" : "Livello " + i;
         let isLocked = (state.mode === 'user' && i > 3 && comp < 3) || (state.mode === 'guest' && i > 3);
         let curIdx = (state.mode !== 'guest' && dbUsers[state.currentPin]?.activeProgress?.[`${lang}_${i}`]) || 0;
         if (comp >= i) curIdx = 15;
-        html += `<button class="btn-apple" ${isLocked ? 'disabled' : ''} onclick="startStep('${lang}',${i})" style="display:block; text-align:left; padding: 15px;">
-            <div style="display:flex; justify-content:space-between"><span>${label} ${isLocked ? '🔒' : ''}</span><span>${!isLocked ? curIdx+'/15' : ''}</span></div>
+        html += `<button class="btn-apple" ${isLocked ? 'disabled' : ''} onclick="startStep('${lang}',${i})" style="display:block; text-align:left; padding:15px;">
+            <div style="display:flex; justify-content:space-between"><span>${label} ${isLocked?'🔒':''}</span><span>${!isLocked?curIdx+'/15':''}</span></div>
             ${!isLocked ? `<div class="progress-container"><div class="progress-bar-fill" style="width:${(curIdx/15)*100}%"></div></div>` : ''}
         </button>`;
     }
     document.getElementById('content-area').innerHTML = html;
 }
 
-// 6. Logica Quiz
+// 6. QUIZ (Logica originale)
 function startStep(lang, lvl) {
     if(lvl === 5) { renderL5(lang); return; }
     const key = "L" + lvl;
@@ -179,7 +175,7 @@ function check(isOk) {
     const d = session.q[session.idx];
     if(state.mode === 'user') {
         if(!state.history[session.lang]) state.history[session.lang] = [];
-        state.history[session.lang].push({ ok: isOk });
+        state.history[session.lang].push({ ok: isOk }); // Salviamo solo se è andata bene o male
         if(!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress={};
         dbUsers[state.currentPin].activeProgress[`${session.lang}_${session.lvl}`] = session.idx + 1;
         saveMasterDB();
@@ -201,45 +197,53 @@ function next() {
     }
 }
 
-// 7. Editor e Profilo
-function renderL5(lang) {
-    const c = challenges5[lang];
-    document.getElementById('content-area').innerHTML = `<h3>ESAME: ${lang}</h3><p style="opacity:0.7">${c.task}</p>
-        <div class="editor-wrapper">
-            <pre class="code-highlight"><code id="highlighting-content" class="language-javascript"></code></pre>
-            <textarea id="ed" class="code-input" spellcheck="false" oninput="updateEditor(this.value)" onkeydown="handleTab(event, this)"></textarea>
-        </div>
-        <button class="btn-apple btn-primary" onclick="runL5('${lang}')">Verifica Codice</button><div id="l5-err" style="color:red; display:none; margin-top:10px">Riprova, logica non corretta.</div>`;
-}
-
-function updateEditor(text) {
-    let el = document.getElementById("highlighting-content");
-    el.innerHTML = text.replace(/&/g, "&amp;").replace(/</g, "&lt;");
-    if(window.Prism) Prism.highlightElement(el);
-}
-
-function handleTab(e, el) { if (e.key === 'Tab') { e.preventDefault(); let s = el.selectionStart; el.value = el.value.substring(0, s) + "    " + el.value.substring(el.selectionEnd); el.selectionStart = el.selectionEnd = s + 4; updateEditor(el.value); } }
-
-function runL5(lang) {
-    const code = document.getElementById('ed').value;
-    if (challenges5[lang].check(code)) { state.progress[lang] = 5; saveMasterDB(); alert("Superato!"); showLevels(lang); }
-    else { document.getElementById('l5-err').style.display = "block"; }
-}
-
+// 7. NUOVE FUNZIONI (Profilo e Admin)
 function renderProfile() {
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = state.mode === 'admin' ? "ADMIN" : "PROFILO";
     let html = "";
     if (state.mode === 'admin') {
-        html = `<h3>Utenti Registrati</h3>`;
-        Object.keys(dbUsers).forEach(p => { html += `<div class="review-card" style="display:flex; justify-content:space-between; margin-bottom:8px"><span>${dbUsers[p].name} (${p})</span><button onclick="admDel('${p}')" style="color:red; background:none; border:none">Elimina</button></div>`; });
+        html = `<h3>Utenti</h3>`;
+        Object.keys(dbUsers).forEach(p => {
+            html += `<div class="review-card" style="display:flex; justify-content:space-between; margin-bottom:10px">
+                <span>${dbUsers[p].name} (${p})</span>
+                <button onclick="admDel('${p}')" style="color:red; background:none; border:none;">Elimina</button>
+            </div>`;
+        });
     } else {
         const h = state.history || {}; let t = 0, ok = 0;
         Object.values(h).flat().forEach(x => { t++; if(x.ok) ok++; });
-        html = `<div class="review-card" style="text-align:center"><small>MEDIA RISPOSTE</small><h1 style="color:var(--accent)">${t>0?((ok/t)*10).toFixed(1):0}/10</h1></div>
-                <button class="btn-apple" onclick="openLogoutModal()" style="color:red; margin-top:20px">Esci dal profilo</button>`;
+        let media = t > 0 ? ((ok/t)*10).toFixed(1) : "0";
+        html = `<div class="review-card" style="text-align:center"><small>MEDIA RISPOSTE</small><h1>${media}/10</h1></div>
+                <button class="btn-apple" onclick="logout()" style="color:red; margin-top:20px">Esci dal profilo</button>`;
     }
     document.getElementById('content-area').innerHTML = html;
 }
 
 function admDel(p) { if(confirm("Elimina utente?")) { delete dbUsers[p]; localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers)); renderProfile(); } }
+function logout() { state.mode = null; renderLogin(); }
+
+// 8. EDITOR (Corretto per non crashare)
+function renderL5(lang) {
+    const c = challenges5[lang];
+    document.getElementById('content-area').innerHTML = `<h3>ESAME: ${lang}</h3><p>${c.task}</p>
+        <div class="editor-wrapper">
+            <pre class="code-highlight"><code id="highlighting-content" class="language-javascript"></code></pre>
+            <textarea id="ed" class="code-input" spellcheck="false" oninput="updateEditor(this.value)" onkeydown="handleTab(event, this)"></textarea>
+        </div>
+        <button class="btn-apple btn-primary" onclick="runL5('${lang}')">Verifica</button><div id="l5-err" style="color:red; display:none">Riprova.</div>`;
+}
+function updateEditor(t) { 
+    let el = document.getElementById("highlighting-content");
+    if(el) { el.innerText = t; if(window.Prism) Prism.highlightElement(el); }
+}
+function handleTab(e, el) { if (e.key === 'Tab') { e.preventDefault(); let s = el.selectionStart; el.value = el.value.substring(0, s) + "    " + el.value.substring(el.selectionEnd); el.selectionStart = el.selectionEnd = s + 4; updateEditor(el.value); } }
+function runL5(l) {
+    const c = document.getElementById('ed').value;
+    if (challenges5[l].check(c)) { state.progress[l] = 5; saveMasterDB(); showLevels(l); }
+    else { document.getElementById('l5-err').style.display = "block"; }
+}
+
+// Funzioni per i modali (Aggiunte per evitare errori con il tuo HTML)
+function closeLogoutModal() { document.getElementById('logout-modal').classList.remove('active'); }
+function closeModal() { document.getElementById('universal-modal').classList.remove('active'); }
