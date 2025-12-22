@@ -446,7 +446,8 @@ function renderProfile() {
                 <div style="margin-top:10px">${progHtml}</div>
             </div>
 
-  <div class="glass-card">
+  document.getElementById('content-area').innerHTML = `
+<div class="glass-card">
     <div class="security-box">
         <div class="security-header" onclick="toggleSecurity(this)">
             Sicurezza
@@ -471,7 +472,7 @@ function renderProfile() {
         </div>
     </div>
 </div>
-
+`;
 
     window.toggleGeneralProgress = function(card) {
         const detailed = document.getElementById('detailed-progress');
