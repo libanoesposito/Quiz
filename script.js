@@ -208,23 +208,48 @@ function startStep(lang, lvl) {
     renderQ();
 }
 
-function renderQ() {
-    updateNav(true, `showLevels('${session.lang}')`);
-    const data = session.q[session.idx];
-    const progress = (session.idx / session.q.length) * 100;
+function renderL5(lang) {
+    const c = challenges5[lang];
     document.getElementById('content-area').innerHTML = `
-        <div style="width:100%; margin-bottom:15px">
-            <div style="display:flex; justify-content:space-between; font-size:11px; opacity:0.5; margin-bottom:5px">
-                <span>DOMANDA ${session.idx + 1}/${session.q.length}</span>
-            </div>
-            <div style="width:100%; height:4px; background:rgba(120,120,128,0.1); border-radius:10px">
-                <div style="width:${progress}%; height:100%; background:var(--accent); border-radius:10px; transition:0.3s"></div>
-            </div>
+        <h3 style="text-align:center">ESAME FINALE: ${lang}</h3>
+        <p style="font-size:14px; opacity:0.8; text-align:center">${c.task}</p>
+        
+        <div class="editor-wrapper">
+            <pre class="code-highlight"><code id="highlighting-content" class="language-javascript"></code></pre>
+            <textarea id="ed" class="code-input" 
+                spellcheck="false" 
+                autocorrect="off" 
+                autocapitalize="off" 
+                placeholder="Scrivi il tuo codice qui..."
+                oninput="updateEditor(this.value)"
+                onkeydown="handleTab(event, this)"></textarea>
         </div>
-        <h2 style="font-size:18px; margin-bottom:20px">${data.q}</h2>
-        <div id="opts" style="width:100%">${data.options.map((o,i)=>`<button class="btn-apple" onclick="check(${i===data.correct})">${o}</button>`).join('')}</div>
-        <div id="fb"></div>`;
+
+        <button class="btn-apple btn-primary" style="margin-top:10px" onclick="runL5('${lang}')">Verifica Codice</button>
+        <div id="l5-err" style="color:#ff3b30; display:none; margin-top:10px; text-align:center">Il codice non soddisfa i requisiti logici.</div>`;
 }
+
+// Funzione per sincronizzare testo e colori
+function updateEditor(text) {
+    let resultElement = document.getElementById("highlighting-content");
+    // Protezione per i caratteri HTML
+    let content = text.replace(new RegExp("&", "g"), "&amp;").replace(new RegExp("<", "g"), "&lt;");
+    resultElement.innerHTML = content;
+    Prism.highlightElement(resultElement);
+}
+
+// Per permettere l'uso del tasto TAB nell'editor
+function handleTab(e, el) {
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        let start = el.selectionStart;
+        let end = el.selectionEnd;
+        el.value = el.value.substring(0, start) + "    " + el.value.substring(end);
+        el.selectionStart = el.selectionEnd = start + 4;
+        updateEditor(el.value);
+    }
+}
+
 
 function check(isOk) {
     const data = session.q[session.idx];
