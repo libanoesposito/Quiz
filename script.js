@@ -206,7 +206,7 @@ function startStep(lang, lvl) {
     let selezione;
     const storageKey = `${lang}_${lvl}`;
 
-    // 1. Gestione della selezione domande (Random o Salvata)
+    // Recupero set di domande salvato o creazione nuovo
     if (state.mode === 'user' && dbUsers[state.currentPin].savedQuizzes && dbUsers[state.currentPin].savedQuizzes[storageKey]) {
         selezione = dbUsers[state.currentPin].savedQuizzes[storageKey];
     } else {
@@ -222,6 +222,18 @@ function startStep(lang, lvl) {
             saveMasterDB();
         }
     }
+
+    // Recupero dell'indice salvato
+    let savedIdx = 0;
+    if (state.mode === 'user' && dbUsers[state.currentPin].activeProgress) {
+        savedIdx = dbUsers[state.currentPin].activeProgress[storageKey] || 0;
+    }
+
+    updateNav(true, `showLevels('${lang}')`);
+    session = { lang: lang, lvl: lvl, q: selezione, idx: savedIdx };
+    renderQ();
+}
+
 
     // 2. Recupero dell'indice di progresso (A che domanda era arrivato?)
     let savedIdx = 0;
@@ -269,11 +281,8 @@ function check(isOk) {
         if(!state.history[session.lang]) state.history[session.lang] = [];
         state.history[session.lang].push({ q: data.q, ok: isOk, exp: data.exp });
         
-        // --- NUOVO: Salva il progresso parziale ---
-        if (!dbUsers[state.currentPin].activeProgress) {
-            dbUsers[state.currentPin].activeProgress = {};
-        }
-        // Salviamo l'indice della prossima domanda (idx + 1)
+        // Salva progresso parziale
+        if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
         dbUsers[state.currentPin].activeProgress[`${session.lang}_${session.lvl}`] = session.idx + 1;
         
         saveMasterDB();
@@ -288,40 +297,24 @@ function check(isOk) {
 }
 
 
+
 function next() {
     session.idx++; 
-    
-    // Se ci sono ancora domande nella sessione attuale
     if(session.idx < session.q.length) {
         renderQ(); 
-    } 
-    // Se il livello è terminato (raggiunta la 15esima)
-    else { 
+    } else { 
         if (state.mode === 'user') {
-            // 1. Aggiorna il progresso massimo raggiunto (per sbloccare livelli successivi)
-            state.progress[session.lang] = Math.max(state.progress[session.lang] || 0, session.lvl); 
-            
+            state.progress[session.lang] = Math.max(state.progress[session.lang]||0, session.lvl); 
             const storageKey = `${session.lang}_${session.lvl}`;
-
-            // 2. Resetta il contatore numerico (torna a 0/15 per la prossima volta)
-            if (dbUsers[state.currentPin].activeProgress) {
-                dbUsers[state.currentPin].activeProgress[storageKey] = 0;
-            }
             
-            // 3. ELIMINA IL QUIZ SALVATO: così la prossima volta startStep ne creerà uno nuovo random
-            if (dbUsers[state.currentPin].savedQuizzes) {
-                delete dbUsers[state.currentPin].savedQuizzes[storageKey];
-            }
+            if (dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress[storageKey] = 0;
+            if (dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[storageKey];
             
             saveMasterDB();
         }
-        
-        alert("Complimenti! Livello completato!");
         showLevels(session.lang); 
     }
 }
-
-
 
 
 function renderProfile() {
