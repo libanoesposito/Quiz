@@ -447,7 +447,6 @@ function renderProfile() {
             </div>
 
   document.getElementById('content-area').innerHTML = `
-
 <div class="glass-card">
     <div class="security-box">
         <div class="security-header" onclick="toggleSecurity(this)">
@@ -473,6 +472,7 @@ function renderProfile() {
         </div>
     </div>
 </div>
+`;
 
     window.toggleGeneralProgress = function(card) {
         const detailed = document.getElementById('detailed-progress');
@@ -502,7 +502,7 @@ function generateHistoryHTML(u) {
                      </div>`;
         });
     });
-    return html || "<div style='font-size:12px; opacity:0.6'>Storico Vuoto</div>";
+    return html || "<div style='font-size:12px; opacity:0.6'>Nessuna domanda fatta</div>";
 }
 
 // Toggle per linguaggio
