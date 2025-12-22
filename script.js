@@ -446,17 +446,19 @@ function renderProfile() {
                 <div style="margin-top:10px">${progHtml}</div>
             </div>
 
-            <div class="glass-card">
-                <div class="security-box">
-                    <div class="security-header" onclick="toggleSecurity(this)">
-                        Sicurezza
-                        <span class="chevron">›</span>
-                    </div>
-                    <div class="security-content">
-                        <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
-                        <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
-                        <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
-                    </div>
+  <div class="glass-card">
+    <div class="security-box">
+        <div class="security-header" onclick="toggleSecurity(this)">
+            Sicurezza
+            <span class="chevron">›</span>
+        </div>
+        <div class="security-content">
+            <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
+            <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
+            <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
+        </div>
+    </div>
+</div>
 
 <div class="glass-card">
     <div class="security-box">
@@ -469,10 +471,6 @@ function renderProfile() {
         </div>
     </div>
 </div>
-                </div>
-            </div>
-        </div>
-    `;
 
     // Funzione per espandere progressi generali
     window.toggleGeneralProgress = function(card) {
