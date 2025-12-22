@@ -378,64 +378,26 @@ function renderProfile() {
     const stats = calcStats();
     const totalLevels = Object.keys(domandaRepo);
 
-    // Calcolo progressi generali
-    let genCorrect = 0, genWrong = 0, genNotStudied = 0, genTotal = 0;
-    totalLevels.forEach(lang => {
-        const comp = state.progress[lang] || 0;
-        for (let i = 1; i <= 5; i++) {
-            let correct = 0, wrong = 0, total = 15;
-            if (u.history[lang]) {
-                u.history[lang].forEach(h => {
-                    if (i <= comp) correct += h.ok ? 1 : 0;
-                    if (i <= comp) wrong += h.ok ? 0 : 1;
-                });
-            }
-            const notStudied = total - correct - wrong;
-            genCorrect += correct;
-            genWrong += wrong;
-            genNotStudied += notStudied;
-            genTotal += total;
-        }
-    });
-
-    const genPercCorrect = genTotal ? Math.round((genCorrect / genTotal) * 100) : 0;
-    const genPercWrong = genTotal ? Math.round((genWrong / genTotal) * 100) : 0;
-    const genPercNotStudied = genTotal ? Math.round((genNotStudied / genTotal) * 100) : 0;
-
-    // HTML progressi generali (primo livello)
-    const generalHtml = `
-        <div class="glass-card" onclick="toggleGeneralProgress(this)">
-            <strong>Progressi generali</strong>
-            <div style="margin-top:10px">
-                <div>Corrette: ${genCorrect} (${genPercCorrect}%)</div>
-                <div>Sbagliate: ${genWrong} (${genPercWrong}%)</div>
-                <div>Non studiate: ${genNotStudied} (${genPercNotStudied}%)</div>
-            </div>
-        </div>
-        <div id="lang-progress-container"></div>
-    `;
-
-    // Costruisco il resto come già hai ora
+    // Progressi dettagliati
     let progHtml = '';
     totalLevels.forEach(lang => {
         const comp = state.progress[lang] || 0;
         progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
-        for (let i = 1; i <= 5; i++) {
-            let correct = 0, wrong = 0, total = 15;
-            if (u.history[lang]) {
-                u.history[lang].forEach(h => {
-                    if (i <= comp) correct += h.ok ? 1 : 0;
-                    if (i <= comp) wrong += h.ok ? 0 : 1;
+        for(let i=1;i<=5;i++){
+            let correct=0, wrong=0, total=15;
+            if(u.history[lang]){
+                u.history[lang].forEach(h=>{
+                    if(i<=comp){ if(h.ok) correct++; else wrong++; }
                 });
             }
             const notStudied = total - correct - wrong;
-            const percent = total ? Math.round((correct / total) * 100) : 0;
+            const percent = total ? Math.round((correct/total)*100) : 0;
             progHtml += `<div style="margin-bottom:8px">
                 <div style="font-size:13px">Livello ${i}</div>
                 <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                    <div class="progress-bar-fill" style="width:${(correct / total) * 100}%; background:#34c759; height:100%"></div>
-                    <div class="progress-bar-fill" style="width:${(wrong / total) * 100}%; background:#ff3b30; position:absolute; left:${(correct / total) * 100}%; height:100%"></div>
-                    <div class="progress-bar-fill" style="width:${(notStudied / total) * 100}%; background:#aaa; position:absolute; left:${((correct + wrong) / total) * 100}%; height:100%"></div>
+                    <div class="progress-bar-fill" style="width:${(correct/total)*100}%; background:#34c759; height:100%"></div>
+                    <div class="progress-bar-fill" style="width:${(wrong/total)*100}%; background:#ff3b30; position:absolute; left:${(correct/total)*100}%; height:100%"></div>
+                    <div class="progress-bar-fill" style="width:${(notStudied/total)*100}%; background:#aaa; position:absolute; left:${((correct+wrong)/total)*100}%; height:100%"></div>
                 </div>
                 <div style="font-size:11px; text-align:right; margin-top:2px">${percent}% corrette</div>
             </div>`;
@@ -443,7 +405,7 @@ function renderProfile() {
         progHtml += `</div>`;
     });
 
-    // Costruisco HTML finale
+    // HTML generale
     document.getElementById('content-area').innerHTML = `
         <div style="width:100%; display:flex; flex-direction:column; gap:15px">
             <div class="glass-card">
@@ -454,14 +416,16 @@ function renderProfile() {
             <div class="glass-card">
                 <div><strong>Statistiche</strong></div>
                 <div style="margin-top:10px">
-                    <div>Domande totali: ${stats.total}</div>
-                    <div>Corrette: ${stats.correct}</div>
-                    <div>Sbagliate: ${stats.wrong}</div>
-                    <div>Percentuale: ${stats.perc}%</div>
+                    <div style="height:10px; background:#e0e0e0; border-radius:6px; overflow:hidden; position:relative; margin-bottom:5px">
+                        <div class="progress-bar-fill" style="width:${stats.perc}%; background:#34c759; height:100%; transition:0.5s"></div>
+                    </div>
+                    <div style="font-size:12px; text-align:right">${stats.correct} corrette · ${stats.wrong} sbagliate · ${stats.perc}%</div>
                 </div>
             </div>
 
-            ${generalHtml} <!-- aggiunto primo livello generale -->
+            <div class="glass-card" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
+                <strong>Progressi generali</strong>
+            </div>
 
             <div class="glass-card" id="detailed-progress" style="display:none">
                 <strong>Progressi dettagliati</strong>
@@ -484,12 +448,13 @@ function renderProfile() {
         </div>
     `;
 
-    // Funzione per espandere i dettagli dal primo livello
+    // Funzione per espandere progressi generali
     window.toggleGeneralProgress = function(card) {
         const detailed = document.getElementById('detailed-progress');
         detailed.style.display = detailed.style.display === 'none' ? 'block' : 'none';
     };
 }
+
 // Toggle per linguaggio
 function toggleLangDetails(el){
     const content = el.nextElementSibling;
