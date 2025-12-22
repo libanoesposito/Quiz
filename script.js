@@ -506,12 +506,16 @@ function toggleLangDetails(el){
 }
 
 function toggleCard(el) {
-    const content = el.nextElementSibling;
+    const content = el.querySelector('.security-content');
     if (!content) return;
-    content.style.display = content.style.display === 'none' ? 'block' : 'none';
-}
-function toggleSecurity(el) {
-    el.parentElement.classList.toggle("open");
+
+    // Chiudi tutte le altre card aperte dello stesso tipo
+    document.querySelectorAll('.glass-card .security-content, #detailed-progress').forEach(c => {
+        if (c !== content) c.style.display = 'none';
+    });
+
+    // Apri/chiudi quella cliccata
+    content.style.display = content.style.display === 'none' ? 'flex' : 'none';
 }
 
 function resetStats() {
