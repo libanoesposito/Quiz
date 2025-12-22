@@ -261,6 +261,10 @@ function startStep(lang, lvl) {
 function renderQ() {
     const data = session.q[session.idx];
     const progress = (session.idx / session.q.length) * 100;
+    
+    // Forza il tasto indietro ai livelli corretti
+    updateNav(true, `showLevels('${session.lang}')`);
+
     document.getElementById('content-area').innerHTML = `
         <div style="width:100%; margin-bottom:15px">
             <div style="display:flex; justify-content:space-between; font-size:11px; opacity:0.5; margin-bottom:5px">
@@ -274,6 +278,7 @@ function renderQ() {
         <div id="opts" style="width:100%">${data.options.map((o,i)=>`<button class="btn-apple" onclick="check(${i===data.correct})">${o}</button>`).join('')}</div>
         <div id="fb"></div>`;
 }
+
 
 function check(isOk) {
     const data = session.q[session.idx];
