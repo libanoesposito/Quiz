@@ -203,3 +203,64 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
     border-radius: 5px;
     min-height: 50px;
 }
+/* Container principale: centra l'editor e definisce la dimensione */
+.editor-wrapper {
+    position: relative;
+    width: 100%;
+    height: 200px; /* Altezza fissa o dinamica */
+    margin: 20px 0;
+    border-radius: 12px;
+    background: #1e1e1e; /* Sfondo scuro tipo VS Code */
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+/* L'area di input: TRASPARENTE e sopra a tutto */
+.code-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 15px;
+    box-sizing: border-box;
+    background: transparent !important;
+    color: transparent !important; /* Nasconde il testo dell'utente */
+    caret-color: #fff; /* Ma mostra la barretta per scrivere */
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    resize: none;
+    border: none;
+    z-index: 2;
+    white-space: pre;
+    overflow: auto;
+    outline: none;
+}
+
+/* L'area di visualizzazione: SOTTO all'input */
+.code-highlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 15px;
+    box-sizing: border-box;
+    margin: 0;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    z-index: 1;
+    pointer-events: none; /* Non blocca il tocco/click */
+    background: transparent !important;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Forza Prism a non mettere sfondi suoi */
+pre[class*="language-"] {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
