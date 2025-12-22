@@ -156,9 +156,11 @@ function showHome() {
             <div style="margin-top:10px; font-weight:700; font-size:13px">${l}</div>
         </div>`;
     });
-    if(state.mode !== 'guest') {
-        html += `<div class="lang-item profile-slot" onclick="renderProfile()"><div style="font-weight:700">${state.mode==='admin'?'PANNELLO ADMIN':'IL MIO PROFILO'}</div></div>`;
-    }
+    if(state.mode === 'admin') {
+    html += `<div class="lang-item profile-slot" onclick="renderAdminPanel()"><div style="font-weight:700">PANNELLO ADMIN</div></div>`;
+} else if(state.mode !== 'guest') {
+    html += `<div class="lang-item profile-slot" onclick="renderProfile()"><div style="font-weight:700">IL MIO PROFILO</div></div>`;
+}
     html += `</div>`;
     document.getElementById('content-area').innerHTML = html;
 }
