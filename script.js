@@ -461,7 +461,6 @@ function renderProfile() {
         ${generateHistoryHTML(u)}
     </div>
 </div>
-</div>
 `;
 
     // Funzione per espandere progressi generali
