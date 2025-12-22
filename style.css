@@ -203,88 +203,18 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
     border-radius: 5px;
     min-height: 50px;
 }
-/* Container principale: centra l'editor e definisce la dimensione */
-.editor-wrapper {
-    position: relative;
-    width: 100%;
-    height: 200px; /* Altezza fissa o dinamica */
-    margin: 20px 0;
-    border-radius: 12px;
-    background: #1e1e1e; /* Sfondo scuro tipo VS Code */
-    overflow: hidden;
-    border: 1px solid var(--border);
-}
-
-/* L'area di input: TRASPARENTE e sopra a tutto */
-.code-input {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    padding: 15px;
-    box-sizing: border-box;
-    background: transparent !important;
-    color: transparent !important; /* Nasconde il testo dell'utente */
-    caret-color: #fff; /* Ma mostra la barretta per scrivere */
-    font-family: 'SF Mono', 'Fira Code', monospace;
-    font-size: 14px;
-    line-height: 1.5;
-    resize: none;
-    border: none;
-    z-index: 2;
-    white-space: pre;
-    overflow: auto;
-    outline: none;
-}
-
-/* L'area di visualizzazione: SOTTO all'input */
-.code-highlight {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    padding: 15px;
-    box-sizing: border-box;
-    margin: 0;
-    font-family: 'SF Mono', 'Fira Code', monospace;
-    font-size: 14px;
-    line-height: 1.5;
-    z-index: 1;
-    pointer-events: none; /* Non blocca il tocco/click */
-    background: transparent !important;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-}
-
-/* Forza Prism a non mettere sfondi suoi */
-pre[class*="language-"] {
-    margin: 0 !important;
-    padding: 0 !important;
-    background: transparent !important;
-}
-/* Colori Tema VS Code Dark+ */
-.token.keyword { color: #569cd6 !important; }    /* if, for, return, function */
-.token.string { color: #ce9178 !important; }     /* "stringhe" */
-.token.function { color: #dcdcaa !important; }   /* nomiFunzione() */
-.token.boolean { color: #569cd6 !important; }    /* true/false */
-.token.number { color: #b5cea8 !important; }     /* 123 */
-.token.operator { color: #d4d4d4 !important; }   /* +, -, = */
-.token.comment { color: #6a9955 !important; }    /* // commenti */
-.token.class-name { color: #4ec9b0 !important; }
-
+/* BLOCCO UNICO PER LIVELLO 5 */
 .editor-wrapper {
     position: relative;
     width: 100%;
     height: 250px;
-    background: #1e1e1e;
-    border-radius: 8px;
+    background: #1e1e1e !important;
+    border-radius: 12px;
     border: 1px solid #3c3c3c;
     margin: 15px 0;
+    overflow: hidden;
 }
 
-/* Regola d'oro: Input e Highlight devono avere lo STESSO font e padding */
 .code-input, .code-highlight, #highlighting-content {
     margin: 0 !important;
     padding: 15px !important;
@@ -294,23 +224,23 @@ pre[class*="language-"] {
     box-sizing: border-box !important;
     font-family: 'Consolas', 'Monaco', monospace !important;
     font-size: 14px !important;
-    line-height: 20px !important; /* Valore fisso in pixel per precisione */
+    line-height: 20px !important; /* FISSO PER ALLINEAMENTO */
     tab-size: 4;
     position: absolute;
     top: 0;
     left: 0;
-    white-space: pre !important; /* Impedisce l'andata a capo automatica che sballa i colori */
+    white-space: pre !important;
     overflow: auto !important;
 }
 
 .code-input {
     z-index: 2;
     background: transparent !important;
-    color: transparent !important; /* Nasconde il testo nero */
-    caret-color: #fff; /* Mostra il cursore */
+    color: transparent !important;
+    caret-color: #fff;
     resize: none;
     outline: none;
-    -webkit-text-fill-color: transparent; /* Per Safari/iOS */
+    -webkit-text-fill-color: transparent;
 }
 
 .code-highlight {
@@ -319,7 +249,7 @@ pre[class*="language-"] {
     background: transparent !important;
 }
 
-/* Colori VS Code Dark+ */
+/* Colori Prism per VS Code Dark+ */
 .token.keyword { color: #569cd6 !important; }
 .token.string { color: #ce9178 !important; }
 .token.function { color: #dcdcaa !important; }
