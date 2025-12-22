@@ -194,22 +194,46 @@ function showLevels(lang) {
 
 
 function startStep(lang, lvl) {
-    if(lvl === 5) renderL5(lang);
-    else {
-        const key = "L" + lvl;
-        const stringhe = domandaRepo[lang][key];
-        if(!stringhe || stringhe.length === 0) {
-            document.getElementById('content-area').innerHTML = `<h3>In arrivo</h3><button class="btn-apple" onclick="showLevels('${lang}')">Indietro</button>`;
-            return;
-        }
+    if(lvl === 5) { renderL5(lang); return; }
+    
+    const key = "L" + lvl;
+    const stringhe = domandaRepo[lang][key];
+    if(!stringhe || stringhe.length === 0) {
+        document.getElementById('content-area').innerHTML = `<h3>In arrivo</h3><button class="btn-apple" onclick="showLevels('${lang}')">Indietro</button>`;
+        return;
+    }
+
+    let selezione;
+    const storageKey = `${lang}_${lvl}`;
+
+    // Controlliamo se l'utente ha un quiz rimescolato già salvato per questo livello
+    if (state.mode === 'user' && dbUsers[state.currentPin].savedQuizzes && dbUsers[state.currentPin].savedQuizzes[storageKey]) {
+        // Carica il quiz esistente
+        selezione = dbUsers[state.currentPin].savedQuizzes[storageKey];
+    } else {
+        // Crea un nuovo quiz rimescolato da 15 domande
         const rimescolate = [...stringhe].sort(() => 0.5 - Math.random());
-        const selezione = rimescolate.slice(0, 15).map(r => {
+        selezione = rimescolate.slice(0, 15).map(r => {
             const p = r.split("|");
             return { q: p[0], options: [p[1], p[2], p[3]], correct: parseInt(p[4]), exp: p[5] };
         });
-        session = { lang: lang, lvl: lvl, q: selezione, idx: 0 };
-        renderQ();
+
+        // Se è un utente, salviamo questo rimescolamento nel database
+        if (state.mode === 'user') {
+            if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
+            dbUsers[state.currentPin].savedQuizzes[storageKey] = selezione;
+            saveMasterDB();
+        }
     }
+
+    // Recupera l'indice (a che domanda era arrivato)
+    let savedIdx = 0;
+    if (state.mode === 'user' && dbUsers[state.currentPin].activeProgress) {
+        savedIdx = dbUsers[state.currentPin].activeProgress[storageKey] || 0;
+    }
+
+    session = { lang: lang, lvl: lvl, q: selezione, idx: savedIdx };
+    renderQ();
 }
 
 function renderQ() {
@@ -256,22 +280,29 @@ function check(isOk) {
 
 function next() {
     session.idx++; 
-    if(session.idx < session.q.length) renderQ(); 
-    else { 
+    if(session.idx < session.q.length) {
+        renderQ(); 
+    } else { 
         if (state.mode === 'user') {
             state.progress[session.lang] = Math.max(state.progress[session.lang]||0, session.lvl); 
             
-            // RESETTA IL PROGRESSO PARZIALE PERCHÉ IL LIVELLO È FINITO
+            // 1. Resetta il contatore numerico
             if (dbUsers[state.currentPin].activeProgress) {
                 dbUsers[state.currentPin].activeProgress[`${session.lang}_${session.lvl}`] = 0;
             }
             
+            // 2. ELIMINA IL QUIZ SALVATO per poterne generare uno nuovo random al prossimo giro
+            if (dbUsers[state.currentPin].savedQuizzes) {
+                delete dbUsers[state.currentPin].savedQuizzes[`${session.lang}_${session.lvl}`];
+            }
+            
             saveMasterDB();
         }
-        alert("Ottimo lavoro!");
+        alert("Complimenti! Livello completato!");
         showLevels(session.lang); 
     }
 }
+
 
 
 function renderProfile() {
