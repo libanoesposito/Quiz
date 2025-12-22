@@ -414,14 +414,28 @@ function renderProfile() {
             </div>
 
             <div class="glass-card">
-                <div><strong>Statistiche</strong></div>
-                <div style="margin-top:10px">
-                    <div style="height:10px; background:#e0e0e0; border-radius:6px; overflow:hidden; position:relative; margin-bottom:5px">
-                        <div class="progress-bar-fill" style="width:${stats.perc}%; background:#34c759; height:100%; transition:0.5s"></div>
-                    </div>
-                    <div style="font-size:12px; text-align:right">${stats.correct} corrette · ${stats.wrong} sbagliate · ${stats.perc}%</div>
-                </div>
+    <div><strong>Statistiche</strong></div>
+    <div style="margin-top:10px; display:flex; flex-direction:column; gap:6px">
+        <div>
+            <div style="font-size:12px; margin-bottom:2px">Corrette: ${stats.correct}</div>
+            <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
+                <div class="progress-bar-fill" style="width:${(stats.correct/stats.total)*100}%; background:#34c759; height:100%; transition:0.3s"></div>
             </div>
+        </div>
+        <div>
+            <div style="font-size:12px; margin-bottom:2px">Sbagliate: ${stats.wrong}</div>
+            <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
+                <div class="progress-bar-fill" style="width:${(stats.wrong/stats.total)*100}%; background:#ff3b30; height:100%; transition:0.3s"></div>
+            </div>
+        </div>
+        <div>
+            <div style="font-size:12px; margin-bottom:2px">Non studiate: ${stats.total - stats.correct - stats.wrong}</div>
+            <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
+                <div class="progress-bar-fill" style="width:${((stats.total - stats.correct - stats.wrong)/stats.total)*100}%; background:#ffd60a; height:100%; transition:0.3s"></div>
+            </div>
+        </div>
+    </div>
+</div>
 
             <div class="glass-card" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
                 <strong>Progressi generali</strong>
