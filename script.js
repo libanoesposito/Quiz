@@ -467,18 +467,6 @@ function renderProfile() {
         ${generateHistoryHTML(u)}
     </div>
 </div>
-
-<div class="glass-card">
-    <div class="security-box">
-        <div class="security-header" onclick="toggleHistory(this)">
-            Storico
-            <span class="chevron">›</span>
-        </div>
-        <div class="security-content" id="history-content" style="display:none; max-height:400px; overflow-y:auto">
-            ${generateHistoryHTML(u)}
-        </div>
-    </div>
-</div>
 `;
 
     // Funzione per espandere progressi generali
