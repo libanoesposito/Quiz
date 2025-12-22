@@ -128,41 +128,56 @@ function showHome() {
 function showLevels(lang) {
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = lang;
-    let html = ""; 
+
+    let html = "";
     const comp = state.progress[lang] || 0;
-    
-    for(let i=1; i<=5; i++) {
+
+    for (let i = 1; i <= 5; i++) {
+
         let label = (i === 5) ? "ESAMINATI" : "Livello " + i;
-        let isLocked = (state.mode === 'user' && i > 1 && (state.progress[lang] || 0) < i - 1);
-        
-        // Logica specifica sblocco 4 e 5 che avevi chiesto
+        let isLocked = false;
+
+        // LOGICA UTENTE
         if (state.mode === 'user') {
-            if (i === 4 && comp < 3) isLocked = true;
-            if (i === 5 && comp < 3) isLocked = true;
+            if (i >= 4 && comp < 3) {
+                isLocked = true;
+            }
         }
-        
-        // Amministratore e Guest hanno tutto sbloccato
-        if (state.mode === 'admin' || state.mode === 'guest') isLocked = false;
+
+        // ADMIN e GUEST sempre sbloccati
+        if (state.mode === 'admin' || state.mode === 'guest') {
+            isLocked = false;
+        }
 
         let currentIdx = 0;
         if (state.mode === 'user' && dbUsers[state.currentPin]?.activeProgress) {
             currentIdx = dbUsers[state.currentPin].activeProgress[`${lang}_${i}`] || 0;
         }
+
         if (comp >= i) currentIdx = 15;
         const percentage = (currentIdx / 15) * 100;
 
         html += `
-            <button class="btn-apple" ${isLocked ? 'disabled' : ''} onclick="startStep('${lang}',${i})" style="display:block; text-align:left; padding: 15px;">
+            <button class="btn-apple"
+                ${isLocked ? 'disabled' : ''}
+                onclick="startStep('${lang}', ${i})"
+                style="display:block; text-align:left; padding:15px">
+
                 <div style="display:flex; justify-content:space-between; align-items:center; width:100%">
                     <span>${label} ${isLocked ? '🔒' : ''}</span>
-                    ${(state.mode === 'user' && !isLocked) ? `<span style="font-size:12px; opacity:0.6">${currentIdx}/15</span>` : ''}
+                    ${(state.mode === 'user' && !isLocked)
+                        ? `<span style="font-size:12px; opacity:0.6">${currentIdx}/15</span>`
+                        : ''}
                 </div>
-                ${(state.mode === 'user' && !isLocked) ? `
-                    <div class="progress-container">
-                        <div class="progress-bar-fill" style="width: ${percentage}%"></div>
-                    </div>` : ''}
+
+                ${(state.mode === 'user' && !isLocked)
+                    ? `<div class="progress-container">
+                           <div class="progress-bar-fill" style="width:${percentage}%"></div>
+                       </div>`
+                    : ''}
             </button>`;
     }
+
     document.getElementById('content-area').innerHTML = html;
 }
 
