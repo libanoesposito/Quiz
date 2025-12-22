@@ -1,7 +1,6 @@
 // Database globale degli utenti (caricato da memoria locale)
 let dbUsers = JSON.parse(localStorage.getItem('quiz_master_db')) || {};
 
-// SFIDE LIVELLO 5 (Mancavano nel tuo script originale)
 const challenges5 = {
     "HTML": { 
         task: "Crea un link (tag 'a') che punta a 'https://google.com' con il testo 'Cerca'.", 
@@ -62,8 +61,8 @@ function toggleTheme() {
 function updateNav(showBack, backTarget) {
     const b = document.getElementById('back-nav');
     const r = document.getElementById('right-nav');
-    b.innerHTML = showBack ? `<span class="back-link" onclick="${backTarget}">\u2039 Indietro</span>` : "";
-    r.innerHTML = state.mode ? `<span class="logout-link" onclick="logout()">Esci</span>` : "";
+    if(b) b.innerHTML = showBack ? `<span class="back-link" onclick="${backTarget}">\u2039 Indietro</span>` : "";
+    if(r) r.innerHTML = state.mode ? `<span class="logout-link" onclick="logout()">Esci</span>` : "";
 }
 
 function saveMasterDB() {
@@ -141,13 +140,15 @@ function showHome() {
     updateNav(true, "renderLogin()");
     document.getElementById('app-title').innerText = "PERCORSI";
     let html = `<div class="lang-grid">`;
-    Object.keys(domandaRepo).forEach(l => {
-        const icon = (l === 'HTML') ? 'html5' : l.toLowerCase();
-        html += `<div class="lang-item" onclick="showLevels('${l}')">
-            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${icon}/${icon}-original.svg" width="35" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1005/1005141.png'">
-            <div style="margin-top:10px; font-weight:700; font-size:13px">${l}</div>
-        </div>`;
-    });
+    if (typeof domandaRepo !== 'undefined') {
+        Object.keys(domandaRepo).forEach(l => {
+            const icon = (l === 'HTML') ? 'html5' : l.toLowerCase();
+            html += `<div class="lang-item" onclick="showLevels('${l}')">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${icon}/${icon}-original.svg" width="35" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1005/1005141.png'">
+                <div style="margin-top:10px; font-weight:700; font-size:13px">${l}</div>
+            </div>`;
+        });
+    }
     if(state.mode !== 'guest') {
         html += `<div class="lang-item profile-slot" onclick="renderProfile()"><div style="font-weight:700">${state.mode==='admin'?'PANNELLO ADMIN':'IL MIO PROFILO'}</div></div>`;
     }
@@ -162,12 +163,12 @@ function showLevels(lang) {
     const comp = state.progress[lang] || 0;
     
     for(let i=1; i<=5; i++) {
-        let label = (i === 5) ? "ESAME FINALE" : "Livello " + i;
+        let label = (i === 5) ? "ESAMINATI" : "Livello " + i;
         let isLocked = false;
         if (state.mode === 'user') {
             if ((i === 4 || i === 5) && comp < 3) isLocked = true;
         } else if (state.mode === 'guest') {
-            if (i > 3) isLocked = true;
+            if (i === 4 || i === 5) isLocked = true;
         } 
 
         let currentIdx = 0;
@@ -191,6 +192,7 @@ function showLevels(lang) {
     }
     document.getElementById('content-area').innerHTML = html;
 }
+
 
 function startStep(lang, lvl) {
     if(lvl === 5) { renderL5(lang); return; }
@@ -244,7 +246,7 @@ function check(isOk) {
     const data = session.q[session.idx];
     if(state.mode === 'user') {
         if(!state.history[session.lang]) state.history[session.lang] = [];
-        state.history[session.lang].push({ q: data.q, ok: isOk, exp: data.exp });
+        state.history[session.lang].push({ ok: isOk });
         if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
         dbUsers[state.currentPin].activeProgress[`${session.lang}_${session.lvl}`] = session.idx + 1;
         saveMasterDB();
@@ -290,7 +292,7 @@ function renderL5(lang) {
 function updateEditor(text) {
     let el = document.getElementById("highlighting-content");
     el.innerHTML = text.replace(/&/g, "&amp;").replace(/</g, "&lt;");
-    Prism.highlightElement(el);
+    if(window.Prism) Prism.highlightElement(el);
 }
 
 function handleTab(e, el) {
@@ -315,30 +317,22 @@ function renderProfile() {
     document.getElementById('app-title').innerText = state.mode === 'admin' ? "ADMIN" : "PROFILO";
     let content = "";
     if (state.mode === 'admin') {
-        content = `<h3>Gestione Utenti</h3>`;
-        Object.keys(dbUsers).forEach(pin => {
+        content = `<h3>Utenti</h3>`;
+        Object.keys(dbUsers).forEach(p => {
             content += `<div class="review-card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
-                <span><strong>${dbUsers[pin].name}</strong> (${pin})</span>
-                <button onclick="adminDelete('${pin}')" style="color:red; background:none; border:none; cursor:pointer">Elimina</button>
+                <span><strong>${dbUsers[p].name}</strong> (${p})</span>
+                <button onclick="admDel('${p}')" style="color:red; background:none; border:none; cursor:pointer">Elimina</button>
             </div>`;
         });
     } else {
-        let history = state.history || {};
-        let total = 0, ok = 0;
-        Object.values(history).flat().forEach(h => { total++; if(h.ok) ok++; });
+        const h = state.history || {}; let total = 0, ok = 0;
+        Object.values(h).flat().forEach(x => { total++; if(x.ok) ok++; });
         let media = total > 0 ? ((ok / total) * 10).toFixed(1) : "0";
-        content = `
-            <div style="text-align:center; margin-bottom:20px">
-                <div style="font-size:12px; opacity:0.6">MEDIA VALUTAZIONE</div>
-                <div style="font-size:32px; font-weight:700; color:var(--accent)">${media}/10</div>
-            </div>
-            <button class="btn-apple" onclick="logout()" style="color:#ff3b30">Esci dal profilo</button>`;
+        content = `<div class="review-card" style="text-align:center"><small>MEDIA VOTI</small><h1 style="color:var(--accent)">${media}/10</h1></div>
+                   <button class="btn-apple" onclick="logout()" style="color:#ff3b30; margin-top:20px">Esci</button>`;
     }
     document.getElementById('content-area').innerHTML = content;
 }
 
-function adminDelete(pin) { if(confirm("Eliminare?")) { delete dbUsers[pin]; saveMasterDB(); renderProfile(); } }
-
-function logout() {
-    state.mode = null; state.currentPin = null; session = null; renderLogin();
-}
+function admDel(p) { if(confirm("Elimina utente?")) { delete dbUsers[p]; saveMasterDB(); renderProfile(); } }
+function logout() { state.mode = null; state.currentPin = null; session = null; renderLogin(); }
