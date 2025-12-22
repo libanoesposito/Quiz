@@ -419,7 +419,7 @@ startStep = function (lang, lvl) {
 
     if (state.mode === 'guest') {
 
-        If(lvl>=4) {
+        if(lvl>=4) {
     showGuestLocked();
     return;
 }
