@@ -157,20 +157,22 @@ function showLevels(lang) {
         let label = (i === 5) ? "ESAMINATI" : "Livello " + i;
         let isLocked = false;
         
+        // I blocchi valgono solo per 'user'
         if (state.mode === 'user') {
             if (i === 4 && comp < 3) isLocked = true;
             if (i === 5 && comp < 3) isLocked = true;
         }
 
-        // Recuperiamo quante domande ha già fatto l'utente (solo se PIN)
+        // Recupero progresso parziale per visualizzazione X/15
         let currentIdx = 0;
-        if (state.mode === 'user' && dbUsers[state.currentPin].activeProgress) {
+        if (state.mode === 'user' && dbUsers[state.currentPin] && dbUsers[state.currentPin].activeProgress) {
             currentIdx = dbUsers[state.currentPin].activeProgress[`${lang}_${i}`] || 0;
         }
         
-        // Se il livello è già stato completato in passato, mostriamo 15/15
+        // Se il livello è già completato, mostriamo 15/15
         if (comp >= i) currentIdx = 15;
 
+        // Calcolo percentuale per la barra
         const percentage = (currentIdx / 15) * 100;
 
         html += `
@@ -180,8 +182,8 @@ function showLevels(lang) {
                     ${(state.mode === 'user' && !isLocked) ? `<span style="font-size:12px; opacity:0.6">${currentIdx}/15</span>` : ''}
                 </div>
                 ${(state.mode === 'user' && !isLocked) ? `
-                    <div class="progress-outer">
-                        <div class="progress-inner" style="width: ${percentage}%"></div>
+                    <div class="progress-container">
+                        <div class="progress-bar-fill" style="width: ${percentage}%"></div>
                     </div>
                 ` : ''}
             </button>`;
