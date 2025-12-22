@@ -72,6 +72,21 @@ function uiPin(type) {
         </div>`;
 }
 
+function isWeakPin(pin) {
+    // tutti uguali
+    if (/^(\d)\1{3}$/.test(pin)) return true;
+
+    // sequenza crescente
+    const asc = "0123456789";
+    if (asc.includes(pin)) return true;
+
+    // sequenza decrescente
+    const desc = "9876543210";
+    if (desc.includes(pin)) return true;
+
+    return false;
+}
+
 function validatePin(type) {
     const pin = document.getElementById('pin-field').value;
     const errorEl = document.getElementById('pin-error');
