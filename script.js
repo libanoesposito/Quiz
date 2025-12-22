@@ -379,7 +379,7 @@ function renderProfile() {
     const stats = calcStats();
     const totalLevels = Object.keys(domandaRepo);
 
-    // Costruiamo i progressi dettagliati con la tua logica originale a 3 colori
+    // 1. Costruzione dei progressi (Logica a 3 colori: Verde, Rosso, Grigio)
     let progHtml = '';
     totalLevels.forEach(lang => {
         const comp = state.progress[lang] || 0;
@@ -387,8 +387,6 @@ function renderProfile() {
         for(let i=1; i<=5; i++){
             let correct=0, wrong=0, total=15;
             if(u.history && u.history[lang]){
-                // Qui filtriamo la storia per livello se hai i dati, 
-                // altrimenti usiamo la logica generale
                 u.history[lang].forEach(h => { if(h.ok) correct++; else wrong++; });
             }
             const notStudied = Math.max(0, total - correct - wrong);
@@ -408,6 +406,7 @@ function renderProfile() {
         progHtml += `</div>`;
     });
 
+    // 2. HTML dell'interfaccia (Ho rimesso le tue classi e la struttura security-box)
     document.getElementById('content-area').innerHTML = `
         <div style="width:100%; display:flex; flex-direction:column; gap:15px">
             <div class="glass-card">
@@ -433,7 +432,7 @@ function renderProfile() {
                 </div>
             </div>
 
-            <div class="glass-card" onclick="toggleSection('detailed-progress')" style="cursor:pointer">
+            <div class="glass-card" onclick="toggleCard(this)" style="cursor:pointer">
                 <strong>Progressi generali</strong>
             </div>
 
@@ -444,7 +443,7 @@ function renderProfile() {
 
             <div class="glass-card">
                 <div class="security-box">
-                    <div class="security-header" onclick="toggleSecuritySection(this)">
+                    <div class="security-header" onclick="toggleSecurity(this)">
                         Sicurezza <span class="chevron">›</span>
                     </div>
                     <div class="security-content" style="display:none; flex-direction:column; gap:10px; margin-top:10px">
@@ -457,31 +456,37 @@ function renderProfile() {
 
             <div class="glass-card">
                 <div class="security-box">
-                    <div class="security-header" onclick="toggleSecuritySection(this)">
+                    <div class="security-header" onclick="toggleHistory(this)">
                         Storico <span class="chevron">›</span>
                     </div>
                     <div class="security-content" style="display:none; max-height:400px; overflow-y:auto; margin-top:10px">
-                        ${generateHistoryHTML(u)}
+                        ${typeof generateHistoryHTML === 'function' ? generateHistoryHTML(u) : 'Nessuno storico disponibile'}
                     </div>
                 </div>
             </div>
         </div>`;
 }
 
-// FUNZIONI DI SUPPORTO ESSENZIALI (Sostituisci anche queste)
-function toggleSection(id) {
-    const el = document.getElementById(id);
-    if(el) el.style.display = (el.style.display === 'none' ? 'block' : 'none');
+// 3. FUNZIONI DI SUPPORTO (Assicurati di incollarle sotto la funzione renderProfile)
+function toggleCard(el) {
+    const target = document.getElementById('detailed-progress');
+    if(target) target.style.display = (target.style.display === 'none' ? 'block' : 'none');
 }
 
-function toggleSecuritySection(el) {
+function toggleSecurity(el) {
     const content = el.nextElementSibling;
-    const chevron = el.querySelector('.chevron');
-    const isOpen = content.style.display === 'flex' || content.style.display === 'block';
-    
-    content.style.display = isOpen ? 'none' : (content.id === 'history-content' ? 'block' : 'flex');
-    if(chevron) chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(90deg)';
+    if(content) content.style.display = (content.style.display === 'none' ? 'flex' : 'none');
+    const chev = el.querySelector('.chevron');
+    if(chev) chev.style.transform = (content.style.display === 'flex' ? 'rotate(90deg)' : 'rotate(0deg)');
 }
+
+function toggleHistory(el) {
+    const content = el.nextElementSibling;
+    if(content) content.style.display = (content.style.display === 'none' ? 'block' : 'none');
+    const chev = el.querySelector('.chevron');
+    if(chev) chev.style.transform = (content.style.display === 'block' ? 'rotate(90deg)' : 'rotate(0deg)');
+}
+
 
 // Toggle per linguaggio
 function toggleLangDetails(el){
