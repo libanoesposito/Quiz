@@ -133,20 +133,19 @@ function showLevels(lang) {
     
     for(let i=1; i<=5; i++) {
         let label = (i === 5) ? "ESAMINATI" : "Livello " + i;
-        let isLocked = false;
-
+        let isLocked = (state.mode === 'user' && i > 1 && (state.progress[lang] || 0) < i - 1);
+        
+        // Logica specifica sblocco 4 e 5 che avevi chiesto
         if (state.mode === 'user') {
-            // Utente: 1, 2, 3 liberi subito. 4 e 5 bloccati se non ha finito i primi 3.
-            if ((i === 4 || i === 5) && comp < 3) isLocked = true;
-        } else if (state.mode === 'guest') {
-            // Guest: 4 e 5 sempre bloccati (Demo)
-            if (i === 4 || i === 5) isLocked = true;
-        } 
-        // Admin: isLocked rimane sempre false.
+            if (i === 4 && comp < 3) isLocked = true;
+            if (i === 5 && comp < 3) isLocked = true;
+        }
+        
+        // Amministratore e Guest hanno tutto sbloccato
+        if (state.mode === 'admin' || state.mode === 'guest') isLocked = false;
 
-        // Recupero progresso (Solo per Admin e User)
         let currentIdx = 0;
-        if (state.mode !== 'guest' && dbUsers[state.currentPin]?.activeProgress) {
+        if (state.mode === 'user' && dbUsers[state.currentPin]?.activeProgress) {
             currentIdx = dbUsers[state.currentPin].activeProgress[`${lang}_${i}`] || 0;
         }
         if (comp >= i) currentIdx = 15;
@@ -156,100 +155,67 @@ function showLevels(lang) {
             <button class="btn-apple" ${isLocked ? 'disabled' : ''} onclick="startStep('${lang}',${i})" style="display:block; text-align:left; padding: 15px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; width:100%">
                     <span>${label} ${isLocked ? '🔒' : ''}</span>
-                    ${(state.mode !== 'guest' && !isLocked) ? `<span style="font-size:12px; opacity:0.6">${currentIdx}/15</span>` : ''}
+                    ${(state.mode === 'user' && !isLocked) ? `<span style="font-size:12px; opacity:0.6">${currentIdx}/15</span>` : ''}
                 </div>
-                ${(state.mode !== 'guest' && !isLocked) ? `
+                ${(state.mode === 'user' && !isLocked) ? `
                     <div class="progress-container">
                         <div class="progress-bar-fill" style="width: ${percentage}%"></div>
                     </div>` : ''}
-                ${(state.mode === 'guest' && isLocked) ? `<div style="font-size:10px; color:var(--accent); margin-top:5px">Registrati per sbloccare</div>` : ''}
             </button>`;
     }
     document.getElementById('content-area').innerHTML = html;
 }
 
-
 function startStep(lang, lvl) {
+    if(lvl === 5 && state.mode === 'user' && (state.progress[lang] || 0) < 3) return;
     if(lvl === 5) { renderL5(lang); return; }
     
     const key = "L" + lvl;
     const stringhe = domandaRepo[lang][key];
     const storageKey = `${lang}_${lvl}`;
-    
-    // Impostiamo il limite: 3 domande per guest, 15 per gli altri
-    const limiteDomande = (state.mode === 'guest') ? 3 : 15;
 
     let selezione;
-    // Se utente o admin, cerchiamo il quiz salvato
-    if (state.mode !== 'guest' && dbUsers[state.currentPin]?.savedQuizzes?.[storageKey]) {
+    if (state.mode === 'user' && dbUsers[state.currentPin].savedQuizzes?.[storageKey]) {
         selezione = dbUsers[state.currentPin].savedQuizzes[storageKey];
     } else {
-        // Altrimenti rimescoliamo
         const rimescolate = [...stringhe].sort(() => 0.5 - Math.random());
-        selezione = rimescolate.slice(0, limiteDomande).map(r => {
+        selezione = rimescolate.slice(0, 15).map(r => {
             const p = r.split("|");
             return { q: p[0], options: [p[1], p[2], p[3]], correct: parseInt(p[4]), exp: p[5] };
         });
-
-        // Salviamo solo se non è guest
-        if (state.mode !== 'guest') {
+        if (state.mode === 'user') {
             if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
             dbUsers[state.currentPin].savedQuizzes[storageKey] = selezione;
-            saveMasterDB();
         }
     }
 
     let savedIdx = 0;
-    if (state.mode !== 'guest') {
+    if (state.mode === 'user') {
         savedIdx = dbUsers[state.currentPin].activeProgress?.[storageKey] || 0;
     }
 
     session = { lang: lang, lvl: lvl, q: selezione, idx: savedIdx };
+    saveMasterDB();
     renderQ();
 }
 
-function renderL5(lang) {
-    const c = challenges5[lang];
+function renderQ() {
+    updateNav(true, `showLevels('${session.lang}')`);
+    const data = session.q[session.idx];
+    const progress = (session.idx / session.q.length) * 100;
     document.getElementById('content-area').innerHTML = `
-        <h3 style="text-align:center">ESAME FINALE: ${lang}</h3>
-        <p style="font-size:14px; opacity:0.8; text-align:center">${c.task}</p>
-        
-        <div class="editor-wrapper">
-            <pre class="code-highlight"><code id="highlighting-content" class="language-javascript"></code></pre>
-            <textarea id="ed" class="code-input" 
-                spellcheck="false" 
-                autocorrect="off" 
-                autocapitalize="off" 
-                placeholder="Scrivi il tuo codice qui..."
-                oninput="updateEditor(this.value)"
-                onkeydown="handleTab(event, this)"></textarea>
+        <div style="width:100%; margin-bottom:15px">
+            <div style="display:flex; justify-content:space-between; font-size:11px; opacity:0.5; margin-bottom:5px">
+                <span>DOMANDA ${session.idx + 1}/${session.q.length}</span>
+            </div>
+            <div style="width:100%; height:4px; background:rgba(120,120,128,0.1); border-radius:10px">
+                <div style="width:${progress}%; height:100%; background:var(--accent); border-radius:10px; transition:0.3s"></div>
+            </div>
         </div>
-
-        <button class="btn-apple btn-primary" style="margin-top:10px" onclick="runL5('${lang}')">Verifica Codice</button>
-        <div id="l5-err" style="color:#ff3b30; display:none; margin-top:10px; text-align:center">Il codice non soddisfa i requisiti logici.</div>`;
+        <h2 style="font-size:18px; margin-bottom:20px">${data.q}</h2>
+        <div id="opts" style="width:100%">${data.options.map((o,i)=>`<button class="btn-apple" onclick="check(${i===data.correct})">${o}</button>`).join('')}</div>
+        <div id="fb"></div>`;
 }
-
-// Funzione per sincronizzare testo e colori
-function updateEditor(text) {
-    let resultElement = document.getElementById("highlighting-content");
-    // Protezione per i caratteri HTML
-    let content = text.replace(new RegExp("&", "g"), "&amp;").replace(new RegExp("<", "g"), "&lt;");
-    resultElement.innerHTML = content;
-    Prism.highlightElement(resultElement);
-}
-
-// Per permettere l'uso del tasto TAB nell'editor
-function handleTab(e, el) {
-    if (e.key === 'Tab') {
-        e.preventDefault();
-        let start = el.selectionStart;
-        let end = el.selectionEnd;
-        el.value = el.value.substring(0, start) + "    " + el.value.substring(end);
-        el.selectionStart = el.selectionEnd = start + 4;
-        updateEditor(el.value);
-    }
-}
-
 
 function check(isOk) {
     const data = session.q[session.idx];
@@ -274,20 +240,16 @@ function next() {
     if(session.idx < session.q.length) {
         renderQ(); 
     } else { 
-        if (state.mode !== 'guest') {
+        if (state.mode === 'user') {
             state.progress[session.lang] = Math.max(state.progress[session.lang]||0, session.lvl); 
             const sk = `${session.lang}_${session.lvl}`;
-            if(dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress[sk] = 0;
-            if(dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[sk];
+            dbUsers[state.currentPin].activeProgress[sk] = 0;
+            delete dbUsers[state.currentPin].savedQuizzes[sk];
             saveMasterDB();
-            alert("Livello completato!");
-        } else {
-            alert("Fine della Demo! Registrati per accedere a tutte le 15 domande e ai livelli avanzati.");
         }
         showLevels(session.lang); 
     }
 }
-
 
 function logout() {
     state.mode = null; state.currentPin = null; session = null; renderLogin();
