@@ -446,33 +446,21 @@ function renderProfile() {
         <div style="margin-top:10px">${progHtml}</div>
     </div>
 
-    <div class="glass-card">
-        <div class="security-box">
-            <div class="security-header" onclick="toggleSecurity(this)">
-                Sicurezza
-                <span class="chevron">›</span>
-            </div>
-            <div class="security-content">
-                <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
-                <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
-                <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="glass-card">
-        <div class="security-box">
-            <div class="security-header" onclick="toggleHistory(this)">
-                Storico
-                <span class="chevron">›</span>
-            </div>
-            <div class="security-content" id="history-content" style="display:none; max-height:400px; overflow-y:auto">
-                ${generateHistoryHTML(u)}
-            </div>
-        </div>
+    <div class="glass-card" onclick="toggleCard(this)" style="cursor:pointer">
+    <strong>Sicurezza</strong> <span class="chevron">›</span>
+    <div class="security-content" style="display:none; margin-top:10px; display:flex; flex-direction:column; gap:6px">
+        <button class="btn-apple" onclick="userChangePin(); event.stopPropagation()">Cambia PIN</button>
+        <button class="btn-apple" onclick="resetStats(); event.stopPropagation()">Azzera statistiche</button>
+        <button class="btn-apple btn-destruct" onclick="deleteAccount(); event.stopPropagation()">Elimina account</button>
     </div>
 </div>
-`;
+
+<div class="glass-card" onclick="toggleCard(this)" style="cursor:pointer">
+    <strong>Storico</strong> <span class="chevron">›</span>
+    <div class="security-content" id="history-content" style="display:none; max-height:400px; overflow-y:auto; margin-top:10px">
+        ${generateHistoryHTML(u)}
+    </div>
+</div>
 
     // Funzione per espandere progressi generali
     window.toggleGeneralProgress = function(card) {
