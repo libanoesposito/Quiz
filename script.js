@@ -750,6 +750,3 @@ function openModal(title, content, onConfirm) {
 
 // Inserisci qui le tue funzioni renderProfile, adminReset, adminDelete, userChangePin che hai nel file
 // (Mantenile come sono, sono corrette nel tuo originale)
-Mio completo 
-
-Ora ti faccio richieste e mi dici dove intervenire, quale funzione sostituire con il blocco che mi dai
