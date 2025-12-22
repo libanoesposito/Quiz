@@ -419,8 +419,8 @@ startStep = function (lang, lvl) {
 
     if (state.mode === 'guest') {
 
-        if (!canAccessLevel(lvl)) {
-    alert("Completa prima tutti i livelli precedenti per sbloccare questo livello.");
+        If(lvl>=4) {
+    showGuestLocked();
     return;
 }
 
