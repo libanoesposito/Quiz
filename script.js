@@ -380,28 +380,50 @@ function renderProfile() {
 
     let progHtml = '';
     totalLevels.forEach(lang => {
-        const comp = state.progress[lang] || 0;
-        progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
+        // Calcolo generale per il linguaggio
+        let correct = 0, wrong = 0, notStudied = 0;
         for(let i=1;i<=5;i++){
-            let correct=0, wrong=0, total=15;
+            let total = 15;
             if(u.history[lang]){
                 u.history[lang].forEach(h=>{
-                    if(i<=comp){ if(h.ok) correct++; else wrong++; }
+                    if(i <= (state.progress[lang]||0)){
+                        if(h.ok) correct++; else wrong++;
+                    }
                 });
             }
-            const notStudied = total - correct - wrong;
-            const percent = total ? Math.round((correct/total)*100) : 0;
-            progHtml += `<div style="margin-bottom:8px">
-                <div style="font-size:13px">Livello ${i}</div>
-                <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                    <div class="progress-bar-fill" style="width:${(correct/total)*100}%; background:#34c759; height:100%"></div>
-                    <div class="progress-bar-fill" style="width:${(wrong/total)*100}%; background:#ff3b30; position:absolute; left:${(correct/total)*100}%; height:100%"></div>
-                    <div class="progress-bar-fill" style="width:${(notStudied/total)*100}%; background:#aaa; position:absolute; left:${((correct+wrong)/total)*100}%; height:100%"></div>
-                </div>
-                <div style="font-size:11px; text-align:right; margin-top:2px">${percent}% corrette</div>
-            </div>`;
+            notStudied += total - correct - wrong;
         }
-        progHtml += `</div>`;
+        progHtml += `
+        <div class="lang-overview">
+            <div class="lang-header" onclick="toggleCard(this)">
+                <strong>${lang}</strong> - ${correct} corrette · ${wrong} sbagliate · ${notStudied} non studiate
+            </div>
+            <div class="lang-details" style="display:none; margin-top:8px; margin-left:10px">
+                ${[1,2,3,4,5].map(i=>{
+                    let lvlCorrect=0, lvlWrong=0, total=15;
+                    if(u.history[lang]){
+                        u.history[lang].forEach(h=>{
+                            if(i <= (state.progress[lang]||0)){
+                                if(h.ok) lvlCorrect++; else lvlWrong++;
+                            }
+                        });
+                    }
+                    let lvlNotStudied = total - lvlCorrect - lvlWrong;
+                    let percent = total ? Math.round((lvlCorrect/total)*100) : 0;
+                    return `
+                    <div style="margin-bottom:8px">
+                        <div style="font-size:13px">Livello ${i}</div>
+                        <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
+                            <div class="progress-bar-fill" style="width:${(lvlCorrect/total)*100}%; background:#34c759; height:100%"></div>
+                            <div class="progress-bar-fill" style="width:${(lvlWrong/total)*100}%; background:#ff3b30; position:absolute; left:${(lvlCorrect/total)*100}%; height:100%"></div>
+                            <div class="progress-bar-fill" style="width:${(lvlNotStudied/total)*100}%; background:#aaa; position:absolute; left:${((lvlCorrect+lvlWrong)/total)*100}%; height:100%"></div>
+                        </div>
+                        <div style="font-size:11px; text-align:right; margin-top:2px">${percent}% corrette</div>
+                    </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>`;
     });
 
     document.getElementById('content-area').innerHTML = `
@@ -412,11 +434,12 @@ function renderProfile() {
             </div>
 
             <div class="glass-card">
-                <div><strong>Statistiche</strong></div>
+                <div><strong>Statistiche generali</strong></div>
                 <div style="margin-top:10px">
                     <div>Domande totali: ${stats.total}</div>
                     <div>Corrette: ${stats.correct}</div>
                     <div>Sbagliate: ${stats.wrong}</div>
+                    <div>Non studiate: ${stats.total - stats.correct - stats.wrong}</div>
                     <div>Percentuale: ${stats.perc}%</div>
                 </div>
             </div>
@@ -442,6 +465,13 @@ function renderProfile() {
         </div>
     `;
 }
+
+// Toggle card helper
+function toggleCard(el){
+    const content = el.nextElementSibling;
+    if(content) content.style.display = content.style.display==='none'?'block':'none';
+}
+
 function toggleCard(el) {
     const content = el.nextElementSibling;
     if (!content) return;
