@@ -370,92 +370,71 @@ function calcStats() {
     };
 }
 
-function renderProfile() {
+function renderAdminPanel() {
     updateNav(true, "showHome()");
-    document.getElementById('app-title').innerText = "IL MIO PROFILO";
+    document.getElementById('app-title').innerText = "ADMIN";
 
-    const u = dbUsers[state.currentPin];
-    const stats = calcStats();
-    const totalLevels = Object.keys(domandaRepo);
+    const users = Object.entries(dbUsers)
+        .map(([pin, u]) => ({
+            pin,
+            name: u.name,
+            stats: calcUserStats(u),
+            history: u.history || {},
+            deleted: u.deleted
+        }))
+        .sort((a, b) => b.stats.perc - a.stats.perc);
 
     let html = `<div style="width:100%">`;
 
-    // CARD INFORMAZIONI GENERALI
-    html += `
-        <div class="review-card">
-            <div><strong>Nome:</strong> ${u.name}</div>
-            <div><strong>ID Utente:</strong> ${u.userId}</div>
-        </div>
-
-        <div class="review-card">
-            <div><strong>Risposte corrette:</strong> ${stats.correct}</div>
-            <div><strong>Risposte sbagliate:</strong> ${stats.wrong}</div>
-            <div><strong>Argomenti non studiati:</strong> ${stats.total - (stats.correct + stats.wrong)}</div>
-        </div>
-    `;
-
-    // CARD PROGRESSI PER ARGOMENTO (accordion)
-    html += `<div class="review-card"><strong>Progressi</strong>`;
-
-    totalLevels.forEach(lang => {
-        const comp = state.progress[lang] || 0;
-
-        // Header cliccabile per espansione
+    users.forEach(u => {
         html += `
-            <div class="accordion">
-                <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
-                    ${lang} <span class="chevron">›</span>
-                </div>
-                <div class="accordion-content">
-        `;
-
-        // Barre di progresso per livelli
-        for (let i = 1; i <= 5; i++) {
-            let correct = 0, wrong = 0, total = 15;
-            if(u.history[lang]){
-                u.history[lang].forEach(h => {
-                    if(i <= comp){ if(h.ok) correct++; else wrong++; }
-                });
-            }
-            const notStudied = total - correct - wrong;
-            const percent = total ? Math.round((correct/total)*100) : 0;
-
-            html += `
-                <div style="margin-bottom:8px">
-                    <div style="font-size:13px">Livello ${i}</div>
-                    <div class="progress-container">
-                        <div class="progress-bar-fill" style="width:${(correct/total)*100}%; background:#34c759"></div>
-                        <div class="progress-bar-fill" style="width:${(wrong/total)*100}%; background:#ff3b30; position:absolute; left:${(correct/total)*100}%"></div>
-                        <div class="progress-bar-fill" style="width:${(notStudied/total)*100}%; background:#aaa; position:absolute; left:${((correct+wrong)/total)*100}%"></div>
+            <div class="review-card ${u.deleted ? 'is-err' : 'is-ok'}">
+                <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer" onclick="toggleCard(this)">
+                    <div>
+                        <strong>${u.name}</strong>
+                        <div style="font-size:12px; opacity:0.6">PIN ${u.pin}</div>
                     </div>
-                    <div style="font-size:11px; text-align:right">${percent}% corrette</div>
+                    <div>${u.stats.correct}/${u.stats.total} corrette · ${u.stats.perc}%</div>
                 </div>
-            `;
-        }
-
-        html += `</div></div>`; // chiusura accordion-content e accordion
+                
+                <div class="card-content" style="display:none; margin-top:10px">
+                    ${Object.keys(domandaRepo).map(lang => {
+                        const total = 15 * 5;
+                        const correct = u.history[lang]?.filter(h => h.ok).length || 0;
+                        const wrong = u.history[lang]?.filter(h => !h.ok).length || 0;
+                        const notStudied = total - correct - wrong;
+                        return `
+                            <div class="lang-progress">
+                                <div style="cursor:pointer" onclick="toggleCard(this)">
+                                    <strong>${lang}</strong> - ${correct}/${total} corrette
+                                </div>
+                                <div class="card-content" style="display:none; margin-left:10px">
+                                    <div class="progress-container">
+                                        <div class="progress-bar-fill" style="width:${(correct/total)*100}%"></div>
+                                        <div class="progress-bar-fill" style="width:${(wrong/total)*100}%; background:#ff3b30; position:absolute; left:${(correct/total)*100}%"></div>
+                                        <div class="progress-bar-fill" style="width:${(notStudied/total)*100}%; background:#aaa; position:absolute; left:${((correct+wrong)/total)*100}%"></div>
+                                    </div>
+                                    <div style="font-size:12px; text-align:right">
+                                        ${correct} corrette · ${wrong} sbagliate · ${notStudied} non studiate
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
     });
 
-    html += `</div>`; // chiusura card progressi
-
-    // CARD SICUREZZA
-    html += `
-        <div class="security-box">
-            <div class="security-header" onclick="toggleSecurity(this)">
-                Sicurezza
-                <span class="chevron">›</span>
-            </div>
-            <div class="security-content">
-                <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
-                <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
-                <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
-            </div>
-        </div>
-    `;
-
+    html += `</div>`;
     document.getElementById('content-area').innerHTML = html;
 }
 
+function toggleCard(el) {
+    const content = el.nextElementSibling;
+    if (!content) return;
+    content.style.display = content.style.display === 'none' ? 'block' : 'none';
+}
 function toggleSecurity(el) {
     el.parentElement.classList.toggle("open");
 }
