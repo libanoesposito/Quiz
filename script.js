@@ -523,9 +523,22 @@ function toggleLangDetails(el){
 }
 
 function toggleCard(el) {
-    const content = el.querySelector('.security-content');
+    const content = el.querySelector('.card-content, .security-content, #detailed-progress');
     if (!content) return;
-    content.style.display = content.style.display === 'none' ? 'flex' : 'none';
+
+    // Chiudi tutte le altre card tranne questa
+    document.querySelectorAll('.card-content, .security-content, #detailed-progress').forEach(c => {
+        if (c !== content) c.style.display = 'none';
+    });
+
+    // Mostra/nascondi il contenuto della card cliccata
+    const isHidden = content.style.display === 'none';
+    content.style.display = isHidden ? 'flex' : 'none';
+
+    // Scroll verso la card se si apre
+    if (isHidden) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 }
 
 
