@@ -454,7 +454,7 @@ function renderProfile() {
 
     <div class="glass-card" onclick="toggleCard(this)" style="cursor:pointer">
     <strong>Sicurezza</strong>
-    <div class="security-content" style="display:none; margin-top:10px; flex-direction:column; gap:6px">
+    <div class="security-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px">
         <button class="btn-apple" onclick="userChangePin(); event.stopPropagation()">Cambia PIN</button>
         <button class="btn-apple" onclick="resetStats(); event.stopPropagation()">Azzera statistiche</button>
         <button class="btn-apple btn-destruct" onclick="deleteAccount(); event.stopPropagation()">Elimina account</button>
@@ -511,15 +511,18 @@ function toggleLangDetails(el){
 }
 
 function toggleCard(el) {
-    const content = el.querySelector('.security-content');
-    if (!content) return;
+    const content = el.querySelector('.security-content'); // figlio diretto
+    if (!content) {
+        console.error("toggleCard: content non trovato", el);
+        return;
+    }
 
     // Chiudi tutte le altre card tranne questa
     document.querySelectorAll('.glass-card .security-content').forEach(c => {
         if (c !== content) c.style.display = 'none';
     });
 
-    // Mostra/nascondi il contenuto della card cliccata
+    // Mostra/nascondi
     content.style.display = content.style.display === 'none' ? 'flex' : 'none';
 }
 
