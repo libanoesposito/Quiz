@@ -378,84 +378,70 @@ function renderProfile() {
     const stats = calcStats();
     const totalLevels = Object.keys(domandaRepo);
 
-    let html = `<div style="width:100%">`;
-
-    // CARD INFORMAZIONI GENERALI
-    html += `
-        <div class="review-card">
-            <div><strong>Nome:</strong> ${u.name}</div>
-            <div><strong>ID Utente:</strong> ${u.userId}</div>
-        </div>
-
-        <div class="review-card">
-            <div><strong>Risposte corrette:</strong> ${stats.correct}</div>
-            <div><strong>Risposte sbagliate:</strong> ${stats.wrong}</div>
-            <div><strong>Argomenti non studiati:</strong> ${stats.total - (stats.correct + stats.wrong)}</div>
-        </div>
-    `;
-
-    // CARD PROGRESSI PER ARGOMENTO (accordion)
-    html += `<div class="review-card"><strong>Progressi</strong>`;
-
+    let progHtml = '';
     totalLevels.forEach(lang => {
         const comp = state.progress[lang] || 0;
-
-        // Header cliccabile per espansione
-        html += `
-            <div class="accordion">
-                <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
-                    ${lang} <span class="chevron">›</span>
-                </div>
-                <div class="accordion-content">
-        `;
-
-        // Barre di progresso per livelli
-        for (let i = 1; i <= 5; i++) {
-            let correct = 0, wrong = 0, total = 15;
+        progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
+        for(let i=1;i<=5;i++){
+            let correct=0, wrong=0, total=15;
             if(u.history[lang]){
-                u.history[lang].forEach(h => {
-                    if(i <= comp){ if(h.ok) correct++; else wrong++; }
+                u.history[lang].forEach(h=>{
+                    if(i<=comp){ if(h.ok) correct++; else wrong++; }
                 });
             }
             const notStudied = total - correct - wrong;
             const percent = total ? Math.round((correct/total)*100) : 0;
-
-            html += `
-                <div style="margin-bottom:8px">
-                    <div style="font-size:13px">Livello ${i}</div>
-                    <div class="progress-container">
-                        <div class="progress-bar-fill" style="width:${(correct/total)*100}%; background:#34c759"></div>
-                        <div class="progress-bar-fill" style="width:${(wrong/total)*100}%; background:#ff3b30; position:absolute; left:${(correct/total)*100}%"></div>
-                        <div class="progress-bar-fill" style="width:${(notStudied/total)*100}%; background:#aaa; position:absolute; left:${((correct+wrong)/total)*100}%"></div>
-                    </div>
-                    <div style="font-size:11px; text-align:right">${percent}% corrette</div>
+            progHtml += `<div style="margin-bottom:8px">
+                <div style="font-size:13px">Livello ${i}</div>
+                <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
+                    <div class="progress-bar-fill" style="width:${(correct/total)*100}%; background:#34c759; height:100%"></div>
+                    <div class="progress-bar-fill" style="width:${(wrong/total)*100}%; background:#ff3b30; position:absolute; left:${(correct/total)*100}%; height:100%"></div>
+                    <div class="progress-bar-fill" style="width:${(notStudied/total)*100}%; background:#aaa; position:absolute; left:${((correct+wrong)/total)*100}%; height:100%"></div>
                 </div>
-            `;
+                <div style="font-size:11px; text-align:right; margin-top:2px">${percent}% corrette</div>
+            </div>`;
         }
-
-        html += `</div></div>`; // chiusura accordion-content e accordion
+        progHtml += `</div>`;
     });
 
-    html += `</div>`; // chiusura card progressi
-
-    // CARD SICUREZZA
-    html += `
-        <div class="security-box">
-            <div class="security-header" onclick="toggleSecurity(this)">
-                Sicurezza
-                <span class="chevron">›</span>
+    document.getElementById('content-area').innerHTML = `
+        <div style="width:100%; display:flex; flex-direction:column; gap:15px">
+            <div class="glass-card">
+                <div><strong>Nome:</strong> ${u.name}</div>
+                <div><strong>ID Utente:</strong> ${u.userId}</div>
             </div>
-            <div class="security-content">
-                <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
-                <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
-                <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
+
+            <div class="glass-card">
+                <div><strong>Statistiche</strong></div>
+                <div style="margin-top:10px">
+                    <div>Domande totali: ${stats.total}</div>
+                    <div>Corrette: ${stats.correct}</div>
+                    <div>Sbagliate: ${stats.wrong}</div>
+                    <div>Percentuale: ${stats.perc}%</div>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <strong>Progressi</strong>
+                <div style="margin-top:10px">${progHtml}</div>
+            </div>
+
+            <div class="glass-card">
+                <div class="security-box">
+                    <div class="security-header" onclick="toggleSecurity(this)">
+                        Sicurezza
+                        <span class="chevron">›</span>
+                    </div>
+                    <div class="security-content">
+                        <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
+                        <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
+                        <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
+                    </div>
+                </div>
             </div>
         </div>
     `;
-
-    document.getElementById('content-area').innerHTML = html;
 }
-
 function toggleCard(el) {
     const content = el.nextElementSibling;
     if (!content) return;
