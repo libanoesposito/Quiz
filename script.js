@@ -505,15 +505,22 @@ function toggleLangDetails(el){
 }
 
 function toggleCard(el) {
-    const content = el.children[1]; // PRENDE IL DIV GIUSTO
-    if (!content) return;
+    console.log('toggleCard chiamata');
 
-    // chiude le altre
-    document.querySelectorAll('.glass-card > .security-content').forEach(c => {
-        if (c !== content) c.style.display = 'none';
-    });
+    if (!el) {
+        console.log('el è null');
+        return;
+    }
 
-    // toggle
+    const content = el.children[1];
+
+    if (!content) {
+        console.log('content NON trovato');
+        return;
+    }
+
+    console.log('content trovato');
+
     content.style.display =
         content.style.display === 'none' || content.style.display === ''
             ? 'block'
@@ -957,8 +964,8 @@ function openModal(title, content, onConfirm) {
 
 /*CONTROLLORE*/
 (function () {
-    const box = document.createElement("div");
-    box.id = "debug-box";
+    const box = document.createElement('div');
+    box.id = 'debug-box';
     box.style = `
         position:fixed;
         bottom:10px;
@@ -966,37 +973,30 @@ function openModal(title, content, onConfirm) {
         max-width:90%;
         max-height:40%;
         overflow:auto;
-        background:#111;
-        color:#ff6b6b;
+        background:#000;
+        color:#0f0;
         font-size:12px;
-        padding:10px;
-        border-radius:8px;
-        z-index:9999;
+        padding:8px;
+        z-index:99999;
         display:none;
-        white-space:pre-wrap;
-        box-shadow:0 0 10px rgba(0,0,0,0.4)
+        border-radius:6px;
+        font-family:monospace;
     `;
     document.body.appendChild(box);
 
-    function show(msg) {
-        box.style.display = "block";
-        box.textContent += msg + "\n";
+    function log(msg) {
+        box.style.display = 'block';
+        box.innerHTML += msg + '<br>';
     }
 
-    window.onerror = function (msg, url, line, col) {
-        show(`JS ERROR:
-${msg}
-line: ${line}:${col}`);
-        return false;
+    window.onerror = function (msg, src, line, col) {
+        log(`❌ JS ERROR: ${msg} @ ${line}:${col}`);
     };
 
-    window.onunhandledrejection = function (e) {
-        show(`PROMISE ERROR:
-${e.reason}`);
-    };
-
-    window.debug = function (label, value) {
-        show(`DEBUG → ${label}: ${value}`);
+    const oldLog = console.log;
+    console.log = function (...args) {
+        log('ℹ️ ' + args.join(' '));
+        oldLog.apply(console, args);
     };
 })();
 // Inserisci qui le tue funzioni renderProfile, adminReset, adminDelete, userChangePin che hai nel file
