@@ -288,27 +288,60 @@ function calcStats() {
 }
 
 function renderProfile() {
-    ensureUserId();
     updateNav(true, "showHome()");
-    document.getElementById('app-title').innerText = "PROFILO";
+    document.getElementById('app-title').innerText = "IL MIO PROFILO";
 
-    const u = dbUsers[state.currentPin];
-    const stats = calcStats();
+    const userData = dbUsers[state.currentPin];
+    const totalLevels = Object.keys(domandaRepo);
+    let html = `<div class="glass-card">`;
 
-    let progHtml = "";
-    Object.keys(domandaRepo).forEach(l => {
-        const p = state.progress[l] || 0;
-        progHtml += `
-            <div style="margin-bottom:10px; font-size:14px">
-                <strong>${l}</strong>
+    // Lista livelli con progressi
+    totalLevels.forEach(lang => {
+        const comp = state.progress[lang] || 0;
+        html += `<div style="margin-bottom:15px">
+            <h4>${lang}</h4>`;
+        for(let i=1;i<=5;i++){
+            const storageKey = `${lang}_${i}`;
+            let correct = 0, wrong = 0, total = 15;
+
+            if(userData.history[lang]){
+                userData.history[lang].forEach(h=>{
+                    const idx = session?.lang===lang?session.idx:0;
+                    if(i<=comp){
+                        if(h.ok) correct++; else wrong++;
+                    }
+                });
+            }
+            const notStudied = total - correct - wrong;
+            const percent = total ? Math.round((correct/total)*100) : 0;
+            html += `<div style="margin-bottom:8px">
+                <div style="font-size:13px">Livello ${i}</div>
                 <div class="progress-container">
-                    <div class="progress-bar-fill" style="width:${(p/5)*100}%"></div>
+                    <div class="progress-bar-fill" style="width:${(correct/total)*100}%; background:#34c759"></div>
+                    <div class="progress-bar-fill" style="width:${(wrong/total)*100}%; background:#ff3b30; position:absolute; left:${(correct/total)*100}%"></div>
+                    <div class="progress-bar-fill" style="width:${(notStudied/total)*100}%; background:#aaa; position:absolute; left:${((correct+wrong)/total)*100}%"></div>
                 </div>
-                <div style="font-size:12px; opacity:0.6">Livello ${p}/5</div>
-            </div>
-        `;
+                <div style="font-size:11px; text-align:right">${percent}% corrette</div>
+            </div>`;
+        }
+        html += `</div>`;
     });
 
+    // Sezione azioni utente (espandibile)
+    html += `<div class="security-box">
+        <div class="security-header" onclick="this.parentElement.classList.toggle('open')">
+            Azioni Profilo <span class="chevron">\u276F</span>
+        </div>
+        <div class="security-content">
+            <button class="modal-btn btn-primary" onclick="userChangePin()">Cambia PIN</button>
+            <button class="modal-btn btn-destruct" onclick="userResetStats()">Reset Statistiche</button>
+            <button class="modal-btn btn-destruct" onclick="userDeleteProfile()">Elimina Profilo</button>
+        </div>
+    </div>`;
+
+    html += `</div>`; // chiusura glass-card
+    document.getElementById('content-area').innerHTML = html;
+}
     document.getElementById('content-area').innerHTML = `
         <div style="width:100%">
             <div class="review-card">
@@ -544,6 +577,40 @@ function renderAdminPanel() {
     document.getElementById('content-area').innerHTML = html;
 }
 
+function renderAdminUsers() {
+    updateNav(true, "showHome()");
+    document.getElementById('app-title').innerText = "PANNELLO ADMIN";
+
+    let users = Object.keys(dbUsers).map((pin, idx) => {
+        const user = dbUsers[pin];
+        let score = 0;
+        Object.values(user.history).forEach(hist=>{
+            hist.forEach(h=>{ if(h.ok) score++; });
+        });
+        return { id: idx+1, name: user.name, pin, score, history: user.history };
+    });
+
+    // Ordina per punteggio decrescente
+    users.sort((a,b)=>b.score - a.score);
+
+    let html = `<div class="glass-card">`;
+    users.forEach(u=>{
+        html += `<div style="margin-bottom:15px; padding:10px; border:1px solid var(--border); border-radius:12px; display:flex; justify-content:space-between; align-items:center">
+            <div>
+                <strong>${u.id}</strong> - ${u.name} (Punteggio: ${u.score})
+            </div>
+            <div style="display:flex; gap:10px">
+                <button class="modal-btn btn-primary" onclick="showUserHistory('${u.pin}')">⏳</button>
+                <button class="modal-btn btn-cancel" onclick="adminUpdateStats('${u.pin}')">🔄</button>
+                <button class="modal-btn btn-destruct" onclick="adminDeleteUser('${u.pin}')">❌</button>
+                <button class="modal-btn btn-destruct" onclick="adminResetUserStats('${u.pin}')">♻️</button>
+            </div>
+        </div>`;
+    });
+    html += `</div>`;
+    document.getElementById('content-area').innerHTML = html;
+}
+
 function calcUserStats(user) {
     let tot = 0;
     let ok = 0;
@@ -629,29 +696,6 @@ showHome = function () {
         `;
     }
 };
-
-function renderProfile() {
-    updateNav(true, "showHome()");
-    document.getElementById('app-title').innerText = "IL MIO PROFILO";
-
-    const user = dbUsers[state.currentPin];
-    const stats = calcUserStats(user);
-
-    let html = `
-        <div class="glass-card">
-            <div><strong>Nome:</strong> ${user.name}</div>
-            <div><strong>ID:</strong> ${user.userId}</div>
-            <div style="margin-top:10px"><strong>Statistiche:</strong> ${stats.correct}/${stats.total} corrette (${stats.perc}%)</div>
-            
-            <div style="margin-top:20px">
-                <button class="btn-apple btn-primary" onclick="userChangePin()">Cambia PIN</button>
-                <button class="btn-apple" onclick="userResetStats()">Azzera statistiche</button>
-                <button class="btn-apple btn-destruct" onclick="userDeleteAccount()">Elimina account</button>
-            </div>
-        </div>
-    `;
-    document.getElementById('content-area').innerHTML = html;
-}
 
 /* Cambia PIN */
 function userChangePin() {
