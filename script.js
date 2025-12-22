@@ -206,25 +206,35 @@ function startStep(lang, lvl) {
     let selezione;
     const storageKey = `${lang}_${lvl}`;
 
-    // Controlliamo se l'utente ha un quiz rimescolato già salvato per questo livello
+    // 1. Gestione della selezione domande (Random o Salvata)
     if (state.mode === 'user' && dbUsers[state.currentPin].savedQuizzes && dbUsers[state.currentPin].savedQuizzes[storageKey]) {
-        // Carica il quiz esistente
         selezione = dbUsers[state.currentPin].savedQuizzes[storageKey];
     } else {
-        // Crea un nuovo quiz rimescolato da 15 domande
         const rimescolate = [...stringhe].sort(() => 0.5 - Math.random());
         selezione = rimescolate.slice(0, 15).map(r => {
             const p = r.split("|");
             return { q: p[0], options: [p[1], p[2], p[3]], correct: parseInt(p[4]), exp: p[5] };
         });
 
-        // Se è un utente, salviamo questo rimescolamento nel database
         if (state.mode === 'user') {
             if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
             dbUsers[state.currentPin].savedQuizzes[storageKey] = selezione;
             saveMasterDB();
         }
     }
+
+    // 2. Recupero dell'indice di progresso (A che domanda era arrivato?)
+    let savedIdx = 0;
+    if (state.mode === 'user' && dbUsers[state.currentPin].activeProgress) {
+        savedIdx = dbUsers[state.currentPin].activeProgress[storageKey] || 0;
+    }
+
+    // 3. Configurazione sessione e Navigazione
+    updateNav(true, `showLevels('${lang}')`); // Imposta il tasto indietro corretto
+    session = { lang: lang, lvl: lvl, q: selezione, idx: savedIdx };
+    renderQ();
+}
+
 
     // Recupera l'indice (a che domanda era arrivato)
     let savedIdx = 0;
