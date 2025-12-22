@@ -270,434 +270,99 @@ function ensureUserId() {
     }
 }
 
-function calcStats() {
-    let tot = 0;
-    let ok = 0;
-    Object.values(state.history || {}).forEach(arr => {
+function calcStats(user) {
+    let total = 0, correct = 0, wrong = 0;
+    Object.values(user.history || {}).forEach(arr => {
         arr.forEach(h => {
-            tot++;
-            if (h.ok) ok++;
+            total++;
+            if(h.ok) correct++;
+            else wrong++;
         });
     });
     return {
-        total: tot,
-        correct: ok,
-        wrong: tot - ok,
-        perc: tot ? Math.round((ok / tot) * 100) : 0
+        total,
+        correct,
+        wrong,
+        perc: total ? Math.round((correct/total)*100) : 0
     };
 }
 
 function renderProfile() {
+    if(state.mode !== 'user') return;
+    ensureUserId();
+
+    const u = dbUsers[state.currentPin];
+    const stats = calcStats(u);
+
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = "IL MIO PROFILO";
 
-    const userData = dbUsers[state.currentPin];
-    const totalLevels = Object.keys(domandaRepo);
     let html = `<div class="glass-card">`;
 
-    // Lista livelli con progressi
-    totalLevels.forEach(lang => {
-        const comp = state.progress[lang] || 0;
-        html += `<div style="margin-bottom:15px">
-            <h4>${lang}</h4>`;
-        for(let i=1;i<=5;i++){
-            const storageKey = `${lang}_${i}`;
-            let correct = 0, wrong = 0, total = 15;
+    // Dati generali
+    html += `
+        <div class="review-card">
+            <div><strong>Nome:</strong> ${u.name}</div>
+            <div><strong>ID Utente:</strong> ${u.userId}</div>
+        </div>
+        <div class="review-card">
+            <div><strong>Domande totali:</strong> ${stats.total}</div>
+            <div><strong>Corrette:</strong> ${stats.correct}</div>
+            <div><strong>Sbagliate:</strong> ${stats.wrong}</div>
+            <div><strong>Percentuale:</strong> ${stats.perc}%</div>
+        </div>
+    `;
 
-            if(userData.history[lang]){
-                userData.history[lang].forEach(h=>{
-                    const idx = session?.lang===lang?session.idx:0;
-                    if(i<=comp){
-                        if(h.ok) correct++; else wrong++;
-                    }
+    // Progressi per linguaggi e livelli
+    Object.keys(domandaRepo).forEach(lang => {
+        html += `<div style="margin-top:10px"><h4>${lang}</h4>`;
+        for(let i=1;i<=5;i++){
+            const totalQ = 15;
+            let correct = 0, wrong = 0;
+            if(u.history[lang]){
+                u.history[lang].forEach(h=>{
+                    correct += h.ok ? 1 : 0;
+                    wrong += !h.ok ? 1 : 0;
                 });
             }
-            const notStudied = total - correct - wrong;
-            const percent = total ? Math.round((correct/total)*100) : 0;
-            html += `<div style="margin-bottom:8px">
-                <div style="font-size:13px">Livello ${i}</div>
-                <div class="progress-container">
-                    <div class="progress-bar-fill" style="width:${(correct/total)*100}%; background:#34c759"></div>
-                    <div class="progress-bar-fill" style="width:${(wrong/total)*100}%; background:#ff3b30; position:absolute; left:${(correct/total)*100}%"></div>
-                    <div class="progress-bar-fill" style="width:${(notStudied/total)*100}%; background:#aaa; position:absolute; left:${((correct+wrong)/total)*100}%"></div>
+            const notStudied = totalQ - correct - wrong;
+            html += `
+                <div style="margin-bottom:8px">
+                    <div style="font-size:13px">Livello ${i}</div>
+                    <div class="progress-container">
+                        <div class="progress-bar-fill" style="width:${(correct/totalQ)*100}%; background:#34c759"></div>
+                        <div class="progress-bar-fill" style="width:${(wrong/totalQ)*100}%; background:#ff3b30; position:absolute; left:${(correct/totalQ)*100}%"></div>
+                        <div class="progress-bar-fill" style="width:${(notStudied/totalQ)*100}%; background:#aaa; position:absolute; left:${((correct+wrong)/totalQ)*100}%"></div>
+                    </div>
+                    <div style="font-size:11px; text-align:right">${Math.round((correct/totalQ)*100)}% corrette</div>
                 </div>
-                <div style="font-size:11px; text-align:right">${percent}% corrette</div>
-            </div>`;
+            `;
         }
         html += `</div>`;
     });
 
-    // Sezione azioni utente (espandibile)
-    html += `<div class="security-box">
-        <div class="security-header" onclick="this.parentElement.classList.toggle('open')">
-            Azioni Profilo <span class="chevron">\u276F</span>
-        </div>
-        <div class="security-content">
-            <button class="modal-btn btn-primary" onclick="userChangePin()">Cambia PIN</button>
-            <button class="modal-btn btn-destruct" onclick="userResetStats()">Reset Statistiche</button>
-            <button class="modal-btn btn-destruct" onclick="userDeleteProfile()">Elimina Profilo</button>
-        </div>
-    </div>`;
-
-    html += `</div>`; // chiusura glass-card
-    document.getElementById('content-area').innerHTML = html;
-}
-    document.getElementById('content-area').innerHTML = `
-        <div style="width:100%">
-            <div class="review-card">
-                <div><strong>Nome:</strong> ${u.name}</div>
-                <div><strong>ID Utente:</strong> ${u.userId}</div>
+    // Azioni utente
+    html += `
+        <div class="security-box">
+            <div class="security-header" onclick="toggleSecurity(this)">
+                Azioni Profilo <span class="chevron">\u276F</span>
             </div>
-
-            <div class="review-card">
-                <div><strong>Domande totali:</strong> ${stats.total}</div>
-                <div><strong>Corrette:</strong> ${stats.correct}</div>
-                <div><strong>Sbagliate:</strong> ${stats.wrong}</div>
-                <div><strong>Percentuale:</strong> ${stats.perc}%</div>
-            </div>
-
-            <div class="review-card">
-                <strong>Progressi</strong>
-                <div style="margin-top:10px">${progHtml}</div>
-            </div>
-
-            <div class="security-box">
-                <div class="security-header" onclick="toggleSecurity(this)">
-                    Sicurezza
-                    <span class="chevron">›</span>
-                </div>
-                <div class="security-content">
-                    <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
-                    <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
-                    <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
-                </div>
+            <div class="security-content">
+                <button class="modal-btn btn-primary" onclick="userChangePin()">Cambia PIN</button>
+                <button class="modal-btn btn-destruct" onclick="userResetStats()">Reset Statistiche</button>
+                <button class="modal-btn btn-destruct" onclick="userDeleteAccount()">Elimina Profilo</button>
             </div>
         </div>
     `;
+
+    html += `</div>`; 
+    document.getElementById('content-area').innerHTML = html;
 }
 
 function toggleSecurity(el) {
     el.parentElement.classList.toggle("open");
 }
 
-function resetStats() {
-    openModal(
-        "Azzera statistiche",
-        "Perderai progressi e storico. Operazione irreversibile.",
-        () => {
-            state.progress = {};
-            state.history = {};
-            dbUsers[state.currentPin].activeProgress = {};
-            dbUsers[state.currentPin].savedQuizzes = {};
-            saveMasterDB();
-            renderProfile();
-        }
-    );
-}
-
-function deleteAccount() {
-    openModal(
-        "Elimina account",
-        "Il tuo profilo verrà rimosso. L'admin manterrà i dati.",
-        () => {
-            dbUsers[state.currentPin].deleted = true;
-            saveMasterDB();
-            logout();
-        }
-    );
-}
-
-function openModal(title, desc, onConfirm) {
-    document.getElementById("modal-title").innerText = title;
-    document.getElementById("modal-desc").innerText = desc;
-    const btn = document.getElementById("modal-confirm-btn");
-    btn.onclick = () => { closeModal(); onConfirm(); };
-    document.getElementById("universal-modal").style.display = "flex";
-}
-
-function closeModal() {
-    document.getElementById("universal-modal").style.display = "none";
-}
-/* =========================
-   LOGICA GUEST (DEMO)
-   ========================= */
-
-const GUEST_LIMITS = {
-    1: 3,
-    2: 2,
-    3: 1
-};
-
-function guestLimitReached(lvl, idx) {
-    return GUEST_LIMITS[lvl] !== undefined && idx >= GUEST_LIMITS[lvl];
-}
-
-// Override soft di startStep
-const _startStep = startStep;
-startStep = function (lang, lvl) {
-
-    if (state.mode === 'guest') {
-
-        if (lvl >= 4) {
-            showGuestLocked();
-            return;
-        }
-
-        const key = "L" + lvl;
-        const all = domandaRepo[lang][key];
-        const maxQ = GUEST_LIMITS[lvl];
-
-        const selezione = [...all]
-            .sort(() => 0.5 - Math.random())
-            .slice(0, maxQ)
-            .map(r => {
-                const p = r.split("|");
-                return { q: p[0], options: [p[1], p[2], p[3]], correct: parseInt(p[4]), exp: p[5] };
-            });
-
-        session = { lang, lvl, q: selezione, idx: 0 };
-        renderQ();
-        return;
-    }
-
-    _startStep(lang, lvl);
-};
-
-// Override soft di renderQ
-const _renderQ = renderQ;
-renderQ = function () {
-
-    if (state.mode === 'guest') {
-
-        if (guestLimitReached(session.lvl, session.idx)) {
-            showGuestEndModal();
-            return;
-        }
-
-        updateNav(true, `showLevels('${session.lang}')`);
-        const data = session.q[session.idx];
-
-        document.getElementById('content-area').innerHTML = `
-            <h2 style="font-size:18px; margin-bottom:20px">${data.q}</h2>
-            <div id="opts">
-                ${data.options.map((o,i)=>`
-                    <button class="btn-apple" onclick="check(${i===data.correct})">${o}</button>
-                `).join("")}
-            </div>
-            <div style="font-size:12px; opacity:0.5; margin-top:10px">
-                Demo: ${session.idx + 1}/${session.q.length}
-            </div>
-            <div id="fb"></div>
-        `;
-        return;
-    }
-
-    _renderQ();
-};
-
-// Override soft di next
-const _next = next;
-next = function () {
-
-    if (state.mode === 'guest') {
-        session.idx++;
-        renderQ();
-        return;
-    }
-
-    _next();
-};
-
-function showGuestEndModal() {
-    openModal(
-        "Demo terminata",
-        "Registrati per sbloccare tutti i livelli, salvare i progressi e vedere le statistiche.",
-        () => {
-            closeModal();
-            renderLogin();
-        }
-    );
-}
-
-function showGuestLocked() {
-    openModal(
-        "Accesso bloccato",
-        "Registrati per accedere ai livelli avanzati.",
-        () => {
-            closeModal();
-            renderLogin();
-        }
-    );
-}
-
-/* =========================
-   PANNELLO ADMIN
-   ========================= */
-
-function renderAdminPanel() {
-    updateNav(true, "showHome()");
-    document.getElementById('app-title').innerText = "ADMIN";
-
-    const users = Object.entries(dbUsers)
-        .filter(([_, u]) => u.userId)
-        .map(([pin, u]) => ({
-            pin,
-            id: u.userId,
-            name: u.name,
-            stats: calcUserStats(u),
-            deleted: u.deleted
-        }))
-        .sort((a, b) => b.stats.perc - a.stats.perc);
-
-    let html = `<div style="width:100%">`;
-
-    users.forEach(u => {
-        html += `
-            <div class="review-card ${u.deleted ? 'is-err' : 'is-ok'}">
-                <div style="display:flex; justify-content:space-between; align-items:center">
-                    <div>
-                        <strong>${u.name}</strong>
-                        <div style="font-size:12px; opacity:0.6">ID ${u.id}</div>
-                    </div>
-                    <div style="display:flex; gap:10px">
-                        <span style="cursor:pointer" onclick="showUserHistory(${u.id})">⏳</span>
-                        <span style="cursor:pointer" onclick="recalcUser(${u.id})">🔄</span>
-                        <span style="cursor:pointer; color:#ff3b30" onclick="adminDeleteUser(${u.id})">🗑</span>
-                    </div>
-                </div>
-
-                <div style="margin-top:8px; font-size:13px">
-                    ${u.stats.correct}/${u.stats.total} corrette · ${u.stats.perc}%
-                </div>
-            </div>
-        `;
-    });
-
-    html += `</div>`;
-    document.getElementById('content-area').innerHTML = html;
-}
-
-function renderAdminUsers() {
-    updateNav(true, "showHome()");
-    document.getElementById('app-title').innerText = "PANNELLO ADMIN";
-
-    let users = Object.keys(dbUsers).map((pin, idx) => {
-        const user = dbUsers[pin];
-        let score = 0;
-        Object.values(user.history).forEach(hist=>{
-            hist.forEach(h=>{ if(h.ok) score++; });
-        });
-        return { id: idx+1, name: user.name, pin, score, history: user.history };
-    });
-
-    // Ordina per punteggio decrescente
-    users.sort((a,b)=>b.score - a.score);
-
-    let html = `<div class="glass-card">`;
-    users.forEach(u=>{
-        html += `<div style="margin-bottom:15px; padding:10px; border:1px solid var(--border); border-radius:12px; display:flex; justify-content:space-between; align-items:center">
-            <div>
-                <strong>${u.id}</strong> - ${u.name} (Punteggio: ${u.score})
-            </div>
-            <div style="display:flex; gap:10px">
-                <button class="modal-btn btn-primary" onclick="showUserHistory('${u.pin}')">⏳</button>
-                <button class="modal-btn btn-cancel" onclick="adminUpdateStats('${u.pin}')">🔄</button>
-                <button class="modal-btn btn-destruct" onclick="adminDeleteUser('${u.pin}')">❌</button>
-                <button class="modal-btn btn-destruct" onclick="adminResetUserStats('${u.pin}')">♻️</button>
-            </div>
-        </div>`;
-    });
-    html += `</div>`;
-    document.getElementById('content-area').innerHTML = html;
-}
-
-function calcUserStats(user) {
-    let tot = 0;
-    let ok = 0;
-    Object.values(user.history || {}).forEach(arr => {
-        arr.forEach(h => {
-            tot++;
-            if (h.ok) ok++;
-        });
-    });
-    return {
-        total: tot,
-        correct: ok,
-        perc: tot ? Math.round((ok / tot) * 100) : 0
-    };
-}
-
-function recalcUser(userId) {
-    const u = findUserById(userId);
-    if (!u) return;
-    openModal(
-        "Ricalcola statistiche",
-        "Aggiorna le statistiche di questo utente.",
-        () => {
-            // stats sono sempre live, qui forziamo solo refresh UI
-            renderAdminPanel();
-        }
-    );
-}
-
-function adminDeleteUser(userId) {
-    const u = findUserById(userId);
-    if (!u) return;
-    openModal(
-        "Elimina utente",
-        "L’utente verrà marcato come eliminato.",
-        () => {
-            u.deleted = true;
-            saveMasterDB();
-            renderAdminPanel();
-        }
-    );
-}
-
-function showUserHistory(userId) {
-    const u = findUserById(userId);
-    if (!u) return;
-
-    let html = `<div style="width:100%">`;
-
-    Object.entries(u.history || {}).forEach(([lang, arr]) => {
-        html += `<h4 style="margin-top:15px">${lang}</h4>`;
-        arr.slice(-10).forEach(h => {
-            html += `
-                <div class="review-card ${h.ok ? 'is-ok' : 'is-err'}">
-                    <div style="font-size:13px">${h.q}</div>
-                </div>
-            `;
-        });
-    });
-
-    html += `</div>`;
-
-    updateNav(true, "renderAdminPanel()");
-    document.getElementById('app-title').innerText = "STORICO";
-    document.getElementById('content-area').innerHTML = html;
-}
-
-function findUserById(id) {
-    return Object.values(dbUsers).find(u => u.userId === id);
-}
-
-/* hook home */
-const _showHome = showHome;
-showHome = function () {
-    _showHome();
-    if (state.mode === 'admin') {
-        document.getElementById('content-area').innerHTML += `
-            <div style="margin-top:15px">
-                <button class="btn-apple btn-primary" onclick="renderAdminPanel()">
-                    Vai al pannello Admin
-                </button>
-            </div>
-        `;
-    }
-};
-
-/* Cambia PIN */
 function userChangePin() {
     openModal("Cambia PIN", `
         Inserisci il nuovo PIN a 4 cifre:
@@ -715,19 +380,18 @@ function userChangePin() {
     });
 }
 
-/* Azzera statistiche */
 function userResetStats() {
     openModal("Azzera statistiche", "Vuoi azzerare tutte le tue statistiche?", () => {
         const u = dbUsers[state.currentPin];
         u.progress = {};
         u.history = {};
         u.activeProgress = {};
+        u.savedQuizzes = {};
         saveMasterDB();
         renderProfile();
     });
 }
 
-/* Elimina account */
 function userDeleteAccount() {
     openModal("Elimina account", "Vuoi eliminare il tuo account? I dati resteranno visibili all'admin.", () => {
         const u = dbUsers[state.currentPin];
@@ -740,7 +404,10 @@ function userDeleteAccount() {
     });
 }
 
-/* MODALE GENERICO */
+/* =========================
+   MODALE GENERICO
+   ========================= */
+
 function openModal(title, content, onConfirm) {
     let overlay = document.getElementById('modal-overlay');
     if(!overlay) {
@@ -762,9 +429,111 @@ function openModal(title, content, onConfirm) {
     document.getElementById('modal-body').innerHTML = content;
 
     overlay.style.display = 'flex';
-
     document.getElementById('modal-confirm').onclick = () => { onConfirm(); overlay.style.display='none'; };
     document.getElementById('modal-cancel').onclick = () => { overlay.style.display='none'; };
+}
+
+/* =========================
+   PANNELLO ADMIN
+   ========================= */
+
+function renderAdminPanel() {
+    if(state.mode !== 'admin') return;
+    updateNav(true, "showHome()");
+    document.getElementById('app-title').innerText = "PANNELLO ADMIN";
+
+    const users = Object.values(dbUsers)
+        .filter(u => u.userId)
+        .map(u => ({
+            id: u.userId,
+            name: u.name,
+            pin: Object.keys(dbUsers).find(k=>dbUsers[k]===u),
+            stats: calcStats(u),
+            deleted: u.deleted || false
+        }))
+        .sort((a,b)=>b.stats.perc - a.stats.perc);
+
+    let html = `<div class="glass-card">`;
+    users.forEach(u=>{
+        html += `
+            <div class="review-card ${u.deleted ? 'is-err' : 'is-ok'}">
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <div>
+                        <strong>${u.name}</strong><br>
+                        <span style="font-size:12px; opacity:0.6">ID ${u.id}</span>
+                    </div>
+                    <div style="display:flex; gap:6px">
+                        <button class="modal-btn btn-primary" onclick="showUserHistory(${u.id})">⏳</button>
+                        <button class="modal-btn btn-cancel" onclick="recalcUser(${u.id})">🔄</button>
+                        <button class="modal-btn btn-destruct" onclick="adminDeleteUser(${u.id})">🗑</button>
+                        <button class="modal-btn btn-destruct" onclick="adminResetUserStats(${u.id})">♻️</button>
+                    </div>
+                </div>
+                <div style="margin-top:8px; font-size:13px">
+                    ${u.stats.correct}/${u.stats.total} corrette · ${u.stats.perc}%
+                </div>
+            </div>
+        `;
+    });
+    html += `</div>`;
+    document.getElementById('content-area').innerHTML = html;
+}
+
+function findUserById(id) {
+    return Object.values(dbUsers).find(u => u.userId === id);
+}
+
+function recalcUser(userId) {
+    const u = findUserById(userId);
+    if (!u) return;
+    openModal("Ricalcola statistiche", "Aggiorna le statistiche di questo utente.", () => {
+        renderAdminPanel();
+    });
+}
+
+function adminDeleteUser(userId) {
+    const u = findUserById(userId);
+    if (!u) return;
+    openModal("Elimina utente", "L’utente verrà marcato come eliminato.", () => {
+        u.deleted = true;
+        saveMasterDB();
+        renderAdminPanel();
+    });
+}
+
+function adminResetUserStats(userId) {
+    const u = findUserById(userId);
+    if (!u) return;
+    openModal("Reset Statistiche", "Vuoi azzerare le statistiche di questo utente?", () => {
+        u.progress = {};
+        u.history = {};
+        u.activeProgress = {};
+        u.savedQuizzes = {};
+        saveMasterDB();
+        renderAdminPanel();
+    });
+}
+
+function showUserHistory(userId) {
+    const u = findUserById(userId);
+    if (!u) return;
+
+    let html = `<div style="width:100%">`;
+    Object.entries(u.history || {}).forEach(([lang, arr]) => {
+        html += `<h4 style="margin-top:15px">${lang}</h4>`;
+        arr.slice(-10).forEach(h => {
+            html += `
+                <div class="review-card ${h.ok ? 'is-ok' : 'is-err'}">
+                    <div style="font-size:13px">${h.q}</div>
+                </div>
+            `;
+        });
+    });
+    html += `</div>`;
+
+    updateNav(true, "renderAdminPanel()");
+    document.getElementById('app-title').innerText = "STORICO";
+    document.getElementById('content-area').innerHTML = html;
 }
 // Inserisci qui le tue funzioni renderProfile, adminReset, adminDelete, userChangePin che hai nel file
 // (Mantenile come sono, sono corrette nel tuo originale)
