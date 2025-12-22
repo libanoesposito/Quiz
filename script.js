@@ -505,17 +505,17 @@ function toggleLangDetails(el){
 }
 
 function toggleCard(el) {
-    const content = el.querySelector('.security-content');
+    const content = el.children[1]; // PRENDE IL DIV GIUSTO
     if (!content) return;
 
-    // chiude le altre card
-    document.querySelectorAll('.glass-card .security-content').forEach(c => {
+    // chiude le altre
+    document.querySelectorAll('.glass-card > .security-content').forEach(c => {
         if (c !== content) c.style.display = 'none';
     });
 
-    // apre / chiude questa
+    // toggle
     content.style.display =
-        content.style.display === 'none' || !content.style.display
+        content.style.display === 'none' || content.style.display === ''
             ? 'block'
             : 'none';
 }
