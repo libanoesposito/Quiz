@@ -485,47 +485,50 @@ function renderProfile() {
     const appleGray = isDark ? '#2c2c2e' : '#e5e5ea';
 
     const noScrollStyle = `
-    <style>
-        /* 1. Blocca lo scroll del body */
-        body { 
-            overflow: hidden !important; 
-            height: 100dvh !important;
-            margin: 0;
-        }
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+    }
 
-        /* 2. Il contenitore dello scroll */
-        #profile-scroll { 
-            height: calc(100dvh - 70px); 
-            width: 100%;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
+    /* Navbar = 70px, il resto è spazio reale */
+    #profile-scroll {
+        height: calc(100% - 70px);
+        width: 100%;
 
-        #profile-scroll::-webkit-scrollbar { display: none !important; }
+        overflow-y: auto;
+        overflow-x: hidden;
 
-        /* 3. Contenitore card */
-        .profile-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            padding: 15px;
-            box-sizing: border-box;
-            width: 100%;
-            max-width: 100%;
-        }
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
 
-        /* 4. Card */
-        .glass-card {
-            width: 100% !important; 
-            max-width: 500px !important;
-            margin: 0 auto !important;
-            box-sizing: border-box !important;
-        }
-    </style>
+        box-sizing: border-box;
+    }
+
+    #profile-scroll::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    .profile-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 15px 40px; /* spazio finale reale */
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .glass-card {
+        width: 100% !important;
+        max-width: 500px !important;
+        margin: 0 auto !important;
+        box-sizing: border-box !important;
+    }
+</style>
 `;
+
 
 
     let progHtml = '';
