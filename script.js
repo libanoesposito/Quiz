@@ -621,7 +621,6 @@ function renderRipasso() {
     const ripasso = u.ripasso || { wrong: [], notStudied: [] };
     const container = document.getElementById('content-area');
 
-    
     let html = `
         <button class="btn-apple btn-light" onclick="showHome()">
             ‹ Indietro
@@ -637,8 +636,8 @@ function renderRipasso() {
     if (ripasso.wrong.length) {
         html += `<h4>Sbagliate</h4>` + ripasso.wrong.map((d, idx) => `
             <div style="border-bottom:1px solid #ccc; padding:6px 0">
-                <div><strong>Q${idx+1}:</strong> ${d.q}</div>
-                <div style="margin-left:10px">Risposte: ${d.options.map((o,i)=>i===d.correct?`<strong>${o}</strong>`:o).join(', ')}</div>
+                <div><strong>Q${idx + 1}:</strong> ${d.q}</div>
+                <div style="margin-left:10px">Risposte: ${d.options.map((o, i) => i === d.correct ? `<strong>${o}</strong>` : o).join(', ')}</div>
                 <div style="margin-left:10px; font-size:12px; color:#555">Spiegazione: ${d.exp}</div>
             </div>`).join('');
     }
@@ -646,8 +645,8 @@ function renderRipasso() {
     if (ripasso.notStudied.length) {
         html += `<h4>Non studiate</h4>` + ripasso.notStudied.map((d, idx) => `
             <div style="border-bottom:1px solid #ccc; padding:6px 0">
-                <div><strong>Q${idx+1}:</strong> ${d.q}</div>
-                <div style="margin-left:10px">Risposte: ${d.options.map((o,i)=>i===d.correct?`<strong>${o}</strong>`:o).join(', ')}</div>
+                <div><strong>Q${idx + 1}:</strong> ${d.q}</div>
+                <div style="margin-left:10px">Risposte: ${d.options.map((o, i) => i === d.correct ? `<strong>${o}</strong>` : o).join(', ')}</div>
                 <div style="margin-left:10px; font-size:12px; color:#555">Spiegazione: ${d.exp}</div>
             </div>`).join('');
     }
