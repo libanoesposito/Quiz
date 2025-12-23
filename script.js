@@ -354,11 +354,13 @@ function check(isOk) {
     if(state.mode === 'user') {
         if(!state.history[session.lang]) state.history[session.lang] = [];
         state.history[session.lang].push({
-    question: data.q,
-    correctAnswer: data.options[data.correct],
-    ok: isOk,
-    exp: data.exp
-});
+            question: data.q,
+            correctAnswer: data.options[data.correct],
+            ok: isOk,
+            exp: data.exp,
+            level: session.lvl // <--- AGGIUNGI QUESTA RIGA
+        });
+        
         if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
         dbUsers[state.currentPin].activeProgress[`${session.lang}_${session.lvl}`] = session.idx + 1;
         saveMasterDB();
