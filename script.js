@@ -486,41 +486,39 @@ function renderProfile() {
 
     const noScrollStyle = `
     <style>
-        /* 1. Blocca lo scroll del body */
+        /* 1. Blocca lo scroll esterno ma non il layout */
         body { 
             overflow: hidden !important; 
-            height: 100vh !important; 
+            height: 100vh !important;
         }
 
-        /* 2. Forza il contenitore dello scroll a prendersi tutto lo spazio */
-        /* Senza absolute, ma usando l'altezza del viewport */
+        /* 2. Il contenitore dello scroll deve essere invisibile e rispettare l'header */
         #profile-scroll { 
-            width: 100%;
-            height: calc(100vh - 80px); /* Sottrae lo spazio dell'header */
+            height: calc(100vh - 70px); /* Regola i px per l'altezza del tuo header */
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            width: 100%;
         }
 
         #profile-scroll::-webkit-scrollbar { display: none !important; }
 
-        /* 3. Il contenitore interno deve solo distendere le card */
+        /* 3. Ripristino totale del tuo stile originale */
         .profile-container {
-            width: 100%;
             display: flex;
             flex-direction: column;
-            align-items: center; 
             gap: 15px;
-            padding: 20px 0 150px 0; 
+            padding: 12px 12px 120px 12px; /* Margini Apple originali */
             box-sizing: border-box;
+            width: 100%;
+            align-items: center; /* Centra le card perfettamente */
         }
 
-        /* 4. Manteniamo le tue card originali */
+        /* 4. Non forziamo le larghezze, usiamo quelle del tuo CSS */
         .glass-card {
-            width: 90% !important; /* Larghezza coerente */
-            max-width: 500px !important;
-            flex-shrink: 0;
+            margin: 0 auto !important; /* Forza la centratura orizzontale */
+            /* Non aggiungiamo altro: usiamo il tuo CSS esterno */
         }
     </style>
 `;
