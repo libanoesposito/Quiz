@@ -466,8 +466,9 @@ function renderProfile() {
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (percentTotal / 100) * circumference;
     
-    // Colore Grigio Apple per gli sfondi (si adatta a Dark Mode se presente)
-    const appleGray = "var(--apple-gray, #e5e5ea)";
+    // CORREZIONE COLORE: Rileviamo se siamo in dark mode o light mode per il grigio
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    const appleGray = isDarkMode ? '#2c2c2e' : '#e5e5ea'; 
 
     // Progressi dettagliati
     let progHtml = '';
@@ -511,7 +512,7 @@ function renderProfile() {
         <div style="margin-top:15px; display:flex; align-items:center; gap:20px">
             
             <div style="position:relative; display:flex; align-items:center; justify-content:center; min-width:80px">
-                <svg width="80" height="80" style="transform: rotate(-90deg)">
+                <svg width="80" height="80" style="transform: rotate(-90deg); display: block;">
                     <circle cx="40" cy="40" r="${radius}" stroke="${appleGray}" stroke-width="6" fill="transparent" />
                     <circle cx="40" cy="40" r="${radius}" stroke="#34c759" stroke-width="6" fill="transparent" 
                         stroke-dasharray="${circumference}" 
@@ -519,7 +520,7 @@ function renderProfile() {
                         stroke-linecap="round"
                         style="transition: stroke-dashoffset 0.5s ease" />
                 </svg>
-                <div style="position:absolute; font-weight:700; font-size:14px; transform: rotate(90deg)">${percentTotal}%</div>
+                <div style="position:absolute; font-weight:700; font-size:14px; color: inherit;">${percentTotal}%</div>
             </div>
 
             <div style="flex:1; display:flex; flex-direction:column; gap:6px">
@@ -544,7 +545,7 @@ function renderProfile() {
             </div>
         </div>
     </div>
-
+    
     <div class="glass-card" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
         <strong>Progressi generali</strong>
     </div>
@@ -571,7 +572,6 @@ function renderProfile() {
 </div>
 `;
 }
-
    
 function toggleHistory(el) {
     const content = el.nextElementSibling;
