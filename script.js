@@ -182,7 +182,13 @@ function showHome() {
     });
     if(state.mode === 'admin') {
     html += `<div class="lang-item profile-slot" onclick="renderAdminPanel()"><div style="font-weight:700">PANNELLO ADMIN</div></div>`;
-} else if(state.mode !== 'guest') {
+} if(state.mode !== 'guest') {
+    html += `
+        <div class="lang-item profile-slot" onclick="renderRipasso()">
+            <div style="font-weight:700">RIPASSO DOMANDE</div>
+        </div>`;
+}
+    else if(state.mode !== 'guest') {
     html += `<div class="lang-item profile-slot" onclick="renderProfile()"><div style="font-weight:700">IL MIO PROFILO</div></div>`;
 }
     html += `</div>`;
@@ -505,12 +511,6 @@ function renderProfile() {
     <div class="glass-card" onclick="toggleGeneralContent('history-content')" style="cursor:pointer">
         <strong>Storico</strong>
     </div>
-    <div class="glass-card" onclick="toggleGeneralContent('ripasso-content')" style="cursor:pointer">
-    <strong>Ripasso Domande</strong>
-</div>
-<div class="glass-card" id="ripasso-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px; max-height:400px; overflow-y:auto">
-    <!-- Il contenuto sarà generato da renderRipasso() -->
-</div>
     <div class="glass-card" id="history-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px; max-height:400px; overflow-y:auto">
         ${generateHistoryHTML(u)}
     </div>
@@ -590,27 +590,6 @@ function toggleLangDetails(el){
     if(chevron) chevron.style.transform = content.style.display==='block'?'rotate(90deg)':'rotate(0deg)';
 }
 
-/*function toggleCard(el) {
-    const content = el.querySelector('.card-content, .security-content, #detailed-progress');
-    if (!content) return;
-
-    // Chiudi tutte le altre card tranne questa
-    document.querySelectorAll('.card-content, .security-content, #detailed-progress').forEach(c => {
-        if (c !== content) c.style.display = 'none';
-    });
-
-    // Mostra/nascondi il contenuto della card cliccata
-    const isHidden = content.style.display === 'none';
-    content.style.display = isHidden ? 'flex' : 'none';
-
-    // Scroll verso la card se si apre
-    if (isHidden) {
-        // scroll dell'intera finestra fino al top della card
-        const rect = el.getBoundingClientRect();
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        window.scrollTo({ top: rect.top + scrollTop - 20, behavior: 'smooth' }); // -20 per margine superiore
-    }
-}*/
 function toggleCard(el) {
     // Cerca il contenuto della card cliccata
     const content = el.querySelector('.card-content, .security-content, #detailed-progress, #ripasso-content');
@@ -634,40 +613,40 @@ function toggleCard(el) {
 }
 
 function renderRipasso() {
+    if (state.mode !== 'user') return; // Ripasso solo per utenti registrati
+
     const u = dbUsers[state.currentPin];
     const ripasso = u.ripasso || { wrong: [], notStudied: [] };
-    const container = document.getElementById('ripasso-content');
+    const container = document.getElementById('content-area');
+
+    // Header con tasto Indietro
+    let html = <button class="btn-apple btn-light" onclick="showHome()">‹ Indietro</button>;
 
     if (!ripasso.wrong.length && !ripasso.notStudied.length) {
-        container.innerHTML = "<div style='font-size:12px; opacity:0.6'>Nessuna domanda da ripassare</div>";
+        html += "<div style='font-size:12px; opacity:0.6; margin-top:10px'>Nessuna domanda da ripassare</div>";
+        container.innerHTML = html;
         return;
     }
 
-    let html = "";
-
     if (ripasso.wrong.length) {
-        html += `<h4>Sbagliate</h4>`;
-        html += ripasso.wrong.map((d, idx) => `
+        html += <h4>Sbagliate</h4> + ripasso.wrong.map((d, idx) => `
             <div style="border-bottom:1px solid #ccc; padding:6px 0">
                 <div><strong>Q${idx+1}:</strong> ${d.q}</div>
-                <div style="margin-left:10px">Risposte: ${d.options.map((o,i)=>i===d.correct?`<strong>${o}</strong>`:o).join(', ')}</div>
+                <div style="margin-left:10px">Risposte: ${d.options.map((o,i)=>i===d.correct?<strong>${o}</strong>:o).join(', ')}</div>
                 <div style="margin-left:10px; font-size:12px; color:#555">Spiegazione: ${d.exp}</div>
-            </div>
-        `).join('');
+            </div>`).join('');
     }
 
     if (ripasso.notStudied.length) {
-        html += `<h4>Non studiate</h4>`;
-        html += ripasso.notStudied.map((d, idx) => `
+        html += <h4>Non studiate</h4> + ripasso.notStudied.map((d, idx) => `
             <div style="border-bottom:1px solid #ccc; padding:6px 0">
                 <div><strong>Q${idx+1}:</strong> ${d.q}</div>
-                <div style="margin-left:10px">Risposte: ${d.options.map((o,i)=>i===d.correct?`<strong>${o}</strong>`:o).join(', ')}</div>
+                <div style="margin-left:10px">Risposte: ${d.options.map((o,i)=>i===d.correct?<strong>${o}</strong>:o).join(', ')}</div>
                 <div style="margin-left:10px; font-size:12px; color:#555">Spiegazione: ${d.exp}</div>
-            </div>
-        `).join('');
+            </div>`).join('');
     }
 
-    container.innerHTML = html;
+    container.innerHTML = html;
 }
 
 function resetStats() {
