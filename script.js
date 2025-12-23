@@ -761,6 +761,7 @@ function renderAdminPanel() {
                             <span style="cursor:pointer" onclick="showUserHistory(${u.id})">⏳</span>
                             <span style="cursor:pointer" onclick="recalcUser(${u.id})">🔄</span>
                             <span style="cursor:pointer; color:#ff3b30" onclick="adminDeleteUser(${u.id})">🗑</span>
+                            <span style="cursor:pointer" onclick="adminResetAll()">🗑️🆕</span>
                         </div>
                     </div>
                     <div style="margin-top:8px; font-size:13px">
@@ -940,6 +941,21 @@ function findUserById(id) {
     return Object.values(dbUsers).find(u => u.userId === id);
 }
 
+function adminResetAll() {
+    openModal(
+        "Azzeramento totale",
+        "Tutte le statistiche, utenti e progressi saranno eliminati. Operazione irreversibile.",
+        () => {
+            dbUsers = {};              // cancella tutti gli utenti
+            state.currentPin = null;   
+            state.currentUser = null;  
+            state.progress = {};       
+            state.history = {};        
+            saveMasterDB();           
+            renderAdminPanel();        // refresh interfaccia admin
+        }
+    );
+}
 
 /* Cambia PIN */
 function userChangePin() {
