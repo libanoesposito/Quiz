@@ -303,7 +303,10 @@ function renderQ() {
     const data = session.q[session.idx];
     const progress = (session.idx / session.q.length) * 100;
 
-    document.getElementById('content-area').innerHTML = `
+    const container = document.getElementById('content-area');
+    if (!container) return;
+
+    container.innerHTML = `
         <div style="width:100%; margin-bottom:15px">
             <div style="display:flex; justify-content:space-between; font-size:11px; opacity:0.5; margin-bottom:5px">
                 <span>DOMANDA ${session.idx + 1}/${session.q.length}</span>
@@ -318,23 +321,20 @@ function renderQ() {
         </div>
         <div id="fb"></div>
         <div style="margin-top:10px; text-align:right">
-            <button class="btn-apple btn-light" onclick="markNotStudied(session.idx)">Non l'ho studiato</button>
+            <button class="btn-apple btn-light" onclick="markNotStudied(${session.idx})">Non l'ho studiato</button>
         </div>`;
 }
 
-// Funzione per registrare la domanda in "ripasso" senza modificare i progressi
 function markNotStudied(idx) {
     if (!state.currentPin || !dbUsers[state.currentPin]) return;
     
     const data = session.q[idx];
     const user = dbUsers[state.currentPin];
 
-    // Inizializza l'oggetto ripasso se non esiste
     if (!user.ripasso) {
         user.ripasso = { wrong: [], notStudied: [] };
     }
 
-    // Aggiunge alla lista notStudied evitando duplicati
     const giaPresente = user.ripasso.notStudied.some(d => d.q === data.q);
     
     if (!giaPresente) {
@@ -344,10 +344,11 @@ function markNotStudied(idx) {
             correct: data.correct,
             exp: data.exp
         });
-        saveMasterDB();
+        if (typeof saveMasterDB === 'function') saveMasterDB();
     }
     
-    document.getElementById('fb').innerHTML = `<div style="color:var(--accent); margin-top:10px">Aggiunta a ripasso 📌</div>`;
+    const fb = document.getElementById('fb');
+    if (fb) fb.innerHTML = `<div style="color:var(--accent); margin-top:10px">Aggiunta a ripasso 📌</div>`;
 }
 
 function check(isOk) {
@@ -1127,43 +1128,5 @@ function openModal(title, content, onConfirm) {
     document.getElementById('modal-confirm').onclick = () => { onConfirm(); overlay.style.display='none'; };
     document.getElementById('modal-cancel').onclick = () => { overlay.style.display='none'; };
 }
-
-/*CONTROLLORE*/
-(function () {
-    const box = document.createElement('div');
-    box.id = 'debug-box';
-    box.style = `
-        position:fixed;
-        bottom:10px;
-        right:10px;
-        max-width:90%;
-        max-height:40%;
-        overflow:auto;
-        background:#000;
-        color:#0f0;
-        font-size:12px;
-        padding:8px;
-        z-index:99999;
-        display:none;
-        border-radius:6px;
-        font-family:monospace;
-    `;
-    document.body.appendChild(box);
-
-    function log(msg) {
-        box.style.display = 'block';
-        box.innerHTML += msg + '<br>';
-    }
-
-    window.onerror = function (msg, src, line, col) {
-        log(`❌ JS ERROR: ${msg} @ ${line}:${col}`);
-    };
-
-    const oldLog = console.log;
-    console.log = function (...args) {
-        log('ℹ️ ' + args.join(' '));
-        oldLog.apply(console, args);
-    };
-})();
 // Inserisci qui le tue funzioni renderProfile, adminReset, adminDelete, userChangePin che hai nel file
 // (Mantenile come sono, sono corrette nel tuo originale)
