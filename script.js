@@ -901,27 +901,30 @@ function renderAdminPanel() {
 
 function renderAdminUsers() {
     updateNav(true, "showHome()");
-    document.getElementById('app-title').innerText = "PANNELLO ADMIN";
+    const appTitle = document.getElementById('app-title');
+    if (appTitle) appTitle.innerText = "PANNELLO ADMIN";
 
-    const pinList = Object.keys(dbUsers);
+    const pinList = Object.keys(dbUsers || {});
+    const container = document.getElementById('content-area');
     
+    if (!container) return;
+
     if (pinList.length === 0) {
-        document.getElementById('content-area').innerHTML = `
-            <div style="text-align:center; padding:20px; opacity:0.6;">Nessun utente registrato.</div>`;
+        container.innerHTML = `<div style="text-align:center; padding:20px; opacity:0.6;">Nessun utente registrato.</div>`;
         return;
     }
 
     let users = pinList.map((pin, idx) => {
         const user = dbUsers[pin];
         let score = 0;
-        if (user.history) {
+        if (user && user.history) {
             Object.values(user.history).forEach(hist => {
                 if (Array.isArray(hist)) {
                     hist.forEach(h => { if (h && h.ok) score++; });
                 }
             });
         }
-        return { id: idx + 1, name: user.name, pin, score };
+        return { id: idx + 1, name: user ? user.name : "Unknown", pin, score };
     });
 
     users.sort((a, b) => b.score - a.score);
@@ -942,28 +945,7 @@ function renderAdminUsers() {
         </div>`;
     });
     html += `</div>`;
-    document.getElementById('content-area').innerHTML = html;
-}
-
-    // Ordina per punteggio decrescente
-    users.sort((a,b)=>b.score - a.score);
-
-    let html = `<div class="glass-card">`;
-    users.forEach(u=>{
-        html += `<div style="margin-bottom:15px; padding:10px; border:1px solid var(--border); border-radius:12px; display:flex; justify-content:space-between; align-items:center">
-            <div>
-                <strong>${u.id}</strong> - ${u.name} (Punteggio: ${u.score})
-            </div>
-            <div style="display:flex; gap:10px">
-                <button class="modal-btn btn-primary" onclick="showUserHistory('${u.pin}')">⏳</button>
-                <button class="modal-btn btn-cancel" onclick="adminUpdateStats('${u.pin}')">🔄</button>
-                <button class="modal-btn btn-destruct" onclick="adminDeleteUser('${u.pin}')">❌</button>
-                <button class="modal-btn btn-destruct" onclick="adminResetUserStats('${u.pin}')">♻️</button>
-            </div>
-        </div>`;
-    });
-    html += `</div>`;
-    document.getElementById('content-area').innerHTML = html;
+    container.innerHTML = html;
 }
 
 function calcUserStats(user) {
