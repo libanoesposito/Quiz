@@ -461,11 +461,7 @@ function renderProfile() {
     const stats = calcStats();
     const totalLevels = Object.keys(domandaRepo);
 
-    // Percentuale totale
-    const percentTotal = stats.total
-        ? Math.round((stats.correct / stats.total) * 100)
-        : 0;
-
+    const percentTotal = stats.total ? Math.round((stats.correct / stats.total) * 100) : 0;
     const radius = 32;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (percentTotal / 100) * circumference;
@@ -475,98 +471,56 @@ function renderProfile() {
 
     const noScrollStyle = `
         <style>
-            body {
-                height: 100vh;
-                overflow: hidden;
-            }
-            #profile-scroll {
-                height: 100%;
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-            #profile-scroll::-webkit-scrollbar {
-                display: none;
-            }
+            body { height: 100vh; overflow: hidden; }
+            #profile-scroll { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+            #profile-scroll::-webkit-scrollbar { display: none; }
+            /* Risolve il problema dell'allineamento a destra delle card */
+            .glass-card { width: 100% !important; box-sizing: border-box !important; margin: 0 !important; }
         </style>
     `;
 
-    // Progressi dettagliati
+    // Progressi dettagliati - Logica corretta senza duplicati
     let progHtml = '';
-    totalLevels.forEach(lang => {
-        const comp = state.progress[lang] || 0;
-        progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
+    const totalQuestionsPerLevel = 15; 
 
+    totalLevels.forEach(lang => {
+        progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
         for (let i = 1; i <= 5; i++) {
             let correct = 0, wrong = 0;
-            const total = 15;
-
             if (u.history && u.history[lang]) {
                 u.history[lang].forEach(h => {
-                    if (i <= comp) {
-                        if (h.ok) correct++;
-                        else wrong++;
+                    // Contiamo solo i dati del livello corrente i
+                    if (h.level === i) { 
+                        if (h.ok) correct++; else wrong++;
                     }
                 });
             }
 
-// 1. Dichiara il totale fuori dal ciclo (così lo fai una volta sola)
-const totalQuestionsPerLevel = 15; 
+            const notStudied = Math.max(0, totalQuestionsPerLevel - correct - wrong);
+            const percent = Math.round((correct / totalQuestionsPerLevel) * 100);
 
-let progHtml = '';
-totalLevels.forEach(lang => {
-    const comp = state.progress[lang] || 0;
-    progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
+            // Calcolo larghezze per la barra segmentata
+            const wGreen = (correct / totalQuestionsPerLevel) * 100;
+            const wRed   = (wrong / totalQuestionsPerLevel) * 100;
+            const wBlue  = (notStudied / totalQuestionsPerLevel) * 100;
 
-    for (let i = 1; i <= 5; i++) {
-        let correct = 0, wrong = 0;
-        
-        if (u.history && u.history[lang]) {
-            u.history[lang].forEach(h => {
-                // Filtra per il livello attuale del ciclo
-                if (h.level === i) { 
-                    if (h.ok) correct++; else wrong++;
-                }
-            });
+            progHtml += `
+            <div style="margin-bottom:10px">
+                <div style="font-size:13px">Livello ${i}</div>
+                <div style="height:10px; border-radius:6px; overflow:hidden; display:flex; background:${appleGray}">
+                    ${wGreen > 0 ? `<div style="width:${wGreen}%; background:#34c759; height:100%"></div>` : ''}
+                    ${wRed > 0 ? `<div style="width:${wRed}%; background:#ff3b30; height:100%"></div>` : ''}
+                    ${wBlue > 0 ? `<div style="width:${wBlue}%; background:#0a84ff; height:100%"></div>` : ''}
+                </div>
+                <div style="font-size:11px; text-align:right; margin-top:2px; opacity:0.8">${percent}% corrette</div>
+            </div>`;
         }
-
-        const notStudied = Math.max(0, totalQuestionsPerLevel - correct - wrong);
-        const percent = Math.round((correct / totalQuestionsPerLevel) * 100);
-
-        // Calcolo larghezze
-        const wGreen = (correct / totalQuestionsPerLevel) * 100;
-        const wRed   = (wrong / totalQuestionsPerLevel) * 100;
-        const wBlue  = (notStudied / totalQuestionsPerLevel) * 100;
-
-        progHtml += `
-        <div style="margin-bottom:10px">
-            <div style="font-size:13px">Livello ${i}</div>
-            <div style="height:10px; border-radius:6px; overflow:hidden; display:flex; background:${appleGray}">
-                ${wGreen > 0 ? `<div style="width:${wGreen}%; background:#34c759; height:100%"></div>` : ''}
-                ${wRed > 0 ? `<div style="width:${wRed}%; background:#ff3b30; height:100%"></div>` : ''}
-                ${wBlue > 0 ? `<div style="width:${wBlue}%; background:#0a84ff; height:100%"></div>` : ''}
-            </div>
-            <div style="font-size:11px; text-align:right; margin-top:2px; opacity:0.8">${percent}% corrette</div>
-        </div>`;
-    }
-    progHtml += `</div>`;
-});
-
         progHtml += `</div>`;
     });
 
-    document.getElementById('content-area').innerHTML =
-        noScrollStyle + `
-<div id="profile-scroll" style="
-    width:100%;
-    height:100%;
-    box-sizing:border-box;
-    padding:12px;
-">
-    <div style="
-        display:flex;
-        flex-direction:column;
-        gap:15px;
-    ">
+    document.getElementById('content-area').innerHTML = noScrollStyle + `
+<div id="profile-scroll">
+    <div style="display:flex; flex-direction:column; gap:15px; padding:12px">
 
         <div class="glass-card">
             <div><strong>Nome:</strong> ${u.name}</div>
@@ -575,47 +529,34 @@ totalLevels.forEach(lang => {
 
         <div class="glass-card">
             <strong>Statistiche</strong>
-
             <div style="margin-top:15px; display:flex; gap:20px; align-items:center">
-
                 <div style="position:relative; width:80px; height:80px">
                     <svg width="80" height="80" style="transform:rotate(-90deg)">
                         <circle cx="40" cy="40" r="${radius}" stroke="${appleGray}" stroke-width="6" fill="none"/>
                         <circle cx="40" cy="40" r="${radius}" stroke="#34c759" stroke-width="6" fill="none"
-                            stroke-dasharray="${circumference}"
-                            stroke-dashoffset="${offset}"
-                            stroke-linecap="round"/>
+                            stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
                     </svg>
-                    <div style="
-                        position:absolute;
-                        inset:0;
-                        display:flex;
-                        align-items:center;
-                        justify-content:center;
-                        font-weight:700;
-                        font-size:14px;
-                    ">
+                    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">
                         ${percentTotal}%
                     </div>
                 </div>
-
                 <div style="flex:1; display:flex; flex-direction:column; gap:8px">
                     <div>
                         <div style="font-size:12px">Corrette: ${stats.correct}</div>
                         <div style="height:8px; background:${appleGray}; border-radius:6px">
-                            <div style="width:${stats.total ? (stats.correct / stats.total) * 100 : 0}%; height:100%; background:#34c759"></div>
+                            <div style="width:${stats.total ? (stats.correct/stats.total)*100 : 0}%; height:100%; background:#34c759; border-radius:6px"></div>
                         </div>
                     </div>
                     <div>
                         <div style="font-size:12px">Non studiate: ${stats.total - stats.correct - stats.wrong}</div>
                         <div style="height:8px; background:${appleGray}; border-radius:6px">
-                            <div style="width:${stats.total ? ((stats.total - stats.correct - stats.wrong) / stats.total) * 100 : 0}%; height:100%; background:#0a84ff"></div>
+                            <div style="width:${stats.total ? ((stats.total - stats.correct - stats.wrong)/stats.total)*100 : 0}%; height:100%; background:#0a84ff; border-radius:6px"></div>
                         </div>
                     </div>
                     <div>
                         <div style="font-size:12px">Sbagliate: ${stats.wrong}</div>
                         <div style="height:8px; background:${appleGray}; border-radius:6px">
-                            <div style="width:${stats.total ? (stats.wrong / stats.total) * 100 : 0}%; height:100%; background:#ff3b30"></div>
+                            <div style="width:${stats.total ? (stats.wrong/stats.total)*100 : 0}%; height:100%; background:#ff3b30; border-radius:6px"></div>
                         </div>
                     </div>
                 </div>
@@ -624,29 +565,23 @@ totalLevels.forEach(lang => {
 
         <div class="glass-card" id="card-prog" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
             <div style="font-weight:600">Progressi generali</div>
-
-            <div id="detailed-progress" style="
-                display:none;
-                margin-top:15px;
-                border-top:1px solid rgba(120,120,120,0.2);
-                padding-top:15px;
-            ">
+            <div id="detailed-progress" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">
                 ${progHtml}
             </div>
         </div>
 
-        <div class="glass-card" onclick="toggleGeneralContent('security-content')" style="cursor:pointer">
+        <div class="glass-card" id="card-sec" onclick="toggleGeneralContent('security-content', this)" style="cursor:pointer">
             <strong>Sicurezza</strong>
-            <div id="security-content" style="display:none; flex-direction:column; gap:8px; margin-top:15px">
+            <div id="security-content" style="display:none; flex-direction:column; gap:8px; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">
                 <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
                 <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
                 <button class="btn-apple btn-destruct" onclick="userDeleteAccount()">Elimina account</button>
             </div>
         </div>
 
-        <div class="glass-card" onclick="toggleGeneralContent('history-content')" style="cursor:pointer">
+        <div class="glass-card" id="card-hist" onclick="toggleGeneralContent('history-content', this)" style="cursor:pointer">
             <strong>Storico</strong>
-            <div id="history-content" style="display:none; margin-top:15px">
+            <div id="history-content" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">
                 ${generateHistoryHTML(u)}
             </div>
         </div>
@@ -654,39 +589,6 @@ totalLevels.forEach(lang => {
     </div>
 </div>`;
 }
-
-//Finestre di apertura profilo utente
-window.toggleGeneralProgress = function(card) {
-    const detailed = document.getElementById('detailed-progress');
-    if (!detailed) return;
-
-    const isHidden = detailed.style.display === 'none';
-    detailed.style.display = isHidden ? 'block' : 'none';
-
-    if (isHidden) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-};
-
-window.toggleGeneralContent = function(id) {
-    const content = document.getElementById(id);
-    if (!content) return;
-    
-    // Controlla se è già visibile
-    const isHidden = content.style.display === 'none';
-    
-    // Chiude gli altri menu prima di aprire quello cliccato
-    document.querySelectorAll('#security-content, #history-content').forEach(c => {
-        c.style.display = 'none';
-    });
-    
-    // Apre o chiude quello attuale
-    content.style.display = isHidden ? 'flex' : 'none';
-    
-    if (isHidden) {
-        content.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-};
    
 function toggleHistory(el) {
     const content = el.nextElementSibling;
