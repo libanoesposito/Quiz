@@ -486,53 +486,55 @@ function renderProfile() {
 
     const noScrollStyle = `
     <style>
-        /* 1. Blocca lo scroll del body */
         body { 
             overflow: hidden !important; 
             height: 100vh !important;
             margin: 0;
         }
 
-        /* 2. Forza il contenitore a partire dall'alto e toccare il FONDO */
+        /* 1. Usiamo flex-grow per dire al contenitore di "allungarsi" verso il basso */
+        .main-container {
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100vh !important;
+            justify-content: flex-start !important; /* Forza l'inizio dall'alto */
+        }
+
+        /* 2. ALTEZZA: Aumentiamo leggermente il calc per toccare il fondo */
         #profile-scroll { 
-            position: fixed; /* Lo scollega dalle simmetrie del main-container */
-            top: 70px;      /* Parte esattamente sotto la tua navbar */
-            left: 0;
-            right: 0;
-            bottom: 0;      /* Arriva a toccare il bordo inferiore dello schermo */
-            
+            height: calc(100vh - 60px); /* Ridotto il valore sottratto per farlo scendere di più */
+            width: 100%;
             overflow-y: auto;
             overflow-x: hidden;
-            -webkit-overflow-scrolling: touch; /* Fluidità Apple */
+            -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
             -ms-overflow-style: none;
             
-            /* Rende lo scroll immediato e senza blocchi */
-            scroll-behavior: auto; 
+            /* FLUIDITÀ: Senza blocchi */
+            scroll-behavior: auto;
             touch-action: pan-y;
+            will-change: scroll-position;
         }
 
         #profile-scroll::-webkit-scrollbar { display: none !important; }
 
-        /* 3. Contenitore delle card largo e fluido */
+        /* 3. LARGHEZZA: Ripristinata come piace a te, ma con meno padding laterale */
         .profile-container {
             display: flex;
             flex-direction: column;
             gap: 15px;
-            padding: 10px 8px 120px 8px; /* Padding generoso solo in fondo per l'ultimo scroll */
+            padding: 15px 8px 120px 8px; /* Padding inferiore per l'ultima card */
             box-sizing: border-box;
             width: 100%;
-            align-items: center;
         }
 
-        /* 4. Card larghe stile Apple */
+        /* 4. LE TUE CARD ORIGINALI: Centrate e fluide */
         .glass-card {
             width: 95% !important; 
-            max-width: 600px !important; 
+            max-width: 500px !important; 
             margin: 0 auto !important;
             box-sizing: border-box !important;
-            /* Accelerazione hardware per fluidità totale */
-            transform: translate3d(0,0,0);
+            transform: translateZ(0); /* Accelerazione per fluidità */
         }
     </style>
 `;
