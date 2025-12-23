@@ -639,7 +639,7 @@ function renderRipasso() {
 }
 
     if (ripasso.wrong.length) {
-        html += <h4>Sbagliate</h4> + ripasso.wrong.map((d, idx) => `
+        html += `<h4>Sbagliate</h4>` + ripasso.wrong.map((d, idx) => `
             <div style="border-bottom:1px solid #ccc; padding:6px 0">
                 <div><strong>Q${idx+1}:</strong> ${d.q}</div>
                 <div style="margin-left:10px">Risposte: ${d.options.map((o,i)=>i===d.correct?<strong>${o}</strong>:o).join(', ')}</div>
@@ -648,7 +648,7 @@ function renderRipasso() {
     }
 
     if (ripasso.notStudied.length) {
-        html += <h4>Non studiate</h4> + ripasso.notStudied.map((d, idx) => `
+        html += `<h4>Non studiate</h4>` + ripasso.notStudied.map((d, idx) => `
             <div style="border-bottom:1px solid #ccc; padding:6px 0">
                 <div><strong>Q${idx+1}:</strong> ${d.q}</div>
                 <div style="margin-left:10px">Risposte: ${d.options.map((o,i)=>i===d.correct?<strong>${o}</strong>:o).join(', ')}</div>
