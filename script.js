@@ -303,7 +303,12 @@ function check(isOk) {
     const data = session.q[session.idx];
     if(state.mode === 'user') {
         if(!state.history[session.lang]) state.history[session.lang] = [];
-        state.history[session.lang].push({ q: data.q, ok: isOk, exp: data.exp });
+        state.history[session.lang].push({
+    question: data.q,
+    correctAnswer: data.options[data.correct],
+    ok: isOk,
+    exp: data.exp
+});
         if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
         dbUsers[state.currentPin].activeProgress[`${session.lang}_${session.lvl}`] = session.idx + 1;
         saveMasterDB();
