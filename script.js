@@ -613,24 +613,30 @@ function toggleCard(el) {
 }
 
 function renderRipasso() {
-    if (state.mode !== 'user') return; // Ripasso solo per utenti registrati
+    if (state.mode !== 'user') return;
 
     const u = dbUsers[state.currentPin];
+    // Se hai rimosso 'ripasso' dall'oggetto utente, 
+    // assicurati che u esista prima di cercare le sue proprietà
+    if (!u) return; 
+
     const ripasso = u.ripasso || { wrong: [], notStudied: [] };
     const container = document.getElementById('content-area');
 
     // Header con tasto Indietro
     let html = `
-    <button class="btn-apple btn-light" onclick="showHome()">
-        ‹ Indietro
-    </button>
-`;
+        <button class="btn-apple btn-light" onclick="showHome()">
+            ‹ Indietro
+        </button>
+    `;
 
-    if (!ripasso.wrong.length && !ripasso.notStudied.length) {
-        html += "<div style='font-size:12px; opacity:0.6; margin-top:10px'>Nessuna domanda da ripassare</div>";
+    if (ripasso.wrong.length === 0 && ripasso.notStudied.length === 0) {
+        html += `<div style="font-size:12px; opacity:0.6; margin-top:10px">Nessuna domanda da ripassare</div>`;
         container.innerHTML = html;
         return;
     }
+    
+}
 
     if (ripasso.wrong.length) {
         html += <h4>Sbagliate</h4> + ripasso.wrong.map((d, idx) => `
