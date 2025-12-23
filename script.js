@@ -493,47 +493,41 @@ function renderProfile() {
             margin: 0;
         }
 
-        /* 2. Scroll fluido e contenitore largo */
+        /* 2. Contenitore esterno: ALTEZZA INVARIATA, LARGHEZZA ESPANSA */
         #profile-scroll { 
-            height: calc(100vh - 70px); 
+            height: calc(100vh - 70px); /* Resta esattamente come lo avevi tu */
             width: 100%;
             overflow-y: auto;
             overflow-x: hidden;
-            
-            /* Attiva lo scroll fluido nativo iOS */
-            -webkit-overflow-scrolling: touch;
-            
-            /* Ottimizzazione per eliminare i blocchi dello scroll */
-            scroll-behavior: smooth;
-            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch; /* Rende lo scroll fluido */
             scrollbar-width: none;
             -ms-overflow-style: none;
+            
+            /* Accelerazione hardware per eliminare i blocchi */
+            will-change: transform;
         }
 
         #profile-scroll::-webkit-scrollbar { display: none !important; }
 
-        /* 3. Allargato il contenitore per togliere l'effetto "stretto" */
+        /* 3. Contenitore delle card: più spazio ai lati */
         .profile-container {
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            /* Padding ridotto ai lati per dare più respiro */
-            padding: 10px 10px 150px 10px; 
-            box-sizing: border-box; 
+            gap: 15px;
+            padding: 15px 8px 150px 8px; /* Ridotto il padding laterale per allargare */
+            box-sizing: border-box;
             width: 100%;
-            /* Migliora la reattività al tocco */
-            touch-action: pan-y;
         }
 
-        /* 4. Card più larghe (600px) e accelerate via hardware */
+        /* 4. Card interne: più larghe e fluide */
         .glass-card {
-            width: 100% !important; 
-            max-width: 600px !important; /* Allargata da 500 a 600 */
-            margin: 0 auto !important; 
+            width: 96% !important; /* Più vicine ai bordi per non sembrare strette */
+            max-width: 700px !important; /* Aumentato il limite per desktop */
+            margin: 0 auto !important;
             box-sizing: border-box !important;
-            /* Forza l'uso della GPU per rendere lo scroll fluido */
+            
+            /* Impedisce scatti durante lo scroll */
             transform: translateZ(0);
-            backface-visibility: hidden;
         }
     </style>
 `;
