@@ -109,10 +109,10 @@ function validatePin(type) {
         return;
     }
 
-    if (dbUsers[pin]) {
-        errorEl.innerText = "PIN non disponibile";
-        errorEl.style.display = "block";
-        return;
+    if (dbUsers[pin] && dbUsers[pin].progress) {  // se ha dati “vivi” il PIN è occupato
+    errorEl.innerText = "PIN non disponibile";
+    errorEl.style.display = "block";
+    return;
     }
 
     if (isWeakPin(pin)) {
@@ -840,16 +840,19 @@ function recalcUser(userId) {
 
 function adminDeleteUser(userId) {
     const u = findUserById(userId);
-    if (!u) return;
-    openModal(
-        "Elimina utente",
-        "L’utente verrà marcato come eliminato.",
-        () => {
-            u.deleted = true;
-            saveMasterDB();
-            renderAdminPanel();
-        }
-    );
+if (!u) return;
+
+openModal(
+    "Elimina utente",
+    "L’utente verrà eliminato. Lo storico rimarrà visibile all’admin.",
+    () => {
+        // salva solo lo storico
+        const { history, name, userId } = u; // conservi questi
+        dbUsers[u.currentPin] = { history, name, userId }; // cancella tutto il resto
+        saveMasterDB();
+        renderAdminPanel();
+    }
+);
 }
 
 // Mostra i dettagli completi di un utente per l'admin
@@ -972,12 +975,13 @@ function userResetStats() {
 function userDeleteAccount() {
     openModal("Elimina account", "Vuoi eliminare il tuo account? I dati resteranno visibili all'admin.", () => {
         const u = dbUsers[state.currentPin];
-        u.deleted = true;
-        saveMasterDB();
-        state.mode = 'guest';
-        state.currentPin = null;
-        session = null;
-        renderLogin();
+const { history, name, userId } = u;
+dbUsers[state.currentPin] = { history, name, userId }; // conserva solo storico
+saveMasterDB();
+state.mode = 'guest';
+state.currentPin = null;
+session = null;
+renderLogin();
     });
 }
 
