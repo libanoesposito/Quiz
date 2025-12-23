@@ -120,7 +120,6 @@ function validatePin(type) {
         errorEl.style.display = "block";
         return;
     }
-        ensureUserId();
 
     dbUsers[pin] = {
         name,
@@ -129,6 +128,8 @@ function validatePin(type) {
         activeProgress: {},
         savedQuizzes: {}
     };
+        state.currentPin = pin;  // necessario per ensureUserId
+        ensureUserId();
 } else {
         if (!dbUsers[pin]) { errorEl.innerText = "PIN errato o utente inesistente"; errorEl.style.display = "block"; return; }
     }
