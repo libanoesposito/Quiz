@@ -509,31 +509,47 @@ function renderProfile() {
                 });
             }
 
-            const total = 15; // domande per livello
-const correct = correct; 
-const wrong = wrong;
-const notStudied = total - correct - wrong;
+// 1. Dichiara il totale fuori dal ciclo (così lo fai una volta sola)
+const totalQuestionsPerLevel = 15; 
 
-// calcolo larghezze in percentuale
-const wGreen = (correct / total) * 100;
-const wRed   = (wrong / total) * 100;
-const wBlue  = (notStudied / total) * 100;
+let progHtml = '';
+totalLevels.forEach(lang => {
+    const comp = state.progress[lang] || 0;
+    progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
 
-progHtml += `
-<div style="margin-bottom:10px">
-    <div style="font-size:13px">Livello ${i}</div>
+    for (let i = 1; i <= 5; i++) {
+        let correct = 0, wrong = 0;
+        
+        if (u.history && u.history[lang]) {
+            u.history[lang].forEach(h => {
+                // Filtra per il livello attuale del ciclo
+                if (h.level === i) { 
+                    if (h.ok) correct++; else wrong++;
+                }
+            });
+        }
 
-    <div style="
-        height:10px;
-        border-radius:6px;
-        overflow:hidden;
-        display:flex;
-    ">
-        ${wGreen > 0 ? `<div style="width:${wGreen}%; background:#34c759"></div>` : ``}
-        ${wRed > 0 ? `<div style="width:${wRed}%; background:#ff3b30"></div>` : ``}
-        ${wBlue > 0 ? `<div style="width:${wBlue}%; background:#0a84ff"></div>` : ``}
-    </div>
-</div>`;
+        const notStudied = Math.max(0, totalQuestionsPerLevel - correct - wrong);
+        const percent = Math.round((correct / totalQuestionsPerLevel) * 100);
+
+        // Calcolo larghezze
+        const wGreen = (correct / totalQuestionsPerLevel) * 100;
+        const wRed   = (wrong / totalQuestionsPerLevel) * 100;
+        const wBlue  = (notStudied / totalQuestionsPerLevel) * 100;
+
+        progHtml += `
+        <div style="margin-bottom:10px">
+            <div style="font-size:13px">Livello ${i}</div>
+            <div style="height:10px; border-radius:6px; overflow:hidden; display:flex; background:${appleGray}">
+                ${wGreen > 0 ? `<div style="width:${wGreen}%; background:#34c759; height:100%"></div>` : ''}
+                ${wRed > 0 ? `<div style="width:${wRed}%; background:#ff3b30; height:100%"></div>` : ''}
+                ${wBlue > 0 ? `<div style="width:${wBlue}%; background:#0a84ff; height:100%"></div>` : ''}
+            </div>
+            <div style="font-size:11px; text-align:right; margin-top:2px; opacity:0.8">${percent}% corrette</div>
+        </div>`;
+    }
+    progHtml += `</div>`;
+});
 
         progHtml += `</div>`;
     });
