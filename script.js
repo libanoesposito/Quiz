@@ -502,18 +502,18 @@ function renderProfile() {
 
         /* 2. ALTEZZA: Aumentiamo leggermente il calc per toccare il fondo */
         #profile-scroll { 
-    position: fixed;
-    top: 70px;              /* altezza navbar */
-    bottom: 0;              /* arriva a fine schermo */
-    width: 100%;
+        height: calc(100vh - 70px); 
+        width: 100%;
 
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+        margin-top: 70px; /* 🔥 correzione parte bassa */
 
-    will-change: transform;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        }
+
 
             
             /* FLUIDITÀ: Senza blocchi */
