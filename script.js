@@ -621,7 +621,7 @@ function renderRipasso() {
     const ripasso = u.ripasso || { wrong: [], notStudied: [] };
     const container = document.getElementById('content-area');
 
-    // Header con tasto Indietro
+    
     let html = `
         <button class="btn-apple btn-light" onclick="showHome()">
             ‹ Indietro
