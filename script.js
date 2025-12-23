@@ -312,22 +312,22 @@ function renderQ() {
         </div>`;
 }
 
-// Funzione per registrare la domanda in "ripasso" senza modificare i progressi
-function markNotStudied(idx) {
+// Funzione per registrare la domanda in "ripasso" senza modificare i progressifunction markNotStudied(idx) {
+    if (!state.currentPin || !dbUsers[state.currentPin]) return;
     const data = session.q[idx];
-if (!dbUsers[state.currentPin].ripasso) dbUsers[state.currentPin].ripasso = { wrong: [], notStudied: [] };
+    if (!dbUsers[state.currentPin].ripasso) dbUsers[state.currentPin].ripasso = { wrong: [], notStudied: [] };
 
-// Aggiunge alla lista notStudied evitando duplicati
-if (!dbUsers[state.currentPin].ripasso.notStudied.some(d => d.q === data.q)) {
-    dbUsers[state.currentPin].ripasso.notStudied.push({
-        q: data.q,
-        options: data.options,
-        correct: data.correct,
-        exp: data.exp
-    });
-}
-saveMasterDB();
-document.getElementById('fb').innerText = "Aggiunta a ripasso 📌";
+    // Aggiunge alla lista notStudied evitando duplicati
+    if (!dbUsers[state.currentPin].ripasso.notStudied.some(d => d.q === data.q)) {
+        dbUsers[state.currentPin].ripasso.notStudied.push({
+            q: data.q,
+            options: data.options,
+            correct: data.correct,
+            exp: data.exp
+        });
+    }
+    saveMasterDB();
+    document.getElementById('fb').innerText = "Aggiunta a ripasso 📌";
 }
 
 function check(isOk) {
@@ -616,8 +616,6 @@ function renderRipasso() {
     if (state.mode !== 'user') return;
 
     const u = dbUsers[state.currentPin];
-    // Se hai rimosso 'ripasso' dall'oggetto utente, 
-    // assicurati che u esista prima di cercare le sue proprietà
     if (!u) return; 
 
     const ripasso = u.ripasso || { wrong: [], notStudied: [] };
@@ -635,14 +633,12 @@ function renderRipasso() {
         container.innerHTML = html;
         return;
     }
-    
-}
 
     if (ripasso.wrong.length) {
         html += `<h4>Sbagliate</h4>` + ripasso.wrong.map((d, idx) => `
             <div style="border-bottom:1px solid #ccc; padding:6px 0">
                 <div><strong>Q${idx+1}:</strong> ${d.q}</div>
-                <div style="margin-left:10px">Risposte: ${d.options.map((o,i)=>i===d.correct?<strong>${o}</strong>:o).join(', ')}</div>
+                <div style="margin-left:10px">Risposte: ${d.options.map((o,i)=>i===d.correct?`<strong>${o}</strong>`:o).join(', ')}</div>
                 <div style="margin-left:10px; font-size:12px; color:#555">Spiegazione: ${d.exp}</div>
             </div>`).join('');
     }
@@ -651,12 +647,12 @@ function renderRipasso() {
         html += `<h4>Non studiate</h4>` + ripasso.notStudied.map((d, idx) => `
             <div style="border-bottom:1px solid #ccc; padding:6px 0">
                 <div><strong>Q${idx+1}:</strong> ${d.q}</div>
-                <div style="margin-left:10px">Risposte: ${d.options.map((o,i)=>i===d.correct?<strong>${o}</strong>:o).join(', ')}</div>
+                <div style="margin-left:10px">Risposte: ${d.options.map((o,i)=>i===d.correct?`<strong>${o}</strong>`:o).join(', ')}</div>
                 <div style="margin-left:10px; font-size:12px; color:#555">Spiegazione: ${d.exp}</div>
             </div>`).join('');
     }
 
-    container.innerHTML = html;
+    container.innerHTML = html;
 }
 
 function resetStats() {
