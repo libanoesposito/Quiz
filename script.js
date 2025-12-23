@@ -460,20 +460,20 @@ function renderProfile() {
     const stats = calcStats();
     const totalLevels = Object.keys(domandaRepo);
 
-    // Calcolo per il cerchio (colore adattivo)
+    // Calcolo percentuale totale per il cerchio
     const percentTotal = stats.total ? Math.round((stats.correct / stats.total) * 100) : 0;
-    const radius = 30;
+    const radius = 32;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (percentTotal / 100) * circumference;
     
-    // Variabile colore per lo sfondo delle barre (Grigio Apple adattivo)
-    const appleGray = document.body.classList.contains('dark-mode') ? '#2c2c2e' : '#e5e5ea';
+    // Colore Grigio Apple per gli sfondi (si adatta a Dark Mode se presente)
+    const appleGray = "var(--apple-gray, #e5e5ea)";
 
     // Progressi dettagliati
     let progHtml = '';
     totalLevels.forEach(lang => {
         const comp = state.progress[lang] || 0;
-        progHtml += `<div style="margin-bottom:15px; text-align:left;"><h4>${lang}</h4>`;
+        progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
         for(let i=1;i<=5;i++){
             let correct=0, wrong=0, total=15;
             if(u.history && u.history[lang]){
@@ -484,13 +484,13 @@ function renderProfile() {
             const notStudied = total - correct - wrong;
             const percent = total ? Math.round((correct/total)*100) : 0;
             progHtml += `<div style="margin-bottom:8px">
-                <div style="font-size:13px; text-align:left;">Livello ${i}</div>
+                <div style="font-size:13px">Livello ${i}</div>
                 <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:${appleGray}; overflow:hidden">
                     <div class="progress-bar-fill" style="width:${(correct/total)*100}%; background:#34c759; height:100%"></div>
                     <div class="progress-bar-fill" style="width:${(wrong/total)*100}%; background:#ff3b30; position:absolute; left:${(correct/total)*100}%; height:100%"></div>
                     <div class="progress-bar-fill" style="width:${(notStudied/total)*100}%; background:#aaa; position:absolute; left:${((correct+wrong)/total)*100}%; height:100%"></div>
                 </div>
-                <div style="font-size:11px; text-align:left; margin-top:2px; opacity:0.7;">${percent}% corrette</div>
+                <div style="font-size:11px; text-align:right; margin-top:2px">${percent}% corrette</div>
             </div>`;
         }
         progHtml += `</div>`;
@@ -498,67 +498,74 @@ function renderProfile() {
 
     // HTML generale
     document.getElementById('content-area').innerHTML = `
-<div style="width:100%; display:flex; flex-direction:column; gap:15px; text-align:left;">
+<div style="width:100%; display:flex; flex-direction:column; gap:15px">
 
-    <div class="glass-card" style="text-align:left;">
+    <div class="glass-card">
         <div><strong>Nome:</strong> ${u.name}</div>
         <div><strong>ID Utente:</strong> ${u.userId}</div>
     </div>
 
     <div class="glass-card">
-        <strong style="display:block; margin-bottom:15px;">Statistiche</strong>
+        <div><strong>Statistiche</strong></div>
         
-        <div style="display:flex; align-items:center; gap:20px;">
-            <div style="position:relative; display:flex; align-items:center; justify-content:center; min-width:80px;">
+        <div style="margin-top:15px; display:flex; align-items:center; gap:20px">
+            
+            <div style="position:relative; display:flex; align-items:center; justify-content:center; min-width:80px">
                 <svg width="80" height="80" style="transform: rotate(-90deg)">
                     <circle cx="40" cy="40" r="${radius}" stroke="${appleGray}" stroke-width="6" fill="transparent" />
                     <circle cx="40" cy="40" r="${radius}" stroke="#34c759" stroke-width="6" fill="transparent" 
                         stroke-dasharray="${circumference}" 
                         stroke-dashoffset="${offset}" 
                         stroke-linecap="round"
-                        style="transition: stroke-dashoffset 0.6s ease" />
+                        style="transition: stroke-dashoffset 0.5s ease" />
                 </svg>
-                <div style="position:absolute; font-weight:700; font-size:14px; transform: rotate(0deg);">${percentTotal}%</div>
+                <div style="position:absolute; font-weight:700; font-size:14px; transform: rotate(90deg)">${percentTotal}%</div>
             </div>
 
-            <div style="flex:1; display:flex; flex-direction:column; gap:8px">
+            <div style="flex:1; display:flex; flex-direction:column; gap:6px">
                 <div>
-                    <div style="font-size:12px; text-align:left; margin-bottom:2px">Corrette: ${stats.correct}</div>
-                    <div class="progress-container" style="height:8px; border-radius:4px; background:${appleGray}; overflow:hidden">
-                        <div class="progress-bar-fill" style="width:${(stats.correct/stats.total)*100}%; background:#34c759; height:100%;"></div>
+                    <div style="font-size:12px; margin-bottom:2px">Corrette: ${stats.correct}</div>
+                    <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:${appleGray}; overflow:hidden">
+                        <div class="progress-bar-fill" style="width:${(stats.correct/stats.total)*100}%; background:#34c759; height:100%; transition:0.3s"></div>
                     </div>
                 </div>
                 <div>
-                    <div style="font-size:12px; text-align:left; margin-bottom:2px">Sbagliate: ${stats.wrong}</div>
-                    <div class="progress-container" style="height:8px; border-radius:4px; background:${appleGray}; overflow:hidden">
-                        <div class="progress-bar-fill" style="width:${(stats.wrong/stats.total)*100}%; background:#ff3b30; height:100%;"></div>
+                    <div style="font-size:12px; margin-bottom:2px">Sbagliate: ${stats.wrong}</div>
+                    <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:${appleGray}; overflow:hidden">
+                        <div class="progress-bar-fill" style="width:${(stats.wrong/stats.total)*100}%; background:#ff3b30; height:100%; transition:0.3s"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size:12px; margin-bottom:2px">Non studiate: ${stats.total - stats.correct - stats.wrong}</div>
+                    <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:${appleGray}; overflow:hidden">
+                        <div class="progress-bar-fill" style="width:${((stats.total - stats.correct - stats.wrong)/stats.total)*100}%; background:#ffd60a; height:100%; transition:0.3s"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="glass-card" onclick="toggleGeneralProgress(this)" style="cursor:pointer; text-align:left;">
+    <div class="glass-card" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
         <strong>Progressi generali</strong>
     </div>
-    <div class="glass-card" id="detailed-progress" style="display:none; text-align:left;">
-        <strong style="display:block; margin-bottom:10px;">Progressi dettagliati</strong>
-        <div>${progHtml}</div>
+    <div class="glass-card" id="detailed-progress" style="display:none">
+        <strong>Progressi dettagliati</strong>
+        <div style="margin-top:10px">${progHtml}</div>
     </div>
 
-    <div class="glass-card" onclick="toggleGeneralContent('security-content')" style="cursor:pointer; text-align:left;">
+    <div class="glass-card" onclick="toggleGeneralContent('security-content')" style="cursor:pointer">
         <strong>Sicurezza</strong>
     </div>
-    <div class="glass-card" id="security-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px;">
+    <div class="glass-card" id="security-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px">
         <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
         <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
         <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
     </div>
 
-    <div class="glass-card" onclick="toggleGeneralContent('history-content')" style="cursor:pointer; text-align:left;">
+    <div class="glass-card" onclick="toggleGeneralContent('history-content')" style="cursor:pointer">
         <strong>Storico</strong>
     </div>
-    <div class="glass-card" id="history-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px; max-height:400px; overflow-y:auto;">
+    <div class="glass-card" id="history-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px; max-height:400px; overflow-y:auto">
         ${generateHistoryHTML(u)}
     </div>
 </div>
