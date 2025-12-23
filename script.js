@@ -174,7 +174,7 @@ function showHome() {
     document.getElementById('app-title').innerText = "PERCORSI";
     let html = `<div class="lang-grid">`;
 
-    // 1. Ciclo per i linguaggi standard (Python, Java, ecc.)
+    // Linguaggi standard
     Object.keys(domandaRepo).forEach(l => {
         const icon = (l === 'HTML') ? 'html5' : l.toLowerCase();
         html += `<div class="lang-item" onclick="showLevels('${l}')">
@@ -183,11 +183,11 @@ function showHome() {
         </div>`;
     });
 
-    // 2. Se l'utente è loggato, aggiungiamo il tasto RIPASSO con la stessa estetica dei linguaggi
+    // Ripasso e Profilo (Solo Utente)
     if(state.mode === 'user') {
         html += `
         <div class="lang-item" onclick="renderRipasso()">
-            <img src="https://cdn-icons-png.flaticon.com/512/3503/3503940.png" width="35">
+            <img src="https://cdn-icons-png.flaticon.com/512/3389/3389081.png" width="35">
             <div style="margin-top:10px; font-weight:700; font-size:13px">RIPASSO</div>
         </div>
         <div class="lang-item profile-slot" onclick="renderProfile()">
@@ -195,7 +195,6 @@ function showHome() {
         </div>`;
     }
 
-    // 3. Pannello Admin (Solo se admin)
     if(state.mode === 'admin') {
         html += `<div class="lang-item profile-slot" onclick="renderAdminPanel()"><div style="font-weight:700">PANNELLO ADMIN</div></div>`;
     }
@@ -634,41 +633,54 @@ function toggleCard(el) {
 
 function renderRipasso() {
     if (state.mode !== 'user') return;
-
     const u = dbUsers[state.currentPin];
-    if (!u) return; 
+    if (!u) return;
 
     const ripasso = u.ripasso || { wrong: [], notStudied: [] };
     const container = document.getElementById('content-area');
 
     let html = `
-        <button class="btn-apple btn-light" onclick="showHome()">
+        <button class="btn-apple btn-light" onclick="showHome()" style="margin-bottom:20px">
             ‹ Indietro
         </button>
+        <h2 style="font-size:22px; margin-bottom:15px">Il mio Ripasso</h2>
     `;
 
     if (ripasso.wrong.length === 0 && ripasso.notStudied.length === 0) {
-        html += `<div style="font-size:12px; opacity:0.6; margin-top:10px">Nessuna domanda da ripassare</div>`;
+        html += `<div style="text-align:center; padding:40px; opacity:0.5">
+                    <div style="font-size:40px">🎉</div>
+                    <p>Ottimo lavoro! Non hai domande da ripassare.</p>
+                 </div>`;
         container.innerHTML = html;
         return;
     }
 
+    // Funzione interna per generare le card
+    const createCard = (d, type) => `
+        <div style="background:white; border-radius:12px; padding:15px; margin-bottom:15px; border:1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 4px rgba(0,0,0,0.02)">
+            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:8px">
+                <span style="font-size:10px; font-weight:800; text-transform:uppercase; padding:3px 8px; border-radius:20px; 
+                    ${type === 'wrong' ? 'background:#FFE5E5; color:#FF3B30;' : 'background:#E5F1FF; color:#007AFF;'}">
+                    ${type === 'wrong' ? 'Sbagliata' : 'Non studiata'}
+                </span>
+            </div>
+            <div style="font-weight:700; font-size:15px; margin-bottom:10px">${d.q}</div>
+            <div style="background:rgba(0,0,0,0.03); padding:10px; border-radius:8px; font-size:13px">
+                <div style="color:var(--accent); font-weight:700; margin-bottom:4px">Risposta corretta:</div>
+                ${d.options[d.correct]}
+            </div>
+            ${d.exp ? `<div style="margin-top:10px; font-size:12px; color:#666; line-height:1.4"><strong>Spiegazione:</strong> ${d.exp}</div>` : ''}
+        </div>
+    `;
+
     if (ripasso.wrong.length) {
-        html += `<h4>Sbagliate</h4>` + ripasso.wrong.map((d, idx) => `
-            <div style="border-bottom:1px solid #ccc; padding:6px 0">
-                <div><strong>Q${idx + 1}:</strong> ${d.q}</div>
-                <div style="margin-left:10px">Risposte: ${d.options.map((o, i) => i === d.correct ? `<strong>${o}</strong>` : o).join(', ')}</div>
-                <div style="margin-left:10px; font-size:12px; color:#555">Spiegazione: ${d.exp}</div>
-            </div>`).join('');
+        html += `<h3 style="font-size:14px; opacity:0.5; margin:20px 0 10px 5px">DOMANDE SBAGLIATE</h3>`;
+        html += ripasso.wrong.map(d => createCard(d, 'wrong')).join('');
     }
 
     if (ripasso.notStudied.length) {
-        html += `<h4>Non studiate</h4>` + ripasso.notStudied.map((d, idx) => `
-            <div style="border-bottom:1px solid #ccc; padding:6px 0">
-                <div><strong>Q${idx + 1}:</strong> ${d.q}</div>
-                <div style="margin-left:10px">Risposte: ${d.options.map((o, i) => i === d.correct ? `<strong>${o}</strong>` : o).join(', ')}</div>
-                <div style="margin-left:10px; font-size:12px; color:#555">Spiegazione: ${d.exp}</div>
-            </div>`).join('');
+        html += `<h3 style="font-size:14px; opacity:0.5; margin:20px 0 10px 5px">DA STUDIARE</h3>`;
+        html += ripasso.notStudied.map(d => createCard(d, 'notStudied')).join('');
     }
 
     container.innerHTML = html;
