@@ -120,6 +120,7 @@ function validatePin(type) {
         errorEl.style.display = "block";
         return;
     }
+        ensureUserId();
 
     dbUsers[pin] = {
         name,
