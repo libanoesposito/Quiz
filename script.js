@@ -122,14 +122,15 @@ function validatePin(type) {
     }
 
     dbUsers[pin] = {
-        name,
-        progress: {},
-        history: {},
-        activeProgress: {},
-        savedQuizzes: {}
-    };
-        state.currentPin = pin;  // necessario per ensureUserId
-        ensureUserId();
+    name,
+    progress: {},
+    history: {},
+    activeProgress: {},
+    savedQuizzes: {}
+};
+state.currentPin = pin;
+state.mode = 'user';  // così ensureUserId funziona subito
+ensureUserId();
 } else {
         if (!dbUsers[pin]) { errorEl.innerText = "PIN errato o utente inesistente"; errorEl.style.display = "block"; return; }
     }
