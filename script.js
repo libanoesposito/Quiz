@@ -329,12 +329,11 @@ function markNotStudied(idx) {
     const data = session.q[idx];
     const user = dbUsers[state.currentPin];
 
+    // 1. Logica esistente per la sezione Ripasso
     if (!user.ripasso) {
         user.ripasso = { wrong: [], notStudied: [] };
     }
-
     const giaPresente = user.ripasso.notStudied.some(d => d.q === data.q);
-    
     if (!giaPresente) {
         user.ripasso.notStudied.push({
             q: data.q,
@@ -342,13 +341,27 @@ function markNotStudied(idx) {
             correct: data.correct,
             exp: data.exp
         });
-        if (typeof saveMasterDB === 'function') saveMasterDB();
     }
-    
-    const fb = document.getElementById('fb');
-    if (fb) fb.innerHTML = `<div style="color:var(--accent); margin-top:10px">Aggiunta a ripasso 📌</div>`;
-}
 
+    // 2. NUOVO: Salva nello storico (per colorare la barra di BLU nel profilo)
+    if (!state.history[session.lang]) state.history[session.lang] = [];
+    state.history[session.lang].push({
+        question: data.q,
+        isNotStudied: true, // Questo attiva il blu nel renderProfile
+        level: session.lvl,  // Indica a quale barra aggiungere il blu
+        lvl: session.lvl     // Doppia sicurezza
+    });
+
+    // 3. NUOVO: Avanza l'indice del progresso attivo
+    if (!user.activeProgress) user.activeProgress = {};
+    user.activeProgress[`${session.lang}_${session.lvl}`] = session.idx + 1;
+
+    // 4. Salva tutto nel DB
+    if (typeof saveMasterDB === 'function') saveMasterDB();
+    
+    // 5. NUOVO: Passa subito alla prossima domanda
+    next();
+}
 function check(isOk) {
     const data = session.q[session.idx];
     if(state.mode === 'user') {
