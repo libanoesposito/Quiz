@@ -172,39 +172,32 @@ function setGuest() {
 function showHome() {
     updateNav(false);
     document.getElementById('app-title').innerText = "PERCORSI";
-    
     let html = `<div class="lang-grid">`;
-    
-    // 1. Icone dei linguaggi (Sempre visibili)
+
+    // 1. Ciclo per i linguaggi standard (Python, Java, ecc.)
     Object.keys(domandaRepo).forEach(l => {
         const icon = (l === 'HTML') ? 'html5' : l.toLowerCase();
-        html += `
-        <div class="lang-item" onclick="showLevels('${l}')">
+        html += `<div class="lang-item" onclick="showLevels('${l}')">
             <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${icon}/${icon}-original.svg" width="35" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1005/1005141.png'">
             <div style="margin-top:10px; font-weight:700; font-size:13px">${l}</div>
         </div>`;
     });
 
-    // 2. Slot Ripasso (Solo per utenti, NO Guest, NO Admin)
-    if (state.mode === 'user') {
+    // 2. Se l'utente è loggato, aggiungiamo il tasto RIPASSO con la stessa estetica dei linguaggi
+    if(state.mode === 'user') {
         html += `
-        <div class="lang-item profile-slot" onclick="renderRipasso()">
+        <div class="lang-item" onclick="renderRipasso()">
             <img src="https://cdn-icons-png.flaticon.com/512/3503/3503940.png" width="35">
             <div style="margin-top:10px; font-weight:700; font-size:13px">RIPASSO</div>
         </div>
         <div class="lang-item profile-slot" onclick="renderProfile()">
-            <img src="https://cdn-icons-png.flaticon.com/512/3106/3106773.png" width="35">
-            <div style="margin-top:10px; font-weight:700; font-size:13px">PROFILO</div>
+            <div style="font-weight:700">IL MIO PROFILO</div>
         </div>`;
     }
 
-    // 3. Slot Admin (Solo per Admin)
-    if (state.mode === 'admin') {
-        html += `
-        <div class="lang-item profile-slot" onclick="renderAdminPanel()">
-            <img src="https://cdn-icons-png.flaticon.com/512/978/978912.png" width="35">
-            <div style="margin-top:10px; font-weight:700; font-size:13px">ADMIN</div>
-        </div>`;
+    // 3. Pannello Admin (Solo se admin)
+    if(state.mode === 'admin') {
+        html += `<div class="lang-item profile-slot" onclick="renderAdminPanel()"><div style="font-weight:700">PANNELLO ADMIN</div></div>`;
     }
 
     html += `</div>`;
