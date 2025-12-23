@@ -485,40 +485,42 @@ function renderProfile() {
     const appleGray = isDark ? '#2c2c2e' : '#e5e5ea';
 
     const noScrollStyle = `
-        <style>
-            body { height: 100vh; overflow: hidden; margin: 0; }
-            #profile-scroll { 
-                height: 100vh; 
-                overflow-y: auto; 
-                -webkit-overflow-scrolling: touch; 
-                
-                /* Nasconde la barra su Firefox */
-                scrollbar-width: none; 
-                
-                /* Nasconde la barra su Internet Explorer/Edge */
-                -ms-overflow-style: none; 
-            }
-            
-            /* Nasconde la barra su Chrome, Safari e Opera */
-            #profile-scroll::-webkit-scrollbar { 
-                display: none !important; 
-                width: 0 !important; 
-                height: 0 !important; 
-                background: transparent;
-            }
-            
-            .profile-container {
-                min-height: 100vh;
-                display: flex;
-                flex-direction: column;
-                gap: 15px;
-                padding: 12px 12px 80px 12px; /* Aumentato un po' il padding inferiore */
-                box-sizing: border-box;
-                width: 100%;
-            }
-            .glass-card { width: 100% !important; box-sizing: border-box !important; margin: 0 !important; }
-        </style>
-    `;
+    <style>
+        /* 1. Blocca lo scroll su TUTTI i contenitori esterni */
+        html, body, .main-container { 
+            height: 100vh !important; 
+            overflow: hidden !important; 
+            margin: 0;
+        }
+
+        /* 2. Permette lo scroll solo qui, nascondendo la barra */
+        #profile-scroll { 
+            height: 100vh; 
+            overflow-y: scroll; /* Forza lo scroll verticale */
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        /* 3. Nasconde la barra su Chrome/Safari anche qui per sicurezza */
+        #profile-scroll::-webkit-scrollbar { 
+            display: none !important;
+            width: 0 !important;
+        }
+
+        .profile-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 12px 12px 120px 12px; /* Aumentato per non far coprire l'ultima card */
+            box-sizing: border-box;
+            width: 100%;
+        }
+        
+        .glass-card { width: 100% !important; box-sizing: border-box !important; margin: 0 !important; }
+    </style>
+`;
 
     let progHtml = '';
     const totalQuestionsPerLevel = 15; 
