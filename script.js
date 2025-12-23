@@ -319,7 +319,7 @@ function renderQ() {
         </div>
         <div id="fb"></div>
         <div style="margin-top:10px; text-align:right">
-            <button class="btn-apple btn-light" onclick="markNotStudied(${session.idx})">Non l'ho studiato</button>
+            <button class="btn-apple btn-info" onclick="markNotStudied()">Non l'ho studiato</button>
         </div>`;
 }
 
