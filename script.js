@@ -460,15 +460,15 @@ function renderProfile() {
     const stats = calcStats();
     const totalLevels = Object.keys(domandaRepo);
 
-    // Calcolo percentuale totale per il cerchio
+    // --- LOGICA CERCHIO ---
     const percentTotal = stats.total ? Math.round((stats.correct / stats.total) * 100) : 0;
     const radius = 32;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (percentTotal / 100) * circumference;
     
-    // CORREZIONE COLORE: Rileviamo se siamo in dark mode o light mode per il grigio
-    const isDarkMode = document.body.classList.contains('dark-mode');
-    const appleGray = isDarkMode ? '#2c2c2e' : '#e5e5ea'; 
+    // Grigio Apple Dinamico
+    const isDark = document.body.classList.contains('dark-mode');
+    const appleGray = isDark ? '#2c2c2e' : '#e5e5ea';
 
     // Progressi dettagliati
     let progHtml = '';
@@ -512,7 +512,7 @@ function renderProfile() {
         <div style="margin-top:15px; display:flex; align-items:center; gap:20px">
             
             <div style="position:relative; display:flex; align-items:center; justify-content:center; min-width:80px">
-                <svg width="80" height="80" style="transform: rotate(-90deg); display: block;">
+                <svg width="80" height="80" style="transform: rotate(-90deg)">
                     <circle cx="40" cy="40" r="${radius}" stroke="${appleGray}" stroke-width="6" fill="transparent" />
                     <circle cx="40" cy="40" r="${radius}" stroke="#34c759" stroke-width="6" fill="transparent" 
                         stroke-dasharray="${circumference}" 
@@ -520,7 +520,7 @@ function renderProfile() {
                         stroke-linecap="round"
                         style="transition: stroke-dashoffset 0.5s ease" />
                 </svg>
-                <div style="position:absolute; font-weight:700; font-size:14px; color: inherit;">${percentTotal}%</div>
+                <div style="position:absolute; font-weight:700; font-size:14px;">${percentTotal}%</div>
             </div>
 
             <div style="flex:1; display:flex; flex-direction:column; gap:6px">
@@ -545,7 +545,7 @@ function renderProfile() {
             </div>
         </div>
     </div>
-    
+
     <div class="glass-card" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
         <strong>Progressi generali</strong>
     </div>
