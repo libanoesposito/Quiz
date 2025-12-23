@@ -480,8 +480,16 @@ function renderProfile() {
 // Funzioni toggle **fuori da renderProfile**
 window.toggleGeneralProgress = function(card) {
     const detailed = document.getElementById('detailed-progress');
-    detailed.style.display = detailed.style.display === 'none' ? 'block' : 'none';
-    if (detailed.style.display === 'block') detailed.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const isHidden = detailed.style.display === 'none';
+
+    detailed.style.display = isHidden ? 'block' : 'none';
+
+    if (isHidden) {
+        card.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
 };
 
 window.toggleGeneralContent = function(id) {
