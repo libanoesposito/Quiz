@@ -37,11 +37,15 @@ function updateNav(showBack, backTarget) {
 }
 
 function saveMasterDB() {
-    if (state.mode === 'user' && state.currentPin) {
-        dbUsers[state.currentPin].progress = state.progress;
-        dbUsers[state.currentPin].history = state.history;
+    // Salviamo i progressi solo se siamo in modalità utente e il pin esiste nel database
+    if (state.mode === 'user' && state.currentPin && dbUsers[state.currentPin]) {
+        dbUsers[state.currentPin].progress = state.progress || {};
+        dbUsers[state.currentPin].history = state.history || {};
     }
+    
+    // Salvataggio fisico sul browser
     localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
+    console.log("DB salvato correttamente.");
 }
 
 function renderLogin() {
@@ -88,28 +92,27 @@ function isWeakPin(pin) {
 }
 
 function validatePin(type) {
-    const pin = document.getElementById('pin-field').value;
+    const pinField = document.getElementById('pin-field');
+    const pin = pinField ? pinField.value : "";
     const errorEl = document.getElementById('pin-error');
     
-    // Reset errore
-    errorEl.style.display = "none";
+    if (errorEl) errorEl.style.display = "none";
 
-    // 1. Controllo lunghezza
     if (pin.length !== 4) {
         errorEl.innerText = "Il PIN deve essere di 4 cifre";
         errorEl.style.display = "block";
         return;
     }
 
-    // 2. Controllo Admin
+    // Accesso Admin
     if (pin === ADMIN_PIN) {
         state.mode = 'admin';
         state.currentUser = "Creatore";
+        state.currentPin = pin; 
         showHome();
         return;
     }
 
-    // 3. Logica Registrazione
     if (type === 'register') {
         const nameInput = document.getElementById('name-field');
         const name = nameInput ? nameInput.value.trim() : "";
@@ -120,7 +123,8 @@ function validatePin(type) {
             return;
         }
 
-        if (dbUsers[pin] && dbUsers[pin].progress) {
+        // Controllo reale se il PIN esiste
+        if (dbUsers && dbUsers[pin]) {
             errorEl.innerText = "PIN non disponibile";
             errorEl.style.display = "block";
             return;
@@ -132,7 +136,7 @@ function validatePin(type) {
             return;
         }
 
-        // Creazione nuovo utente
+        // Creazione utente pulita
         dbUsers[pin] = {
             name: name,
             progress: {},
@@ -141,20 +145,16 @@ function validatePin(type) {
             savedQuizzes: {},
             ripasso: { wrong: [], notStudied: [] }
         };
-        
-        state.mode = 'user';
-        ensureUserId(); 
-    } 
-    // 4. Logica Login (se non è register)
-    else {
-        if (!dbUsers[pin]) {
+    } else {
+        // Login
+        if (!dbUsers || !dbUsers[pin]) {
             errorEl.innerText = "PIN errato o utente inesistente";
             errorEl.style.display = "block";
             return;
         }
     }
 
-    // 5. Finalizzazione (comune a Login e Registrazione)
+    // Login effettuato con successo
     state.currentPin = pin;
     state.currentUser = dbUsers[pin].name;
     state.mode = 'user';
@@ -903,14 +903,47 @@ function renderAdminUsers() {
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = "PANNELLO ADMIN";
 
-    let users = Object.keys(dbUsers).map((pin, idx) => {
+    const pinList = Object.keys(dbUsers);
+    
+    if (pinList.length === 0) {
+        document.getElementById('content-area').innerHTML = `
+            <div style="text-align:center; padding:20px; opacity:0.6;">Nessun utente registrato.</div>`;
+        return;
+    }
+
+    let users = pinList.map((pin, idx) => {
         const user = dbUsers[pin];
         let score = 0;
-        Object.values(user.history).forEach(hist=>{
-            hist.forEach(h=>{ if(h.ok) score++; });
-        });
-        return { id: idx+1, name: user.name, pin, score, history: user.history };
+        if (user.history) {
+            Object.values(user.history).forEach(hist => {
+                if (Array.isArray(hist)) {
+                    hist.forEach(h => { if (h && h.ok) score++; });
+                }
+            });
+        }
+        return { id: idx + 1, name: user.name, pin, score };
     });
+
+    users.sort((a, b) => b.score - a.score);
+
+    let html = `<div class="glass-card" style="background:transparent; border:none; box-shadow:none;">`;
+    users.forEach(u => {
+        html += `
+        <div style="margin-bottom:15px; padding:12px; border:1px solid var(--border); border-radius:12px; display:flex; justify-content:space-between; align-items:center; background:var(--bg-card, rgba(255,255,255,0.05));">
+            <div style="color:var(--text-color);">
+                <strong style="color:var(--accent);">${u.id}</strong> - ${u.name} 
+                <div style="font-size:11px; opacity:0.6;">Punteggio: ${u.score} | PIN: ${u.pin}</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button class="modal-btn btn-primary" onclick="showUserHistory('${u.pin}')" title="Storia">⏳</button>
+                <button class="modal-btn btn-destruct" onclick="adminDeleteUser('${u.pin}')" title="Elimina">❌</button>
+                <button class="modal-btn btn-destruct" onclick="adminResetUserStats('${u.pin}')" title="Reset">♻️</button>
+            </div>
+        </div>`;
+    });
+    html += `</div>`;
+    document.getElementById('content-area').innerHTML = html;
+}
 
     // Ordina per punteggio decrescente
     users.sort((a,b)=>b.score - a.score);
