@@ -636,56 +636,71 @@ function renderRipasso() {
     const u = dbUsers[state.currentPin];
     if (!u) return;
 
+    // Integrazione Navigazione Standard del sito
+    updateNav(true, 'showHome()');
+    document.getElementById('app-title').innerText = "RIPASSO";
+
     const ripasso = u.ripasso || { wrong: [], notStudied: [] };
     const container = document.getElementById('content-area');
 
-    let html = `
-        <button class="btn-apple btn-light" onclick="showHome()" style="margin-bottom:20px">
-            ‹ Indietro
-        </button>
-        <h2 style="font-size:22px; margin-bottom:15px">Il mio Ripasso</h2>
-    `;
-
     if (ripasso.wrong.length === 0 && ripasso.notStudied.length === 0) {
-        html += `<div style="text-align:center; padding:40px; opacity:0.5">
-                    <div style="font-size:40px">🎉</div>
-                    <p>Ottimo lavoro! Non hai domande da ripassare.</p>
-                 </div>`;
-        container.innerHTML = html;
+        container.innerHTML = `
+            <div style="text-align:center; padding:40px; opacity:0.5">
+                <div style="font-size:40px">🎉</div>
+                <p>Niente da ripassare!</p>
+            </div>`;
         return;
     }
 
-    // Funzione interna per generare le card
-    const createCard = (d, type) => `
-        <div style="background:white; border-radius:12px; padding:15px; margin-bottom:15px; border:1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 4px rgba(0,0,0,0.02)">
-            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:8px">
-                <span style="font-size:10px; font-weight:800; text-transform:uppercase; padding:3px 8px; border-radius:20px; 
-                    ${type === 'wrong' ? 'background:#FFE5E5; color:#FF3B30;' : 'background:#E5F1FF; color:#007AFF;'}">
-                    ${type === 'wrong' ? 'Sbagliata' : 'Non studiata'}
-                </span>
+    // Funzione interna per generare le card con sfumatura laterale
+    const createCard = (d, type) => {
+        const borderColor = type === 'wrong' ? '#FF3B30' : '#007AFF';
+        const bgColor = type === 'wrong' ? 'rgba(255, 59, 48, 0.05)' : 'rgba(0, 122, 255, 0.05)';
+        
+        return `
+        <div style="background: var(--bg-card, rgba(255,255,255,0.05)); 
+                    border-left: 6px solid ${borderColor}; 
+                    border-radius: 10px; padding: 15px; margin-bottom: 20px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            
+            <div style="font-size: 11px; font-weight: 800; color: ${borderColor}; margin-bottom: 5px; text-transform: uppercase;">
+                ${type === 'wrong' ? 'Risposta Errata' : 'Da Studiare'}
             </div>
-            <div style="font-weight:700; font-size:15px; margin-bottom:10px">${d.q}</div>
-            <div style="background:rgba(0,0,0,0.03); padding:10px; border-radius:8px; font-size:13px">
-                <div style="color:var(--accent); font-weight:700; margin-bottom:4px">Risposta corretta:</div>
-                ${d.options[d.correct]}
+            
+            <div style="font-weight: 700; font-size: 16px; margin-bottom: 12px; color: var(--text-color);">${d.q}</div>
+            
+            <div style="margin-bottom: 12px;">
+                ${d.options.map((opt, i) => {
+                    let style = "padding: 8px; border-radius: 6px; margin-bottom: 4px; font-size: 13px; border: 1px solid rgba(120,120,120,0.2);";
+                    if (i === d.correct) {
+                        style += "background: rgba(52, 199, 89, 0.2); border-color: #34C759; font-weight: bold;";
+                    }
+                    return `<div style="${style}">${opt} ${i === d.correct ? '✅' : ''}</div>`;
+                }).join('')}
             </div>
-            ${d.exp ? `<div style="margin-top:10px; font-size:12px; color:#666; line-height:1.4"><strong>Spiegazione:</strong> ${d.exp}</div>` : ''}
-        </div>
-    `;
+
+            ${d.exp ? `
+                <div style="background: ${bgColor}; padding: 10px; border-radius: 8px; font-size: 12px; line-height: 1.4; color: var(--text-secondary);">
+                    <strong>Spiegazione:</strong> ${d.exp}
+                </div>` : ''}
+        </div>`;
+    };
+
+    let html = `<div style="padding-bottom: 20px;">`;
 
     if (ripasso.wrong.length) {
-        html += `<h3 style="font-size:14px; opacity:0.5; margin:20px 0 10px 5px">DOMANDE SBAGLIATE</h3>`;
+        html += `<h3 style="font-size:14px; opacity:0.6; margin: 10px 0;">SBAGLIATE DI RECENTE</h3>`;
         html += ripasso.wrong.map(d => createCard(d, 'wrong')).join('');
     }
 
     if (ripasso.notStudied.length) {
-        html += `<h3 style="font-size:14px; opacity:0.5; margin:20px 0 10px 5px">DA STUDIARE</h3>`;
+        html += `<h3 style="font-size:14px; opacity:0.6; margin: 25px 0 10px 0;">DOMANDE "NON STUDIATE"</h3>`;
         html += ripasso.notStudied.map(d => createCard(d, 'notStudied')).join('');
     }
 
+    html += `</div>`;
     container.innerHTML = html;
 }
-
 function resetStats() {
     openModal(
         "Azzera statistiche",
