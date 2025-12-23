@@ -522,10 +522,10 @@ function renderProfile() {
         for (let i = 1; i <= 5; i++) {
             let correct = 0, wrong = 0;
             
-            // Logica di conteggio originale
             if (u.history && u.history[lang]) {
                 u.history[lang].forEach(h => {
-                    if (h.level === i) { 
+                    // Usiamo == per evitare problemi tra stringhe e numeri
+                    if (Number(h.level) == i) { 
                         if (h.ok) correct++; else wrong++;
                     }
                 });
@@ -534,7 +534,6 @@ function renderProfile() {
             const notStudied = Math.max(0, totalQuestionsPerLevel - correct - wrong);
             const percent = Math.round((correct / totalQuestionsPerLevel) * 100);
 
-            // Calcolo larghezze percentuali
             const wGreen = (correct / totalQuestionsPerLevel) * 100;
             const wRed   = (wrong / totalQuestionsPerLevel) * 100;
             const wBlue  = (notStudied / totalQuestionsPerLevel) * 100;
@@ -542,13 +541,11 @@ function renderProfile() {
             progHtml += `
             <div style="margin-bottom:10px">
                 <div style="font-size:13px">Livello ${i}</div>
-                
                 <div style="height:10px; border-radius:6px; overflow:hidden; display:flex; background:${appleGray}; width:100%">
                     ${wGreen > 0 ? `<div style="width:${wGreen}%; background:#34c759; height:100%"></div>` : ''}
                     ${wRed > 0 ? `<div style="width:${wRed}%; background:#ff3b30; height:100%"></div>` : ''}
                     ${wBlue > 0 ? `<div style="width:${wBlue}%; background:#0a84ff; height:100%"></div>` : ''}
                 </div>
-                
                 <div style="font-size:11px; text-align:right; margin-top:2px; opacity:0.8">${percent}% corrette</div>
             </div>`;
         }
