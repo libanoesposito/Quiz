@@ -486,50 +486,54 @@ function renderProfile() {
 
     const noScrollStyle = `
     <style>
+        /* 1. Blocca lo scroll del body */
         body { 
             overflow: hidden !important; 
             height: 100vh !important;
             margin: 0;
         }
 
+        /* 2. Scroll fluido e contenitore largo */
         #profile-scroll { 
             height: calc(100vh - 70px); 
             width: 100%;
             overflow-y: auto;
             overflow-x: hidden;
             
-            /* Fluidità Apple nativa */
-            -webkit-overflow-scrolling: touch; 
-            scroll-behavior: smooth;
+            /* Attiva lo scroll fluido nativo iOS */
+            -webkit-overflow-scrolling: touch;
             
-            /* Ottimizzazione performance scroll */
-            will-change: transform; 
+            /* Ottimizzazione per eliminare i blocchi dello scroll */
+            scroll-behavior: smooth;
+            overscroll-behavior: contain;
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
 
         #profile-scroll::-webkit-scrollbar { display: none !important; }
 
+        /* 3. Allargato il contenitore per togliere l'effetto "stretto" */
         .profile-container {
             display: flex;
             flex-direction: column;
             gap: 16px;
-            /* Padding ridotto ai lati (10px invece di 15px) per renderlo meno "stretto" */
+            /* Padding ridotto ai lati per dare più respiro */
             padding: 10px 10px 150px 10px; 
-            box-sizing: border-box;
+            box-sizing: border-box; 
             width: 100%;
-            /* Rende lo scroll più fluido rimuovendo ritardi al tocco */
-            touch-action: pan-y; 
+            /* Migliora la reattività al tocco */
+            touch-action: pan-y;
         }
 
+        /* 4. Card più larghe (600px) e accelerate via hardware */
         .glass-card {
             width: 100% !important; 
-            /* Aumentato a 600px per togliere l'effetto "stretto" su desktop/tablet */
-            max-width: 600px !important; 
-            margin: 0 auto !important;
+            max-width: 600px !important; /* Allargata da 500 a 600 */
+            margin: 0 auto !important; 
             box-sizing: border-box !important;
-            /* Migliora la resa durante lo scroll */
-            transform: translateZ(0); 
+            /* Forza l'uso della GPU per rendere lo scroll fluido */
+            transform: translateZ(0);
+            backface-visibility: hidden;
         }
     </style>
 `;
