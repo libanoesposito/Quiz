@@ -126,7 +126,7 @@ function validatePin(type) {
     progress: {},
     history: {},
     activeProgress: {},
-    savedQuizzes: {}
+    savedQuizzes: {},
     ripasso: { wrong: [], notStudied: [] }
 };
 state.currentPin = pin;
