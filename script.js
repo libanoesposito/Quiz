@@ -513,14 +513,16 @@ function renderProfile() {
         </style>
     `;
 
-    // Calcolo Progressi Dettagliati (La parte "Lunga" che avevi tu)
-    let progHtml = '';
+   let progHtml = '';
     const totalQuestionsPerLevel = 15; 
 
     totalLevels.forEach(lang => {
         progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
+        
         for (let i = 1; i <= 5; i++) {
             let correct = 0, wrong = 0;
+            
+            // Logica di conteggio originale
             if (u.history && u.history[lang]) {
                 u.history[lang].forEach(h => {
                     if (h.level === i) { 
@@ -532,6 +534,7 @@ function renderProfile() {
             const notStudied = Math.max(0, totalQuestionsPerLevel - correct - wrong);
             const percent = Math.round((correct / totalQuestionsPerLevel) * 100);
 
+            // Calcolo larghezze percentuali
             const wGreen = (correct / totalQuestionsPerLevel) * 100;
             const wRed   = (wrong / totalQuestionsPerLevel) * 100;
             const wBlue  = (notStudied / totalQuestionsPerLevel) * 100;
@@ -539,11 +542,13 @@ function renderProfile() {
             progHtml += `
             <div style="margin-bottom:10px">
                 <div style="font-size:13px">Livello ${i}</div>
-                <div style="height:10px; border-radius:6px; overflow:hidden; display:flex; background:${appleGray}">
+                
+                <div style="height:10px; border-radius:6px; overflow:hidden; display:flex; background:${appleGray}; width:100%">
                     ${wGreen > 0 ? `<div style="width:${wGreen}%; background:#34c759; height:100%"></div>` : ''}
                     ${wRed > 0 ? `<div style="width:${wRed}%; background:#ff3b30; height:100%"></div>` : ''}
                     ${wBlue > 0 ? `<div style="width:${wBlue}%; background:#0a84ff; height:100%"></div>` : ''}
                 </div>
+                
                 <div style="font-size:11px; text-align:right; margin-top:2px; opacity:0.8">${percent}% corrette</div>
             </div>`;
         }
