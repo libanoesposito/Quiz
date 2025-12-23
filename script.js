@@ -473,10 +473,30 @@ function renderProfile() {
 
     const noScrollStyle = `
         <style>
-            body { height: 100vh; overflow: hidden; }
-            #profile-scroll { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+            body { 
+                height: 100vh; 
+                margin: 0; 
+                overflow: hidden; 
+            }
+            #profile-scroll { 
+                /* Calcola l'altezza togliendo lo spazio della nav se presente, 
+                   altrimenti 100vh lo porta fino al bordo basso */
+                height: 100vh; 
+                overflow-y: auto; 
+                -webkit-overflow-scrolling: touch; 
+            }
             #profile-scroll::-webkit-scrollbar { display: none; }
-            .glass-card { width: 100% !important; box-sizing: border-box !important; margin-left: 0 !important; }
+            .glass-card { width: 100% !important; box-sizing: border-box !important; }
+            
+            /* Assicura che l'area che contiene le card sia lunga almeno quanto lo schermo */
+            .profile-container {
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                padding: 12px 12px 40px 12px; /* 40px di padding extra sotto per non toccare il bordo */
+                box-sizing: border-box;
+            }
         </style>
     `;
 
