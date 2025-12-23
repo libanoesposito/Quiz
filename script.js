@@ -461,9 +461,8 @@ function renderProfile() {
     const stats = calcStats();
     const totalLevels = Object.keys(domandaRepo);
 
-    // Percentuale totale
+    // Calcolo Percentuale Totale (Cerchio)
     const percentTotal = stats.total ? Math.round((stats.correct / stats.total) * 100) : 0;
-
     const radius = 32;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (percentTotal / 100) * circumference;
@@ -471,36 +470,38 @@ function renderProfile() {
     const isDark = document.body.classList.contains('dark-mode');
     const appleGray = isDark ? '#2c2c2e' : '#e5e5ea';
 
+    // CSS: Fix Scroll, Fix Scrollbar Desktop, Fix Altezza Mobile
     const noScrollStyle = `
         <style>
-            body { 
-                height: 100vh; 
-                margin: 0; 
-                overflow: hidden; 
-            }
+            body { height: 100vh; overflow: hidden; margin: 0; }
             #profile-scroll { 
-                /* Calcola l'altezza togliendo lo spazio della nav se presente, 
-                   altrimenti 100vh lo porta fino al bordo basso */
                 height: 100vh; 
                 overflow-y: auto; 
                 -webkit-overflow-scrolling: touch; 
+                scrollbar-width: none; /* Firefox */
+                -ms-overflow-style: none;  /* IE/Edge */
             }
-            #profile-scroll::-webkit-scrollbar { display: none; }
-            .glass-card { width: 100% !important; box-sizing: border-box !important; }
+            #profile-scroll::-webkit-scrollbar { display: none; } /* Chrome/Safari */
             
-            /* Assicura che l'area che contiene le card sia lunga almeno quanto lo schermo */
             .profile-container {
                 min-height: 100vh;
                 display: flex;
                 flex-direction: column;
                 gap: 15px;
-                padding: 12px 12px 40px 12px; /* 40px di padding extra sotto per non toccare il bordo */
+                padding: 12px 12px 50px 12px;
                 box-sizing: border-box;
+                width: 100%;
+            }
+            .glass-card { 
+                width: 100% !important; 
+                box-sizing: border-box !important; 
+                margin-left: 0 !important; 
+                margin-right: 0 !important;
             }
         </style>
     `;
 
-    // Progressi dettagliati - LOGICA CORRETTA
+    // Calcolo Progressi Dettagliati (La parte "Lunga" che avevi tu)
     let progHtml = '';
     const totalQuestionsPerLevel = 15; 
 
@@ -537,9 +538,10 @@ function renderProfile() {
         progHtml += `</div>`;
     });
 
+    // Output finale HTML
     document.getElementById('content-area').innerHTML = noScrollStyle + `
-<div id="profile-scroll" style="width:100%; height:100%; box-sizing:border-box; padding:12px;">
-    <div style="display:flex; flex-direction:column; gap:15px;">
+<div id="profile-scroll">
+    <div class="profile-container">
 
         <div class="glass-card">
             <div><strong>Nome:</strong> ${u.name}</div>
