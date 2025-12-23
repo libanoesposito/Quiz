@@ -175,7 +175,7 @@ function showHome() {
     
     let html = `<div class="lang-grid">`;
     
-    // Generazione icone linguaggi
+    // 1. Icone dei linguaggi (Sempre visibili)
     Object.keys(domandaRepo).forEach(l => {
         const icon = (l === 'HTML') ? 'html5' : l.toLowerCase();
         html += `
@@ -185,20 +185,26 @@ function showHome() {
         </div>`;
     });
 
-    // Sezione Admin
-    if (state.mode === 'admin') {
-        html += `<div class="lang-item profile-slot" onclick="renderAdminPanel()"><div style="font-weight:700">PANNELLO ADMIN</div></div>`;
-    } 
-    
-    // Sezione per utenti loggati (non guest)
-    if (state.mode !== 'guest') {
+    // 2. Slot Ripasso (Solo per utenti, NO Guest, NO Admin)
+    if (state.mode === 'user') {
         html += `
-            <div class="lang-item profile-slot" onclick="renderRipasso()">
-                <div style="font-weight:700">RIPASSO DOMANDE</div>
-            </div>
-            <div class="lang-item profile-slot" onclick="renderProfile()">
-                <div style="font-weight:700">IL MIO PROFILO</div>
-            </div>`;
+        <div class="lang-item profile-slot" onclick="renderRipasso()">
+            <img src="https://cdn-icons-png.flaticon.com/512/3503/3503940.png" width="35">
+            <div style="margin-top:10px; font-weight:700; font-size:13px">RIPASSO</div>
+        </div>
+        <div class="lang-item profile-slot" onclick="renderProfile()">
+            <img src="https://cdn-icons-png.flaticon.com/512/3106/3106773.png" width="35">
+            <div style="margin-top:10px; font-weight:700; font-size:13px">PROFILO</div>
+        </div>`;
+    }
+
+    // 3. Slot Admin (Solo per Admin)
+    if (state.mode === 'admin') {
+        html += `
+        <div class="lang-item profile-slot" onclick="renderAdminPanel()">
+            <img src="https://cdn-icons-png.flaticon.com/512/978/978912.png" width="35">
+            <div style="margin-top:10px; font-weight:700; font-size:13px">ADMIN</div>
+        </div>`;
     }
 
     html += `</div>`;
