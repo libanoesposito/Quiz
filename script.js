@@ -491,16 +491,28 @@ function renderProfile() {
                 height: 100vh; 
                 overflow-y: auto; 
                 -webkit-overflow-scrolling: touch; 
+                
+                /* Nasconde la barra su Firefox */
                 scrollbar-width: none; 
+                
+                /* Nasconde la barra su Internet Explorer/Edge */
                 -ms-overflow-style: none; 
             }
-            #profile-scroll::-webkit-scrollbar { display: none; width: 0 !important; height: 0 !important; }
+            
+            /* Nasconde la barra su Chrome, Safari e Opera */
+            #profile-scroll::-webkit-scrollbar { 
+                display: none !important; 
+                width: 0 !important; 
+                height: 0 !important; 
+                background: transparent;
+            }
+            
             .profile-container {
                 min-height: 100vh;
                 display: flex;
                 flex-direction: column;
                 gap: 15px;
-                padding: 12px 12px 60px 12px;
+                padding: 12px 12px 80px 12px; /* Aumentato un po' il padding inferiore */
                 box-sizing: border-box;
                 width: 100%;
             }
