@@ -517,10 +517,10 @@ function generateHistoryHTML(u) {
     Object.keys(u.history || {}).forEach(lang => {
         html += `<div style="margin-bottom:10px"><strong>${lang}</strong></div>`;
         u.history[lang].forEach((h, idx) => {
-            const status = h.ok ? "✅" : h.notStudied ? "🟡" : "❌";
-            html += `<div style="font-size:12px; margin-bottom:4px">
-                        ${status} Q${idx+1}: ${h.q}<br>
-                        <em style="opacity:0.6">Risposta corretta: ${h.correctAns}</em>
+            const status = h.ok ? "✅" : "❌";
+            html += `<div style="font-size:12px; margin-bottom:6px">
+                        ${status} Q${idx + 1}: ${h.question}<br>
+                        <em style="opacity:0.6">Risposta corretta: ${h.correctAnswer}</em>
                      </div>`;
         });
     });
