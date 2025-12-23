@@ -493,41 +493,46 @@ function renderProfile() {
             margin: 0;
         }
 
-        /* 2. Contenitore esterno: ALTEZZA INVARIATA, LARGHEZZA ESPANSA */
+        /* 2. Forza il contenitore a partire dall'alto e toccare il FONDO */
         #profile-scroll { 
-            height: calc(100vh - 70px); /* Resta esattamente come lo avevi tu */
-            width: 100%;
+            position: fixed; /* Lo scollega dalle simmetrie del main-container */
+            top: 70px;      /* Parte esattamente sotto la tua navbar */
+            left: 0;
+            right: 0;
+            bottom: 0;      /* Arriva a toccare il bordo inferiore dello schermo */
+            
             overflow-y: auto;
             overflow-x: hidden;
-            -webkit-overflow-scrolling: touch; /* Rende lo scroll fluido */
+            -webkit-overflow-scrolling: touch; /* Fluidità Apple */
             scrollbar-width: none;
             -ms-overflow-style: none;
             
-            /* Accelerazione hardware per eliminare i blocchi */
-            will-change: transform;
+            /* Rende lo scroll immediato e senza blocchi */
+            scroll-behavior: auto; 
+            touch-action: pan-y;
         }
 
         #profile-scroll::-webkit-scrollbar { display: none !important; }
 
-        /* 3. Contenitore delle card: più spazio ai lati */
+        /* 3. Contenitore delle card largo e fluido */
         .profile-container {
             display: flex;
             flex-direction: column;
             gap: 15px;
-            padding: 15px 8px 150px 8px; /* Ridotto il padding laterale per allargare */
+            padding: 10px 8px 120px 8px; /* Padding generoso solo in fondo per l'ultimo scroll */
             box-sizing: border-box;
             width: 100%;
+            align-items: center;
         }
 
-        /* 4. Card interne: più larghe e fluide */
+        /* 4. Card larghe stile Apple */
         .glass-card {
-            width: 96% !important; /* Più vicine ai bordi per non sembrare strette */
-            max-width: 700px !important; /* Aumentato il limite per desktop */
+            width: 95% !important; 
+            max-width: 600px !important; 
             margin: 0 auto !important;
             box-sizing: border-box !important;
-            
-            /* Impedisce scatti durante lo scroll */
-            transform: translateZ(0);
+            /* Accelerazione hardware per fluidità totale */
+            transform: translate3d(0,0,0);
         }
     </style>
 `;
