@@ -460,15 +460,17 @@ function renderProfile() {
     const stats = calcStats();
     const totalLevels = Object.keys(domandaRepo);
 
+    // Calcolo percentuale totale per il cerchio
     const percentTotal = stats.total ? Math.round((stats.correct / stats.total) * 100) : 0;
     const radius = 32;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (percentTotal / 100) * circumference;
     
+    // Colore Grigio Apple per gli sfondi (si adatta a Dark Mode)
     const isDark = document.body.classList.contains('dark-mode');
     const appleGray = isDark ? '#2c2c2e' : '#e5e5ea';
 
-    // CSS per nascondere le scrollbar ovunque (Desktop e Mobile)
+    // CSS per nascondere le scrollbar e allineare le card al contenitore
     const noScrollStyle = `
         <style>
             #history-content::-webkit-scrollbar, 
@@ -478,10 +480,17 @@ function renderProfile() {
                 -ms-overflow-style: none; 
                 scrollbar-width: none; 
             }
+            /* Forza l'allineamento perfetto delle card */
+            .glass-card { 
+                width: 100% !important; 
+                box-sizing: border-box !important; 
+                margin-left: 0 !important; 
+                margin-right: 0 !important;
+            }
         </style>
     `;
 
-    // Progressi dettagliati
+    // Progressi dettagliati (Logica originale ripristinata)
     let progHtml = '';
     totalLevels.forEach(lang => {
         const comp = state.progress[lang] || 0;
@@ -490,23 +499,24 @@ function renderProfile() {
             let correct=0, wrong=0, total=15;
             if(u.history && u.history[lang]){
                 u.history[lang].forEach(h=>{
+                    // Ripristinata la tua condizione originale
                     if(i<=comp){ if(h.ok) correct++; else wrong++; }
                 });
             }
-            const notStudied = total - correct - wrong;
+            const notStudied = Math.max(0, total - correct - wrong);
             const percent = total ? Math.round((correct/total)*100) : 0;
             
-            // Calcolo preciso larghezze per non avere barre piene a 0
+            // Calcolo larghezze per le barre a segmenti
             const wCorr = (correct/total)*100;
             const wWrong = (wrong/total)*100;
             const wNot = (notStudied/total)*100;
 
             progHtml += `<div style="margin-bottom:8px">
                 <div style="font-size:13px">Livello ${i}</div>
-                <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:${appleGray}; overflow:hidden">
-                    <div style="width:${wCorr}%; background:#34c759; height:100%; float:left"></div>
-                    <div style="width:${wWrong}%; background:#ff3b30; height:100%; float:left"></div>
-                    <div style="width:${wNot}%; background:#ffd60a; height:100%; float:left"></div>
+                <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:${appleGray}; overflow:hidden; display:flex">
+                    <div style="width:${wCorr}%; background:#34c759; height:100%"></div>
+                    <div style="width:${wWrong}%; background:#ff3b30; height:100%"></div>
+                    <div style="width:${wNot}%; background:#ffd60a; height:100%"></div>
                 </div>
                 <div style="font-size:11px; text-align:right; margin-top:2px; opacity:0.8">${percent}% corrette</div>
             </div>`;
@@ -514,8 +524,9 @@ function renderProfile() {
         progHtml += `</div>`;
     });
 
+    // HTML GENERALE
     document.getElementById('content-area').innerHTML = noScrollStyle + `
-<div style="width:100%; display:flex; flex-direction:column; gap:15px">
+<div style="width:100%; display:flex; flex-direction:column; gap:15px; padding:0; box-sizing:border-box">
 
     <div class="glass-card">
         <div><strong>Nome:</strong> ${u.name}</div>
@@ -525,6 +536,7 @@ function renderProfile() {
     <div class="glass-card">
         <div><strong>Statistiche</strong></div>
         <div style="margin-top:15px; display:flex; align-items:center; gap:20px">
+            
             <div style="position:relative; display:flex; align-items:center; justify-content:center; min-width:80px">
                 <svg width="80" height="80" style="transform: rotate(-90deg)">
                     <circle cx="40" cy="40" r="${radius}" stroke="${appleGray}" stroke-width="6" fill="transparent" />
@@ -558,14 +570,14 @@ function renderProfile() {
         </div>
     </div>
 
-    <div class="glass-card" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
+    <div class="glass-card" id="card-prog" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
         <strong style="display:block">Progressi generali</strong>
         <div id="detailed-progress" style="display:none; margin-top:15px; border-top: 1px solid rgba(120,120,120,0.2); padding-top:15px;">
             ${progHtml}
         </div>
     </div>
 
-    <div class="glass-card" onclick="toggleGeneralContent('security-content')" style="cursor:pointer">
+    <div class="glass-card" id="card-sec" onclick="toggleGeneralContent('security-content', 'card-sec')" style="cursor:pointer">
         <strong style="display:block">Sicurezza</strong>
         <div id="security-content" style="display:none; flex-direction:column; gap:8px; margin-top:15px; border-top: 1px solid rgba(120,120,120,0.2); padding-top:15px;">
             <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
@@ -574,7 +586,7 @@ function renderProfile() {
         </div>
     </div>
 
-    <div class="glass-card" onclick="toggleGeneralContent('history-content')" style="cursor:pointer">
+    <div class="glass-card" id="card-hist" onclick="toggleGeneralContent('history-content', 'card-hist')" style="cursor:pointer">
         <strong style="display:block">Storico</strong>
         <div id="history-content" style="display:none; flex-direction:column; gap:6px; margin-top:15px; max-height:400px; overflow-y:auto; border-top: 1px solid rgba(120,120,120,0.2); padding-top:15px;">
             ${generateHistoryHTML(u)}
