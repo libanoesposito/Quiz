@@ -90,8 +90,18 @@ function isWeakPin(pin) {
 function validatePin(type) {
     const pin = document.getElementById('pin-field').value;
     const errorEl = document.getElementById('pin-error');
-    if(pin.length !== 4) { errorEl.innerText = "Il PIN deve essere di 4 cifre"; errorEl.style.display = "block"; return; }
+    
+    // Reset errore
+    errorEl.style.display = "none";
 
+    // 1. Controllo lunghezza
+    if (pin.length !== 4) {
+        errorEl.innerText = "Il PIN deve essere di 4 cifre";
+        errorEl.style.display = "block";
+        return;
+    }
+
+    // 2. Controllo Admin
     if (pin === ADMIN_PIN) {
         state.mode = 'admin';
         state.currentUser = "Creatore";
@@ -99,48 +109,58 @@ function validatePin(type) {
         return;
     }
 
+    // 3. Logica Registrazione
     if (type === 'register') {
-    const nameInput = document.getElementById('name-field');
-    const name = nameInput ? nameInput.value.trim() : "";
+        const nameInput = document.getElementById('name-field');
+        const name = nameInput ? nameInput.value.trim() : "";
 
-    if (!name) {
-        errorEl.innerText = "Inserisci il tuo nome";
-        errorEl.style.display = "block";
-        return;
+        if (!name) {
+            errorEl.innerText = "Inserisci il tuo nome";
+            errorEl.style.display = "block";
+            return;
+        }
+
+        if (dbUsers[pin] && dbUsers[pin].progress) {
+            errorEl.innerText = "PIN non disponibile";
+            errorEl.style.display = "block";
+            return;
+        }
+
+        if (isWeakPin(pin)) {
+            errorEl.innerText = "PIN troppo semplice";
+            errorEl.style.display = "block";
+            return;
+        }
+
+        // Creazione nuovo utente
+        dbUsers[pin] = {
+            name: name,
+            progress: {},
+            history: {},
+            activeProgress: {},
+            savedQuizzes: {},
+            ripasso: { wrong: [], notStudied: [] }
+        };
+        
+        state.mode = 'user';
+        ensureUserId(); 
+    } 
+    // 4. Logica Login (se non è register)
+    else {
+        if (!dbUsers[pin]) {
+            errorEl.innerText = "PIN errato o utente inesistente";
+            errorEl.style.display = "block";
+            return;
+        }
     }
 
-    if (dbUsers[pin] && dbUsers[pin].progress) {  // se ha dati “vivi” il PIN è occupato
-    errorEl.innerText = "PIN non disponibile";
-    errorEl.style.display = "block";
-    return;
-    }
-
-    if (isWeakPin(pin)) {
-        errorEl.innerText = "PIN troppo semplice";
-        errorEl.style.display = "block";
-        return;
-    }
-
-    dbUsers[pin] = {
-    name,
-    progress: {},
-    history: {},
-    activeProgress: {},
-    savedQuizzes: {},
-    ripasso: { wrong: [], notStudied: [] }
-};
-state.currentPin = pin;
-state.mode = 'user';  // così ensureUserId funziona subito
-ensureUserId();
-} else {
-        if (!dbUsers[pin]) { errorEl.innerText = "PIN errato o utente inesistente"; errorEl.style.display = "block"; return; }
-    }
-
+    // 5. Finalizzazione (comune a Login e Registrazione)
     state.currentPin = pin;
     state.currentUser = dbUsers[pin].name;
     state.mode = 'user';
     state.progress = dbUsers[pin].progress || {};
     state.history = dbUsers[pin].history || {};
+    
     saveMasterDB();
     showHome();
 }
