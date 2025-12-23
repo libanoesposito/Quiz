@@ -486,46 +486,41 @@ function renderProfile() {
 
     const noScrollStyle = `
     <style>
-        /* 1. Blocca lo scroll del body esterno */
+        /* 1. Blocca lo scroll del body */
         body { 
             overflow: hidden !important; 
             height: 100vh !important; 
         }
 
-        /* 2. Rende il contenitore dello scroll invisibile ma funzionale */
+        /* 2. Forza il contenitore dello scroll a prendersi tutto lo spazio */
+        /* Senza absolute, ma usando l'altezza del viewport */
         #profile-scroll { 
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            width: 100%;
+            height: calc(100vh - 80px); /* Sottrae lo spazio dell'header */
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
             -ms-overflow-style: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center; /* Centra orizzontalmente le card */
         }
 
         #profile-scroll::-webkit-scrollbar { display: none !important; }
 
-        /* 3. Il contenitore delle card eredita la larghezza originale */
+        /* 3. Il contenitore interno deve solo distendere le card */
         .profile-container {
             width: 100%;
-            max-width: 800px; /* Si adatta al tuo header */
-            padding: 20px 20px 150px 20px;
-            box-sizing: border-box;
             display: flex;
             flex-direction: column;
+            align-items: center; 
             gap: 15px;
+            padding: 20px 0 150px 0; 
+            box-sizing: border-box;
         }
 
-        /* 4. Reset per le glass-card: tornano a essere come le hai definite tu */
-        .profile-container .glass-card {
-            width: 100% !important;
-            max-width: 500px !important; /* Mantiene la tua dimensione standard */
-            flex-shrink: 0; /* Impedisce che si schiaccino */
+        /* 4. Manteniamo le tue card originali */
+        .glass-card {
+            width: 90% !important; /* Larghezza coerente */
+            max-width: 500px !important;
+            flex-shrink: 0;
         }
     </style>
 `;
