@@ -495,7 +495,6 @@ function renderProfile() {
                 -ms-overflow-style: none; 
             }
             #profile-scroll::-webkit-scrollbar { display: none; width: 0 !important; height: 0 !important; }
-            
             .profile-container {
                 min-height: 100vh;
                 display: flex;
@@ -511,6 +510,9 @@ function renderProfile() {
 
     let progHtml = '';
     const totalQuestionsPerLevel = 15; 
+    
+    // Variabile per contare i "Non studiati" totali per la barra superiore
+    let totalMarkedNotStudied = 0;
 
     totalLevels.forEach(lang => {
         progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
@@ -519,16 +521,17 @@ function renderProfile() {
             
             if (u.history && u.history[lang]) {
                 u.history[lang].forEach(h => {
-                    // Controllo livello: h.lvl è quello salvato durante i quiz
                     if (Number(h.lvl || h.level) == i) { 
-                        if (h.isNotStudied) markedNotStudied++;
+                        if (h.isNotStudied) {
+                            markedNotStudied++;
+                            totalMarkedNotStudied++; // Accumulo per la card generale
+                        }
                         else if (h.ok) correct++;
                         else wrong++;
                     }
                 });
             }
 
-            // Calcolo percentuali: partono da 0, quindi la barra resta grigia se vuota
             const wGreen = (correct / totalQuestionsPerLevel) * 100;
             const wRed   = (wrong / totalQuestionsPerLevel) * 100;
             const wBlue  = (markedNotStudied / totalQuestionsPerLevel) * 100;
@@ -547,6 +550,9 @@ function renderProfile() {
         }
         progHtml += `</div>`;
     });
+
+    // Calcolo del potenziale totale (es. 15 domande * 5 livelli * numero lingue)
+    const totalPotential = totalLevels.length * 5 * 15;
 
     document.getElementById('content-area').innerHTML = noScrollStyle + `
 <div id="profile-scroll">
@@ -571,13 +577,19 @@ function renderProfile() {
                     <div>
                         <div style="font-size:12px">Corrette: ${stats.correct}</div>
                         <div style="height:8px; background:${appleGray}; border-radius:6px">
-                            <div style="width:${stats.total ? (stats.correct/stats.total)*100 : 0}%; height:100%; background:#34c759; border-radius:6px"></div>
+                            <div style="width:${(stats.correct / totalPotential) * 100}%; height:100%; background:#34c759; border-radius:6px"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size:12px">Non studiate: ${totalMarkedNotStudied}</div>
+                        <div style="height:8px; background:${appleGray}; border-radius:6px">
+                            <div style="width:${(totalMarkedNotStudied / totalPotential) * 100}%; height:100%; background:#0a84ff; border-radius:6px"></div>
                         </div>
                     </div>
                     <div>
                         <div style="font-size:12px">Sbagliate: ${stats.wrong}</div>
                         <div style="height:8px; background:${appleGray}; border-radius:6px">
-                            <div style="width:${stats.total ? (stats.wrong/stats.total)*100 : 0}%; height:100%; background:#ff3b30; border-radius:6px"></div>
+                            <div style="width:${(stats.wrong / totalPotential) * 100}%; height:100%; background:#ff3b30; border-radius:6px"></div>
                         </div>
                     </div>
                 </div>
@@ -605,7 +617,6 @@ function renderProfile() {
     </div>
 </div>`;
 }
-
 
 
 // FINESTRE DI APERTURA (Versioni Window)
