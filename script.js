@@ -570,10 +570,6 @@ window.toggleGeneralContent = function(id) {
     if (isHidden) content.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
-function toggleGeneralContent(id) {
-    const el = document.getElementById(id);
-    el.style.display = el.style.display === 'none' ? 'flex' : 'none';
-}
    
 function toggleHistory(el) {
     const content = el.nextElementSibling;
