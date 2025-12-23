@@ -1,16 +1,17 @@
 :root { --bg: #f5f5f7; --text: #1d1d1f; --accent: #0071e3; --card-bg: rgba(255, 255, 255, 0.45); --border: rgba(255, 255, 255, 0.6); }
 [data-theme="dark"] { --bg: #000; --text: #fff; --card-bg: rgba(28, 28, 30, 0.6); --border: rgba(255, 255, 255, 0.1); }
 
-body { 
-    margin: 0; 
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
-    background: var(--bg); 
-    color: var(--text); 
-    min-height: 100vh; 
-    display: flex; 
-    flex-direction: column; 
-    overflow-y: auto; 
-    transition: background 0.5s ease; 
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    overflow: hidden;
+    transition: background 0.5s ease;
 }
 .glass-bg { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at 20% 30%, rgba(0, 113, 227, 0.12), transparent 40%), radial-gradient(circle at 80% 70%, rgba(162, 0, 255, 0.08), transparent 40%); }
 
@@ -263,10 +264,10 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
     flex: 1;
     width: 100%;
     display: flex;
-    flex-direction: column;
-    align-items: stretch;   /* app-like */
-    padding: 10px;
-    overflow-y: auto;
+    justify-content: center;   /* ❌ */
+    align-items: flex-start;
+    padding-bottom: 40px;
+    overflow: hidden;
 }
 
 #content-area > .glass-card {
