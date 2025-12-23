@@ -1,4 +1,14 @@
 :root { --bg: #f5f5f7; --text: #1d1d1f; --accent: #0071e3; --card-bg: rgba(255, 255, 255, 0.45); --border: rgba(255, 255, 255, 0.6); }
+/* Nasconde la barra di scorrimento ovunque pur permettendo lo scroll */
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+}
+
+html, body {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Edge/IE */
+}
 [data-theme="dark"] { --bg: #000; --text: #fff; --card-bg: rgba(28, 28, 30, 0.6); --border: rgba(255, 255, 255, 0.1); }
 
 body {
