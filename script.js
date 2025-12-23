@@ -486,64 +486,47 @@ function renderProfile() {
 
     const noScrollStyle = `
     <style>
+        /* 1. Blocca lo scroll del body */
         body { 
             overflow: hidden !important; 
-            height: 100vh !important;
+            height: 100dvh !important;
             margin: 0;
         }
 
-        /* 1. Usiamo flex-grow per dire al contenitore di "allungarsi" verso il basso */
-        .main-container {
-            display: flex !important;
-            flex-direction: column !important;
-            height: 100vh !important;
-            justify-content: flex-start !important; /* Forza l'inizio dall'alto */
-        }
-
-        /* 2. ALTEZZA: Aumentiamo leggermente il calc per toccare il fondo */
+        /* 2. Il contenitore dello scroll */
         #profile-scroll { 
-        height: calc(100vh - 70px); 
-        width: 100%;
-
-        margin-top: 70px; /* 🔥 correzione parte bassa */
-
-        overflow-y: auto;
-        overflow-x: hidden;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-        }
-
-
-            
-            /* FLUIDITÀ: Senza blocchi */
-            scroll-behavior: auto;
-            touch-action: pan-y;
-            will-change: scroll-position;
+            height: calc(100dvh - 70px); 
+            width: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
 
         #profile-scroll::-webkit-scrollbar { display: none !important; }
 
-        /* 3. LARGHEZZA: Ripristinata come piace a te, ma con meno padding laterale */
+        /* 3. Contenitore card */
         .profile-container {
             display: flex;
             flex-direction: column;
             gap: 15px;
-            padding: 15px 8px 120px 8px; /* Padding inferiore per l'ultima card */
+            padding: 15px;
             box-sizing: border-box;
             width: 100%;
+            max-width: 100%;
         }
 
-        /* 4. LE TUE CARD ORIGINALI: Centrate e fluide */
+        /* 4. Card */
         .glass-card {
-            width: 95% !important; 
-            max-width: 500px !important; 
+            width: 100% !important; 
+            max-width: 500px !important;
             margin: 0 auto !important;
             box-sizing: border-box !important;
-            transform: translateZ(0); /* Accelerazione per fluidità */
         }
     </style>
 `;
+
 
     let progHtml = '';
     const totalQuestionsPerLevel = 15; 
