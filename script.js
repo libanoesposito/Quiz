@@ -486,43 +486,50 @@ function renderProfile() {
 
     const noScrollStyle = `
     <style>
-        /* 1. Blocca lo scroll del body */
         body { 
             overflow: hidden !important; 
             height: 100vh !important;
             margin: 0;
         }
 
-        /* 2. Il contenitore dello scroll deve occupare tutta la larghezza SENZA debordare */
         #profile-scroll { 
             height: calc(100vh - 70px); 
             width: 100%;
             overflow-y: auto;
-            overflow-x: hidden; /* Evita categoricamente tagli a destra */
-            -webkit-overflow-scrolling: touch;
+            overflow-x: hidden;
+            
+            /* Fluidità Apple nativa */
+            -webkit-overflow-scrolling: touch; 
+            scroll-behavior: smooth;
+            
+            /* Ottimizzazione performance scroll */
+            will-change: transform; 
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
 
         #profile-scroll::-webkit-scrollbar { display: none !important; }
 
-        /* 3. Il contenitore delle card deve avere margini simmetrici */
         .profile-container {
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            padding: 15px; /* Margine uguale a destra e sinistra */
-            box-sizing: border-box; /* Cruciale: include il padding nella larghezza 100% */
+            gap: 16px;
+            /* Padding ridotto ai lati (10px invece di 15px) per renderlo meno "stretto" */
+            padding: 10px 10px 150px 10px; 
+            box-sizing: border-box;
             width: 100%;
-            max-width: 100%;
+            /* Rende lo scroll più fluido rimuovendo ritardi al tocco */
+            touch-action: pan-y; 
         }
 
-        /* 4. Le card devono adattarsi e centrarsi */
         .glass-card {
             width: 100% !important; 
-            max-width: 500px !important; /* Limite massimo per desktop */
-            margin: 0 auto !important; /* Centra perfettamente */
+            /* Aumentato a 600px per togliere l'effetto "stretto" su desktop/tablet */
+            max-width: 600px !important; 
+            margin: 0 auto !important;
             box-sizing: border-box !important;
+            /* Migliora la resa durante lo scroll */
+            transform: translateZ(0); 
         }
     </style>
 `;
