@@ -408,13 +408,21 @@ function logout() {
    ========================= */
 
 function ensureUserId() {
-    if (state.mode !== 'user') return;
+    if (state.mode !== 'user' || !state.currentPin) return;
     const u = dbUsers[state.currentPin];
+    if (!u) return;
+
     if (!u.userId) {
-        const ids = Object.values(dbUsers)
+        // Estraiamo tutti gli ID esistenti in modo sicuro
+        const allUsers = Object.values(dbUsers);
+        const ids = allUsers
             .map(x => x.userId)
-            .filter(x => typeof x === 'number');
-        u.userId = ids.length ? Math.max(...ids) + 1 : 1;
+            .filter(id => id !== undefined && id !== null);
+        
+        // Se non ci sono ID, partiamo da 1000 (più professionale), altrimenti Max + 1
+        u.userId = ids.length ? Math.max(...ids) + 1 : 1000;
+        
+        console.log(`Assegnato nuovo ID: ${u.userId} all'utente ${u.name}`);
         saveMasterDB();
     }
 }
@@ -443,6 +451,8 @@ function toggleSecurity(el) {
 }
 
 function renderProfile() {
+    if (!state.currentPin || !dbUsers[state.currentPin]) return;
+    ensureUserId();
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = "IL MIO PROFILO";
 
@@ -1143,15 +1153,24 @@ function userResetStats() {
 
 /* Elimina account */
 function userDeleteAccount() {
-    openModal("Elimina account", "Vuoi eliminare il tuo account? I dati resteranno visibili all'admin.", () => {
-        const u = dbUsers[state.currentPin];
-const { history, name, userId } = u;
-dbUsers[state.currentPin] = { history, name, userId }; // conserva solo storico
-saveMasterDB();
-state.mode = 'guest';
-state.currentPin = null;
-session = null;
-renderLogin();
+    openModal("Elimina Account", "Attenzione: l'account verrà rimosso permanentemente. Vuoi procedere?", () => {
+        const pinToDelete = state.currentPin;
+        
+        if (dbUsers[pinToDelete]) {
+            // Elimina definitivamente la chiave dal database
+            delete dbUsers[pinToDelete]; 
+            
+            // Salva il database vuoto
+            localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
+            
+            // Reset dello stato e ritorno al login
+            state.mode = 'guest';
+            state.currentPin = null;
+            state.currentUser = null;
+            
+            console.log("Account eliminato con successo.");
+            renderLogin();
+        }
     });
 }
 
