@@ -461,7 +461,9 @@ function renderProfile() {
     const stats = calcStats();
     const totalLevels = Object.keys(domandaRepo);
 
+    // Percentuale totale
     const percentTotal = stats.total ? Math.round((stats.correct / stats.total) * 100) : 0;
+
     const radius = 32;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (percentTotal / 100) * circumference;
@@ -474,12 +476,11 @@ function renderProfile() {
             body { height: 100vh; overflow: hidden; }
             #profile-scroll { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
             #profile-scroll::-webkit-scrollbar { display: none; }
-            /* Risolve il problema dell'allineamento a destra delle card */
-            .glass-card { width: 100% !important; box-sizing: border-box !important; margin: 0 !important; }
+            .glass-card { width: 100% !important; box-sizing: border-box !important; margin-left: 0 !important; }
         </style>
     `;
 
-    // Progressi dettagliati - Logica corretta senza duplicati
+    // Progressi dettagliati - LOGICA CORRETTA
     let progHtml = '';
     const totalQuestionsPerLevel = 15; 
 
@@ -489,7 +490,6 @@ function renderProfile() {
             let correct = 0, wrong = 0;
             if (u.history && u.history[lang]) {
                 u.history[lang].forEach(h => {
-                    // Contiamo solo i dati del livello corrente i
                     if (h.level === i) { 
                         if (h.ok) correct++; else wrong++;
                     }
@@ -499,7 +499,6 @@ function renderProfile() {
             const notStudied = Math.max(0, totalQuestionsPerLevel - correct - wrong);
             const percent = Math.round((correct / totalQuestionsPerLevel) * 100);
 
-            // Calcolo larghezze per la barra segmentata
             const wGreen = (correct / totalQuestionsPerLevel) * 100;
             const wRed   = (wrong / totalQuestionsPerLevel) * 100;
             const wBlue  = (notStudied / totalQuestionsPerLevel) * 100;
@@ -519,8 +518,8 @@ function renderProfile() {
     });
 
     document.getElementById('content-area').innerHTML = noScrollStyle + `
-<div id="profile-scroll">
-    <div style="display:flex; flex-direction:column; gap:15px; padding:12px">
+<div id="profile-scroll" style="width:100%; height:100%; box-sizing:border-box; padding:12px;">
+    <div style="display:flex; flex-direction:column; gap:15px;">
 
         <div class="glass-card">
             <div><strong>Nome:</strong> ${u.name}</div>
@@ -589,6 +588,24 @@ function renderProfile() {
     </div>
 </div>`;
 }
+
+
+
+// FINESTRE DI APERTURA (Versioni Window)
+window.toggleGeneralProgress = function(card) {
+    const detailed = document.getElementById('detailed-progress');
+    const isHidden = detailed.style.display === 'none';
+    detailed.style.display = isHidden ? 'block' : 'none';
+    if (isHidden) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+window.toggleGeneralContent = function(id, card) {
+    const content = document.getElementById(id);
+    const isHidden = content.style.display === 'none';
+    document.querySelectorAll('#security-content, #history-content').forEach(c => c.style.display = 'none');
+    content.style.display = isHidden ? 'flex' : 'none';
+    if (isHidden && card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
    
 function toggleHistory(el) {
     const content = el.nextElementSibling;
