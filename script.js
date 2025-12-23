@@ -460,15 +460,26 @@ function renderProfile() {
     const stats = calcStats();
     const totalLevels = Object.keys(domandaRepo);
 
-    // Calcolo Cerchio
     const percentTotal = stats.total ? Math.round((stats.correct / stats.total) * 100) : 0;
     const radius = 32;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (percentTotal / 100) * circumference;
     
-    // Grigio Apple Dinamico
     const isDark = document.body.classList.contains('dark-mode');
     const appleGray = isDark ? '#2c2c2e' : '#e5e5ea';
+
+    // CSS per nascondere le scrollbar ovunque (Desktop e Mobile)
+    const noScrollStyle = `
+        <style>
+            #history-content::-webkit-scrollbar, 
+            .glass-card::-webkit-scrollbar,
+            body::-webkit-scrollbar { display: none; }
+            #history-content, .glass-card, body { 
+                -ms-overflow-style: none; 
+                scrollbar-width: none; 
+            }
+        </style>
+    `;
 
     // Progressi dettagliati
     let progHtml = '';
@@ -484,12 +495,18 @@ function renderProfile() {
             }
             const notStudied = total - correct - wrong;
             const percent = total ? Math.round((correct/total)*100) : 0;
+            
+            // Calcolo preciso larghezze per non avere barre piene a 0
+            const wCorr = (correct/total)*100;
+            const wWrong = (wrong/total)*100;
+            const wNot = (notStudied/total)*100;
+
             progHtml += `<div style="margin-bottom:8px">
                 <div style="font-size:13px">Livello ${i}</div>
                 <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:${appleGray}; overflow:hidden">
-                    <div class="progress-bar-fill" style="width:${(correct/total)*100}%; background:#34c759; height:100%"></div>
-                    <div class="progress-bar-fill" style="width:${(wrong/total)*100}%; background:#ff3b30; position:absolute; left:${(correct/total)*100}%; height:100%"></div>
-                    <div class="progress-bar-fill" style="width:${(notStudied/total)*100}%; background:#aaa; position:absolute; left:${((correct+wrong)/total)*100}%; height:100%"></div>
+                    <div style="width:${wCorr}%; background:#34c759; height:100%; float:left"></div>
+                    <div style="width:${wWrong}%; background:#ff3b30; height:100%; float:left"></div>
+                    <div style="width:${wNot}%; background:#ffd60a; height:100%; float:left"></div>
                 </div>
                 <div style="font-size:11px; text-align:right; margin-top:2px; opacity:0.8">${percent}% corrette</div>
             </div>`;
@@ -497,7 +514,7 @@ function renderProfile() {
         progHtml += `</div>`;
     });
 
-    document.getElementById('content-area').innerHTML = `
+    document.getElementById('content-area').innerHTML = noScrollStyle + `
 <div style="width:100%; display:flex; flex-direction:column; gap:15px">
 
     <div class="glass-card">
@@ -534,7 +551,7 @@ function renderProfile() {
                 <div>
                     <div style="font-size:12px; margin-bottom:2px">Non studiate: ${stats.total - stats.correct - stats.wrong}</div>
                     <div class="progress-container" style="height:10px; border-radius:6px; background:${appleGray}; overflow:hidden">
-                        <div style="width:${stats.total > 0 ? ((stats.total - stats.correct - stats.wrong)/stats.total)*100 : 100}%; background:#ffd60a; height:100%"></div>
+                        <div style="width:${stats.total > 0 ? ((stats.total - stats.correct - stats.wrong)/stats.total)*100 : 0}%; background:#ffd60a; height:100%"></div>
                     </div>
                 </div>
             </div>
@@ -542,14 +559,14 @@ function renderProfile() {
     </div>
 
     <div class="glass-card" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
-        <strong>Progressi generali</strong>
+        <strong style="display:block">Progressi generali</strong>
         <div id="detailed-progress" style="display:none; margin-top:15px; border-top: 1px solid rgba(120,120,120,0.2); padding-top:15px;">
             ${progHtml}
         </div>
     </div>
 
     <div class="glass-card" onclick="toggleGeneralContent('security-content')" style="cursor:pointer">
-        <strong>Sicurezza</strong>
+        <strong style="display:block">Sicurezza</strong>
         <div id="security-content" style="display:none; flex-direction:column; gap:8px; margin-top:15px; border-top: 1px solid rgba(120,120,120,0.2); padding-top:15px;">
             <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
             <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
@@ -558,7 +575,7 @@ function renderProfile() {
     </div>
 
     <div class="glass-card" onclick="toggleGeneralContent('history-content')" style="cursor:pointer">
-        <strong>Storico</strong>
+        <strong style="display:block">Storico</strong>
         <div id="history-content" style="display:none; flex-direction:column; gap:6px; margin-top:15px; max-height:400px; overflow-y:auto; border-top: 1px solid rgba(120,120,120,0.2); padding-top:15px;">
             ${generateHistoryHTML(u)}
         </div>
