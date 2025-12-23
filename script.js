@@ -620,7 +620,11 @@ function renderRipasso() {
     const container = document.getElementById('content-area');
 
     // Header con tasto Indietro
-    let html = <button class="btn-apple btn-light" onclick="showHome()">‹ Indietro</button>;
+    let html = `
+    <button class="btn-apple btn-light" onclick="showHome()">
+        ‹ Indietro
+    </button>
+`;
 
     if (!ripasso.wrong.length && !ripasso.notStudied.length) {
         html += "<div style='font-size:12px; opacity:0.6; margin-top:10px'>Nessuna domanda da ripassare</div>";
