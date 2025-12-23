@@ -127,6 +127,7 @@ function validatePin(type) {
     history: {},
     activeProgress: {},
     savedQuizzes: {}
+    ripasso: { wrong: [], notStudied: [] }
 };
 state.currentPin = pin;
 state.mode = 'user';  // così ensureUserId funziona subito
@@ -288,18 +289,19 @@ function renderQ() {
 // Funzione per registrare la domanda in "ripasso" senza modificare i progressi
 function markNotStudied(idx) {
     const data = session.q[idx];
-    if (!dbUsers[state.currentPin].ripasso) dbUsers[state.currentPin].ripasso = [];
-    // Evita duplicati
-    if (!dbUsers[state.currentPin].ripasso.some(d => d.q === data.q)) {
-        dbUsers[state.currentPin].ripasso.push({
-            q: data.q,
-            options: data.options,
-            correct: data.correct,
-            exp: data.exp
-        });
-    }
-    saveMasterDB();
-    document.getElementById('fb').innerText = "Aggiunta a ripasso 📌";
+if (!dbUsers[state.currentPin].ripasso) dbUsers[state.currentPin].ripasso = { wrong: [], notStudied: [] };
+
+// Aggiunge alla lista notStudied evitando duplicati
+if (!dbUsers[state.currentPin].ripasso.notStudied.some(d => d.q === data.q)) {
+    dbUsers[state.currentPin].ripasso.notStudied.push({
+        q: data.q,
+        options: data.options,
+        correct: data.correct,
+        exp: data.exp
+    });
+}
+saveMasterDB();
+document.getElementById('fb').innerText = "Aggiunta a ripasso 📌";
 }
 
 function check(isOk) {
@@ -316,6 +318,17 @@ function check(isOk) {
         dbUsers[state.currentPin].activeProgress[`${session.lang}_${session.lvl}`] = session.idx + 1;
         saveMasterDB();
     }
+    if (!isOk && state.mode === 'user') {
+    if (!dbUsers[state.currentPin].ripasso) dbUsers[state.currentPin].ripasso = { wrong: [], notStudied: [] };
+    if (!dbUsers[state.currentPin].ripasso.wrong.some(d => d.q === data.q)) {
+        dbUsers[state.currentPin].ripasso.wrong.push({
+            q: data.q,
+            options: data.options,
+            correct: data.correct,
+            exp: data.exp
+        });
+    }
+}
     document.getElementById('opts').style.pointerEvents = "none";
     document.getElementById('fb').innerHTML = `
         <div class="feedback-box ${isOk?'correct':'wrong'}">
@@ -472,6 +485,12 @@ function renderProfile() {
     <div class="glass-card" onclick="toggleGeneralContent('history-content')" style="cursor:pointer">
         <strong>Storico</strong>
     </div>
+    <div class="glass-card" onclick="toggleGeneralContent('ripasso-content')" style="cursor:pointer">
+    <strong>Ripasso Domande</strong>
+</div>
+<div class="glass-card" id="ripasso-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px; max-height:400px; overflow-y:auto">
+    <!-- Il contenuto sarà generato da renderRipasso() -->
+</div>
     <div class="glass-card" id="history-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px; max-height:400px; overflow-y:auto">
         ${generateHistoryHTML(u)}
     </div>
@@ -551,7 +570,7 @@ function toggleLangDetails(el){
     if(chevron) chevron.style.transform = content.style.display==='block'?'rotate(90deg)':'rotate(0deg)';
 }
 
-function toggleCard(el) {
+/*function toggleCard(el) {
     const content = el.querySelector('.card-content, .security-content, #detailed-progress');
     if (!content) return;
 
@@ -571,8 +590,65 @@ function toggleCard(el) {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         window.scrollTo({ top: rect.top + scrollTop - 20, behavior: 'smooth' }); // -20 per margine superiore
     }
+}*/
+function toggleCard(el) {
+    // Cerca il contenuto della card cliccata
+    const content = el.querySelector('.card-content, .security-content, #detailed-progress, #ripasso-content');
+    if (!content) return;
+
+    // Chiudi tutte le altre card dello stesso tipo
+    document.querySelectorAll('.card-content, .security-content, #detailed-progress, #ripasso-content').forEach(c => {
+        if (c !== content) c.style.display = 'none';
+    });
+
+    // Mostra/nascondi contenuto della card cliccata
+    const isHidden = content.style.display === 'none';
+    content.style.display = isHidden ? 'flex' : 'none';
+
+    // Scroll verso la card se si apre
+    if (isHidden) {
+        const rect = el.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        window.scrollTo({ top: rect.top + scrollTop - 20, behavior: 'smooth' });
+    }
 }
 
+function renderRipasso() {
+    const u = dbUsers[state.currentPin];
+    const ripasso = u.ripasso || { wrong: [], notStudied: [] };
+    const container = document.getElementById('ripasso-content');
+
+    if (!ripasso.wrong.length && !ripasso.notStudied.length) {
+        container.innerHTML = "<div style='font-size:12px; opacity:0.6'>Nessuna domanda da ripassare</div>";
+        return;
+    }
+
+    let html = "";
+
+    if (ripasso.wrong.length) {
+        html += `<h4>Sbagliate</h4>`;
+        html += ripasso.wrong.map((d, idx) => `
+            <div style="border-bottom:1px solid #ccc; padding:6px 0">
+                <div><strong>Q${idx+1}:</strong> ${d.q}</div>
+                <div style="margin-left:10px">Risposte: ${d.options.map((o,i)=>i===d.correct?`<strong>${o}</strong>`:o).join(', ')}</div>
+                <div style="margin-left:10px; font-size:12px; color:#555">Spiegazione: ${d.exp}</div>
+            </div>
+        `).join('');
+    }
+
+    if (ripasso.notStudied.length) {
+        html += `<h4>Non studiate</h4>`;
+        html += ripasso.notStudied.map((d, idx) => `
+            <div style="border-bottom:1px solid #ccc; padding:6px 0">
+                <div><strong>Q${idx+1}:</strong> ${d.q}</div>
+                <div style="margin-left:10px">Risposte: ${d.options.map((o,i)=>i===d.correct?`<strong>${o}</strong>`:o).join(', ')}</div>
+                <div style="margin-left:10px; font-size:12px; color:#555">Spiegazione: ${d.exp}</div>
+            </div>
+        `).join('');
+    }
+
+    container.innerHTML = html;
+}
 
 function resetStats() {
     openModal(
