@@ -259,14 +259,14 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
     background: transparent !important;
 }
 
-.main-container { 
-    flex: 1; 
-    width: 100%; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    gap: 15px; 
-    padding: 10px 0; 
+.main-container {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;   /* app-like */
+    padding: 10px;
+    overflow-y: auto;
 }
 
 #content-area > .glass-card {
