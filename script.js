@@ -460,17 +460,17 @@ function renderProfile() {
     const stats = calcStats();
     const totalLevels = Object.keys(domandaRepo);
 
-    // --- LOGICA CERCHIO ---
+    // Calcolo Cerchio
     const percentTotal = stats.total ? Math.round((stats.correct / stats.total) * 100) : 0;
     const radius = 32;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (percentTotal / 100) * circumference;
     
-    // Grigio Apple Dinamico
+    // Grigio Apple Dinamico (Correzione Bianco)
     const isDark = document.body.classList.contains('dark-mode');
     const appleGray = isDark ? '#2c2c2e' : '#e5e5ea';
 
-    // Progressi dettagliati
+    // Progressi dettagliati (con sfondo grigio apple)
     let progHtml = '';
     totalLevels.forEach(lang => {
         const comp = state.progress[lang] || 0;
@@ -491,13 +491,12 @@ function renderProfile() {
                     <div class="progress-bar-fill" style="width:${(wrong/total)*100}%; background:#ff3b30; position:absolute; left:${(correct/total)*100}%; height:100%"></div>
                     <div class="progress-bar-fill" style="width:${(notStudied/total)*100}%; background:#aaa; position:absolute; left:${((correct+wrong)/total)*100}%; height:100%"></div>
                 </div>
-                <div style="font-size:11px; text-align:right; margin-top:2px">${percent}% corrette</div>
+                <div style="font-size:11px; text-align:right; margin-top:2px; opacity:0.8">${percent}% corrette</div>
             </div>`;
         }
         progHtml += `</div>`;
     });
 
-    // HTML generale
     document.getElementById('content-area').innerHTML = `
 <div style="width:100%; display:flex; flex-direction:column; gap:15px">
 
@@ -508,17 +507,13 @@ function renderProfile() {
 
     <div class="glass-card">
         <div><strong>Statistiche</strong></div>
-        
         <div style="margin-top:15px; display:flex; align-items:center; gap:20px">
-            
             <div style="position:relative; display:flex; align-items:center; justify-content:center; min-width:80px">
                 <svg width="80" height="80" style="transform: rotate(-90deg)">
                     <circle cx="40" cy="40" r="${radius}" stroke="${appleGray}" stroke-width="6" fill="transparent" />
                     <circle cx="40" cy="40" r="${radius}" stroke="#34c759" stroke-width="6" fill="transparent" 
-                        stroke-dasharray="${circumference}" 
-                        stroke-dashoffset="${offset}" 
-                        stroke-linecap="round"
-                        style="transition: stroke-dashoffset 0.5s ease" />
+                        stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" 
+                        stroke-linecap="round" style="transition: stroke-dashoffset 0.5s ease" />
                 </svg>
                 <div style="position:absolute; font-weight:700; font-size:14px;">${percentTotal}%</div>
             </div>
@@ -526,20 +521,20 @@ function renderProfile() {
             <div style="flex:1; display:flex; flex-direction:column; gap:6px">
                 <div>
                     <div style="font-size:12px; margin-bottom:2px">Corrette: ${stats.correct}</div>
-                    <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:${appleGray}; overflow:hidden">
-                        <div class="progress-bar-fill" style="width:${(stats.correct/stats.total)*100}%; background:#34c759; height:100%; transition:0.3s"></div>
+                    <div class="progress-container" style="height:10px; border-radius:6px; background:${appleGray}; overflow:hidden">
+                        <div style="width:${(stats.correct/stats.total)*100}%; background:#34c759; height:100%"></div>
                     </div>
                 </div>
                 <div>
                     <div style="font-size:12px; margin-bottom:2px">Sbagliate: ${stats.wrong}</div>
-                    <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:${appleGray}; overflow:hidden">
-                        <div class="progress-bar-fill" style="width:${(stats.wrong/stats.total)*100}%; background:#ff3b30; height:100%; transition:0.3s"></div>
+                    <div class="progress-container" style="height:10px; border-radius:6px; background:${appleGray}; overflow:hidden">
+                        <div style="width:${(stats.wrong/stats.total)*100}%; background:#ff3b30; height:100%"></div>
                     </div>
                 </div>
                 <div>
                     <div style="font-size:12px; margin-bottom:2px">Non studiate: ${stats.total - stats.correct - stats.wrong}</div>
-                    <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:${appleGray}; overflow:hidden">
-                        <div class="progress-bar-fill" style="width:${((stats.total - stats.correct - stats.wrong)/stats.total)*100}%; background:#ffd60a; height:100%; transition:0.3s"></div>
+                    <div class="progress-container" style="height:10px; border-radius:6px; background:${appleGray}; overflow:hidden">
+                        <div style="width:${((stats.total - stats.correct - stats.wrong)/stats.total)*100}%; background:#ffd60a; height:100%"></div>
                     </div>
                 </div>
             </div>
@@ -557,16 +552,16 @@ function renderProfile() {
     <div class="glass-card" onclick="toggleGeneralContent('security-content')" style="cursor:pointer">
         <strong>Sicurezza</strong>
     </div>
-    <div class="glass-card" id="security-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px">
+    <div class="glass-card" id="security-content" style="display:none; flex-direction:column; gap:8px">
         <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
         <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
-        <button class="btn-apple btn-destruct" onclick="deleteAccount()">Elimina account</button>
+        <button class="btn-apple btn-destruct" onclick="userDeleteAccount()">Elimina account</button>
     </div>
 
     <div class="glass-card" onclick="toggleGeneralContent('history-content')" style="cursor:pointer">
         <strong>Storico</strong>
     </div>
-    <div class="glass-card" id="history-content" style="display:none; flex-direction:column; gap:6px; margin-top:10px; max-height:400px; overflow-y:auto">
+    <div class="glass-card" id="history-content" style="display:none; flex-direction:column; gap:6px; max-height:400px; overflow-y:auto">
         ${generateHistoryHTML(u)}
     </div>
 </div>
