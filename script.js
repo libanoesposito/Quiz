@@ -509,32 +509,29 @@ function renderProfile() {
                 });
             }
 
-            const notStudied = Math.max(0, total - correct - wrong);
+            const total = 15; // domande per livello
+const correct = correct; 
+const wrong = wrong;
+const notStudied = total - correct - wrong;
 
-            const answered = correct + wrong;
-const masteryRaw = (correct - wrong) / total;
-const mastery = Math.max(0, masteryRaw);
+// calcolo larghezze in percentuale
+const wGreen = (correct / total) * 100;
+const wRed   = (wrong / total) * 100;
+const wBlue  = (notStudied / total) * 100;
 
-const wGreen = mastery * 100;
-const wRed = (wrong / total) * 100;
-const wBlue = ((total - answered) / total) * 100;
-
-            progHtml += `
+progHtml += `
 <div style="margin-bottom:10px">
     <div style="font-size:13px">Livello ${i}</div>
 
     <div style="
         height:10px;
         border-radius:6px;
-        background:${appleGray};
         overflow:hidden;
         display:flex;
     ">
-        ${answered > 0 ? `
-            <div style="width:${wGreen}%; background:#34c759"></div>
-            <div style="width:${wRed}%; background:#ff3b30"></div>
-            <div style="width:${wBlue}%; background:#0a84ff"></div>
-        ` : ``}
+        ${wGreen > 0 ? `<div style="width:${wGreen}%; background:#34c759"></div>` : ``}
+        ${wRed > 0 ? `<div style="width:${wRed}%; background:#ff3b30"></div>` : ``}
+        ${wBlue > 0 ? `<div style="width:${wBlue}%; background:#0a84ff"></div>` : ``}
     </div>
 </div>`;
 
