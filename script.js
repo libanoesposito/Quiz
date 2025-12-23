@@ -486,47 +486,46 @@ function renderProfile() {
 
     const noScrollStyle = `
     <style>
-        /* Manteniamo il body fisso */
+        /* 1. Blocca lo scroll del body esterno */
         body { 
-            height: 100vh !important; 
             overflow: hidden !important; 
+            height: 100vh !important; 
         }
 
-        /* NON tocchiamo l'allineamento del main-container, forziamo solo l'altezza */
-        .main-container {
-            height: 100% !important;
-            display: flex !important;
-            justify-content: center !important; /* Mantiene la centratura orizzontale */
-            align-items: flex-start !important; /* Mantiene l'inizio dall'alto */
-        }
-
-        /* Questo contenitore ora riempie lo spazio senza spostarsi */
+        /* 2. Rende il contenitore dello scroll invisibile ma funzionale */
         #profile-scroll { 
-            width: 100%;
-            max-width: 500px; /* La larghezza della tua card */
-            height: 100vh; 
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centra orizzontalmente le card */
         }
 
         #profile-scroll::-webkit-scrollbar { display: none !important; }
 
+        /* 3. Il contenitore delle card eredita la larghezza originale */
         .profile-container {
             width: 100%;
+            max-width: 800px; /* Si adatta al tuo header */
+            padding: 20px 20px 150px 20px;
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            align-items: center; /* Centra le card internamente */
             gap: 15px;
-            padding: 20px 0 150px 0; /* Padding generoso in fondo */
         }
 
-        /* Assicuriamoci che le card non perdano il loro stile */
+        /* 4. Reset per le glass-card: tornano a essere come le hai definite tu */
         .profile-container .glass-card {
-            width: calc(100% - 40px) !important;
-            max-width: 500px !important;
-            margin: 0 auto !important;
+            width: 100% !important;
+            max-width: 500px !important; /* Mantiene la tua dimensione standard */
+            flex-shrink: 0; /* Impedisce che si schiaccino */
         }
     </style>
 `;
