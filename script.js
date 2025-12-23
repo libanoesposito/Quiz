@@ -486,39 +486,41 @@ function renderProfile() {
 
     const noScrollStyle = `
     <style>
-        /* 1. Blocca lo scroll su TUTTI i contenitori esterni */
-        html, body, .main-container { 
+        /* Blocca lo scroll del body per evitare trascinamenti indesiderati */
+        body { 
             height: 100vh !important; 
             overflow: hidden !important; 
-            margin: 0;
         }
 
-        /* 2. Permette lo scroll solo qui, nascondendo la barra */
+        /* Il contenitore principale deve occupare tutto lo spazio verticale */
+        .main-container {
+            flex: 1 !important; 
+            display: flex !important;
+            flex-direction: column !important;
+            height: auto !important;
+            overflow: hidden !important;
+        }
+
+        /* Il segreto: l'altezza è 100vh MENO l'altezza dell'header (circa 44px o 60px) */
         #profile-scroll { 
-            height: 100vh; 
-            overflow-y: scroll; /* Forza lo scroll verticale */
+            flex: 1;
+            height: calc(100vh - 60px); /* Regola i px in base alla grandezza del tuo header */
+            overflow-y: auto; 
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
 
-        /* 3. Nasconde la barra su Chrome/Safari anche qui per sicurezza */
-        #profile-scroll::-webkit-scrollbar { 
-            display: none !important;
-            width: 0 !important;
-        }
+        #profile-scroll::-webkit-scrollbar { display: none !important; }
 
         .profile-container {
-            min-height: 100vh;
             display: flex;
             flex-direction: column;
             gap: 15px;
-            padding: 12px 12px 120px 12px; /* Aumentato per non far coprire l'ultima card */
-            box-sizing: border-box;
+            padding: 12px 12px 100px 12px;
             width: 100%;
+            box-sizing: border-box;
         }
-        
-        .glass-card { width: 100% !important; box-sizing: border-box !important; margin: 0 !important; }
     </style>
 `;
 
