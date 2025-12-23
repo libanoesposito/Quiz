@@ -486,26 +486,26 @@ function renderProfile() {
 
     const noScrollStyle = `
     <style>
-        /* Blocca lo scroll del body per evitare trascinamenti indesiderati */
+        /* Manteniamo il body fisso */
         body { 
             height: 100vh !important; 
             overflow: hidden !important; 
         }
 
-        /* Il contenitore principale deve occupare tutto lo spazio verticale */
+        /* NON tocchiamo l'allineamento del main-container, forziamo solo l'altezza */
         .main-container {
-            flex: 1 !important; 
+            height: 100% !important;
             display: flex !important;
-            flex-direction: column !important;
-            height: auto !important;
-            overflow: hidden !important;
+            justify-content: center !important; /* Mantiene la centratura orizzontale */
+            align-items: flex-start !important; /* Mantiene l'inizio dall'alto */
         }
 
-        /* Il segreto: l'altezza è 100vh MENO l'altezza dell'header (circa 44px o 60px) */
+        /* Questo contenitore ora riempie lo spazio senza spostarsi */
         #profile-scroll { 
-            flex: 1;
-            height: calc(100vh - 60px); /* Regola i px in base alla grandezza del tuo header */
-            overflow-y: auto; 
+            width: 100%;
+            max-width: 500px; /* La larghezza della tua card */
+            height: 100vh; 
+            overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
             -ms-overflow-style: none;
@@ -514,12 +514,19 @@ function renderProfile() {
         #profile-scroll::-webkit-scrollbar { display: none !important; }
 
         .profile-container {
+            width: 100%;
             display: flex;
             flex-direction: column;
+            align-items: center; /* Centra le card internamente */
             gap: 15px;
-            padding: 12px 12px 100px 12px;
-            width: 100%;
-            box-sizing: border-box;
+            padding: 20px 0 150px 0; /* Padding generoso in fondo */
+        }
+
+        /* Assicuriamoci che le card non perdano il loro stile */
+        .profile-container .glass-card {
+            width: calc(100% - 40px) !important;
+            max-width: 500px !important;
+            margin: 0 auto !important;
         }
     </style>
 `;
