@@ -567,6 +567,39 @@ function renderProfile() {
 </div>
 `;
 }
+
+//Finestre di apertura profilo utente
+// --- COPIA DA QUI ---
+
+window.toggleGeneralProgress = function(card) {
+    const detailed = document.getElementById('detailed-progress');
+    if (!detailed) return;
+    const isHidden = detailed.style.display === 'none';
+    detailed.style.display = isHidden ? 'block' : 'none';
+    if (isHidden) {
+        detailed.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+};
+
+window.toggleGeneralContent = function(id) {
+    const content = document.getElementById(id);
+    if (!content) return;
+    
+    // Controlla se è già visibile
+    const isHidden = content.style.display === 'none';
+    
+    // Chiude gli altri menu prima di aprire quello cliccato
+    document.querySelectorAll('#security-content, #history-content').forEach(c => {
+        c.style.display = 'none';
+    });
+    
+    // Apre o chiude quello attuale
+    content.style.display = isHidden ? 'flex' : 'none';
+    
+    if (isHidden) {
+        content.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+};
    
 function toggleHistory(el) {
     const content = el.nextElementSibling;
