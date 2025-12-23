@@ -460,6 +460,12 @@ function renderProfile() {
     const stats = calcStats();
     const totalLevels = Object.keys(domandaRepo);
 
+    // Calcoli per il cerchio Premium
+    const percentTotal = stats.total ? Math.round((stats.correct / stats.total) * 100) : 0;
+    const radius = 35;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (percentTotal / 100) * circumference;
+
     // Progressi dettagliati
     let progHtml = '';
     totalLevels.forEach(lang => {
@@ -467,7 +473,7 @@ function renderProfile() {
         progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
         for(let i=1;i<=5;i++){
             let correct=0, wrong=0, total=15;
-            if(u.history[lang]){
+            if(u.history && u.history[lang]){
                 u.history[lang].forEach(h=>{
                     if(i<=comp){ if(h.ok) correct++; else wrong++; }
                 });
@@ -476,7 +482,7 @@ function renderProfile() {
             const percent = total ? Math.round((correct/total)*100) : 0;
             progHtml += `<div style="margin-bottom:8px">
                 <div style="font-size:13px">Livello ${i}</div>
-                <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
+                <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:var(--apple-bg-gray, #e5e5ea); overflow:hidden">
                     <div class="progress-bar-fill" style="width:${(correct/total)*100}%; background:#34c759; height:100%"></div>
                     <div class="progress-bar-fill" style="width:${(wrong/total)*100}%; background:#ff3b30; position:absolute; left:${(correct/total)*100}%; height:100%"></div>
                     <div class="progress-bar-fill" style="width:${(notStudied/total)*100}%; background:#aaa; position:absolute; left:${((correct+wrong)/total)*100}%; height:100%"></div>
@@ -496,27 +502,35 @@ function renderProfile() {
         <div><strong>ID Utente:</strong> ${u.userId}</div>
     </div>
 
-    <div class="glass-card">
-        <div><strong>Statistiche</strong></div>
-        <div style="margin-top:10px; display:flex; flex-direction:column; gap:6px">
-            <div>
-                <div style="font-size:12px; margin-bottom:2px">Corrette: ${stats.correct}</div>
-                <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                    <div class="progress-bar-fill" style="width:${(stats.correct/stats.total)*100}%; background:#34c759; height:100%; transition:0.3s"></div>
+    <div class="glass-card" style="display:flex; align-items:center; gap:20px; padding:20px">
+        <div style="flex:1">
+            <strong style="display:block; margin-bottom:12px">Statistiche</strong>
+            <div style="display:flex; flex-direction:column; gap:10px">
+                <div>
+                    <div style="font-size:12px; margin-bottom:3px">Corrette: ${stats.correct}</div>
+                    <div class="progress-container" style="position:relative; height:8px; border-radius:4px; background:var(--apple-bg-gray, #e5e5ea); overflow:hidden">
+                        <div class="progress-bar-fill" style="width:${(stats.correct/stats.total)*100}%; background:#34c759; height:100%; transition:0.3s"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size:12px; margin-bottom:3px">Sbagliate: ${stats.wrong}</div>
+                    <div class="progress-container" style="position:relative; height:8px; border-radius:4px; background:var(--apple-bg-gray, #e5e5ea); overflow:hidden">
+                        <div class="progress-bar-fill" style="width:${(stats.wrong/stats.total)*100}%; background:#ff3b30; height:100%; transition:0.3s"></div>
+                    </div>
                 </div>
             </div>
-            <div>
-                <div style="font-size:12px; margin-bottom:2px">Sbagliate: ${stats.wrong}</div>
-                <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                    <div class="progress-bar-fill" style="width:${(stats.wrong/stats.total)*100}%; background:#ff3b30; height:100%; transition:0.3s"></div>
-                </div>
-            </div>
-            <div>
-                <div style="font-size:12px; margin-bottom:2px">Non studiate: ${stats.total - stats.correct - stats.wrong}</div>
-                <div class="progress-container" style="position:relative; height:10px; border-radius:6px; background:#e0e0e0; overflow:hidden">
-                    <div class="progress-bar-fill" style="width:${((stats.total - stats.correct - stats.wrong)/stats.total)*100}%; background:#ffd60a; height:100%; transition:0.3s"></div>
-                </div>
-            </div>
+        </div>
+
+        <div style="position:relative; display:flex; align-items:center; justify-content:center; width:90px; height:90px">
+            <svg width="90" height="90" style="transform: rotate(-90deg)">
+                <circle cx="45" cy="45" r="${radius}" stroke="var(--apple-bg-gray, #e5e5ea)" stroke-width="7" fill="transparent" />
+                <circle cx="45" cy="45" r="${radius}" stroke="#34c759" stroke-width="7" fill="transparent" 
+                    stroke-dasharray="${circumference}" 
+                    stroke-dashoffset="${offset}" 
+                    stroke-linecap="round"
+                    style="transition: stroke-dashoffset 0.5s ease" />
+            </svg>
+            <div style="position:absolute; font-weight:700; font-size:15px; color:var(--text-color)">${percentTotal}%</div>
         </div>
     </div>
 
@@ -545,40 +559,7 @@ function renderProfile() {
     </div>
 </div>
 `;
-
 }
-
-// Funzioni toggle **fuori da renderProfile**
-window.toggleGeneralProgress = function(card) {
-    const detailed = document.getElementById('detailed-progress');
-    const isHidden = detailed.style.display === 'none';
-
-    detailed.style.display = isHidden ? 'block' : 'none';
-
-    if (isHidden) {
-        card.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-        });
-    }
-};
-
-window.toggleGeneralContent = function(id) {
-    const content = document.getElementById(id);
-    if (!content) return;
-
-    // Chiudi le altre card simili
-    document.querySelectorAll('#security-content, #history-content').forEach(c => {
-        if (c !== content) c.style.display = 'none';
-    });
-
-    // Mostra/nascondi contenuto
-    const isHidden = content.style.display === 'none';
-    content.style.display = isHidden ? 'flex' : 'none';
-
-    // Scroll verso la card aperta
-    if (isHidden) content.scrollIntoView({ behavior: 'smooth', block: 'start' });
-};
 
    
 function toggleHistory(el) {
