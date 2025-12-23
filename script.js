@@ -486,39 +486,43 @@ function renderProfile() {
 
     const noScrollStyle = `
     <style>
-        /* 1. Blocca lo scroll esterno ma non il layout */
+        /* 1. Blocca lo scroll del body */
         body { 
             overflow: hidden !important; 
             height: 100vh !important;
+            margin: 0;
         }
 
-        /* 2. Il contenitore dello scroll deve essere invisibile e rispettare l'header */
+        /* 2. Il contenitore dello scroll deve occupare tutta la larghezza SENZA debordare */
         #profile-scroll { 
-            height: calc(100vh - 70px); /* Regola i px per l'altezza del tuo header */
+            height: calc(100vh - 70px); 
+            width: 100%;
             overflow-y: auto;
+            overflow-x: hidden; /* Evita categoricamente tagli a destra */
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
             -ms-overflow-style: none;
-            width: 100%;
         }
 
         #profile-scroll::-webkit-scrollbar { display: none !important; }
 
-        /* 3. Ripristino totale del tuo stile originale */
+        /* 3. Il contenitore delle card deve avere margini simmetrici */
         .profile-container {
             display: flex;
             flex-direction: column;
             gap: 15px;
-            padding: 12px 12px 120px 12px; /* Margini Apple originali */
-            box-sizing: border-box;
+            padding: 15px; /* Margine uguale a destra e sinistra */
+            box-sizing: border-box; /* Cruciale: include il padding nella larghezza 100% */
             width: 100%;
-            align-items: center; /* Centra le card perfettamente */
+            max-width: 100%;
         }
 
-        /* 4. Non forziamo le larghezze, usiamo quelle del tuo CSS */
+        /* 4. Le card devono adattarsi e centrarsi */
         .glass-card {
-            margin: 0 auto !important; /* Forza la centratura orizzontale */
-            /* Non aggiungiamo altro: usiamo il tuo CSS esterno */
+            width: 100% !important; 
+            max-width: 500px !important; /* Limite massimo per desktop */
+            margin: 0 auto !important; /* Centra perfettamente */
+            box-sizing: border-box !important;
         }
     </style>
 `;
