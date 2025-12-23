@@ -172,25 +172,35 @@ function setGuest() {
 function showHome() {
     updateNav(false);
     document.getElementById('app-title').innerText = "PERCORSI";
+    
     let html = `<div class="lang-grid">`;
+    
+    // Generazione icone linguaggi
     Object.keys(domandaRepo).forEach(l => {
         const icon = (l === 'HTML') ? 'html5' : l.toLowerCase();
-        html += `<div class="lang-item" onclick="showLevels('${l}')">
+        html += `
+        <div class="lang-item" onclick="showLevels('${l}')">
             <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${icon}/${icon}-original.svg" width="35" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1005/1005141.png'">
             <div style="margin-top:10px; font-weight:700; font-size:13px">${l}</div>
         </div>`;
     });
-    if(state.mode === 'admin') {
-    html += `<div class="lang-item profile-slot" onclick="renderAdminPanel()"><div style="font-weight:700">PANNELLO ADMIN</div></div>`;
-} if(state.mode !== 'guest') {
-    html += `
-        <div class="lang-item profile-slot" onclick="renderRipasso()">
-            <div style="font-weight:700">RIPASSO DOMANDE</div>
-        </div>`;
-}
-    else if(state.mode !== 'guest') {
-    html += `<div class="lang-item profile-slot" onclick="renderProfile()"><div style="font-weight:700">IL MIO PROFILO</div></div>`;
-}
+
+    // Sezione Admin
+    if (state.mode === 'admin') {
+        html += `<div class="lang-item profile-slot" onclick="renderAdminPanel()"><div style="font-weight:700">PANNELLO ADMIN</div></div>`;
+    } 
+    
+    // Sezione per utenti loggati (non guest)
+    if (state.mode !== 'guest') {
+        html += `
+            <div class="lang-item profile-slot" onclick="renderRipasso()">
+                <div style="font-weight:700">RIPASSO DOMANDE</div>
+            </div>
+            <div class="lang-item profile-slot" onclick="renderProfile()">
+                <div style="font-weight:700">IL MIO PROFILO</div>
+            </div>`;
+    }
+
     html += `</div>`;
     document.getElementById('content-area').innerHTML = html;
 }
