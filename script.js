@@ -463,7 +463,6 @@ function renderProfile() {
     const stats = calcStats();
     const totalLevels = Object.keys(domandaRepo);
 
-    // Calcolo Percentuale Totale (Cerchio)
     const percentTotal = stats.total ? Math.round((stats.correct / stats.total) * 100) : 0;
     const radius = 32;
     const circumference = 2 * Math.PI * radius;
@@ -472,32 +471,18 @@ function renderProfile() {
     const isDark = document.body.classList.contains('dark-mode');
     const appleGray = isDark ? '#2c2c2e' : '#e5e5ea';
 
-    // CSS: Fix Scroll, Fix Scrollbar Desktop, Fix Altezza Mobile
     const noScrollStyle = `
         <style>
-            body { 
-                height: 100vh; 
-                overflow: hidden; 
-                margin: 0; 
-            }
+            body { height: 100vh; overflow: hidden; margin: 0; }
             #profile-scroll { 
                 height: 100vh; 
                 overflow-y: auto; 
                 -webkit-overflow-scrolling: touch; 
-                
-                /* Nasconde la barra su Firefox */
                 scrollbar-width: none; 
-                /* Nasconde la barra su Internet Explorer/Edge */
                 -ms-overflow-style: none; 
             }
+            #profile-scroll::-webkit-scrollbar { display: none; width: 0 !important; height: 0 !important; }
             
-            /* Nasconde la barra su Chrome, Safari e Opera */
-            #profile-scroll::-webkit-scrollbar { 
-                display: none; 
-                width: 0 !important;
-                height: 0 !important;
-            }
-
             .profile-container {
                 min-height: 100vh;
                 display: flex;
@@ -507,38 +492,34 @@ function renderProfile() {
                 box-sizing: border-box;
                 width: 100%;
             }
-            .glass-card { 
-                width: 100% !important; 
-                box-sizing: border-box !important; 
-                margin: 0 !important;
-            }
+            .glass-card { width: 100% !important; box-sizing: border-box !important; margin: 0 !important; }
         </style>
     `;
 
-   let progHtml = '';
+    let progHtml = '';
     const totalQuestionsPerLevel = 15; 
 
     totalLevels.forEach(lang => {
         progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
-        
         for (let i = 1; i <= 5; i++) {
-            let correct = 0, wrong = 0;
+            let correct = 0, wrong = 0, markedNotStudied = 0;
             
             if (u.history && u.history[lang]) {
                 u.history[lang].forEach(h => {
-                    // Usiamo == per evitare problemi tra stringhe e numeri
-                    if (Number(h.level) == i) { 
-                        if (h.ok) correct++; else wrong++;
+                    // Controllo livello: h.lvl è quello salvato durante i quiz
+                    if (Number(h.lvl || h.level) == i) { 
+                        if (h.isNotStudied) markedNotStudied++;
+                        else if (h.ok) correct++;
+                        else wrong++;
                     }
                 });
             }
 
-            const notStudied = Math.max(0, totalQuestionsPerLevel - correct - wrong);
-            const percent = Math.round((correct / totalQuestionsPerLevel) * 100);
-
+            // Calcolo percentuali: partono da 0, quindi la barra resta grigia se vuota
             const wGreen = (correct / totalQuestionsPerLevel) * 100;
             const wRed   = (wrong / totalQuestionsPerLevel) * 100;
-            const wBlue  = (notStudied / totalQuestionsPerLevel) * 100;
+            const wBlue  = (markedNotStudied / totalQuestionsPerLevel) * 100;
+            const percent = Math.round((correct / totalQuestionsPerLevel) * 100);
 
             progHtml += `
             <div style="margin-bottom:10px">
@@ -554,11 +535,9 @@ function renderProfile() {
         progHtml += `</div>`;
     });
 
-    // Output finale HTML
     document.getElementById('content-area').innerHTML = noScrollStyle + `
 <div id="profile-scroll">
     <div class="profile-container">
-
         <div class="glass-card">
             <div><strong>Nome:</strong> ${u.name}</div>
             <div><strong>ID Utente:</strong> ${u.userId}</div>
@@ -573,21 +552,13 @@ function renderProfile() {
                         <circle cx="40" cy="40" r="${radius}" stroke="#34c759" stroke-width="6" fill="none"
                             stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
                     </svg>
-                    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">
-                        ${percentTotal}%
-                    </div>
+                    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">${percentTotal}%</div>
                 </div>
                 <div style="flex:1; display:flex; flex-direction:column; gap:8px">
                     <div>
                         <div style="font-size:12px">Corrette: ${stats.correct}</div>
                         <div style="height:8px; background:${appleGray}; border-radius:6px">
                             <div style="width:${stats.total ? (stats.correct/stats.total)*100 : 0}%; height:100%; background:#34c759; border-radius:6px"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div style="font-size:12px">Non studiate: ${stats.total - stats.correct - stats.wrong}</div>
-                        <div style="height:8px; background:${appleGray}; border-radius:6px">
-                            <div style="width:${stats.total ? ((stats.total - stats.correct - stats.wrong)/stats.total)*100 : 0}%; height:100%; background:#0a84ff; border-radius:6px"></div>
                         </div>
                     </div>
                     <div>
@@ -602,9 +573,7 @@ function renderProfile() {
 
         <div class="glass-card" id="card-prog" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
             <div style="font-weight:600">Progressi generali</div>
-            <div id="detailed-progress" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">
-                ${progHtml}
-            </div>
+            <div id="detailed-progress" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">${progHtml}</div>
         </div>
 
         <div class="glass-card" id="card-sec" onclick="toggleGeneralContent('security-content', this)" style="cursor:pointer">
@@ -618,11 +587,8 @@ function renderProfile() {
 
         <div class="glass-card" id="card-hist" onclick="toggleGeneralContent('history-content', this)" style="cursor:pointer">
             <strong>Storico</strong>
-            <div id="history-content" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">
-                ${generateHistoryHTML(u)}
-            </div>
+            <div id="history-content" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">${generateHistoryHTML(u)}</div>
         </div>
-
     </div>
 </div>`;
 }
