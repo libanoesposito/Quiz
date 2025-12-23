@@ -314,7 +314,7 @@ function renderQ() {
         </div>
         <h2 style="font-size:18px; margin-bottom:20px">${data.q}</h2>
         <div id="opts" style="width:100%">
-            ${data.options.map((o,i)=>`<button class="btn-apple" onclick="check(${i===data.correct})">${o}</button>`).join('')}
+            ${data.options.map((o, i) => `<button class="btn-apple" onclick="check(${i === data.correct})">${o}</button>`).join('')}
         </div>
         <div id="fb"></div>
         <div style="margin-top:10px; text-align:right">
@@ -322,22 +322,32 @@ function renderQ() {
         </div>`;
 }
 
-// Funzione per registrare la domanda in "ripasso" senza modificare i progressifunction markNotStudied(idx) {
+// Funzione per registrare la domanda in "ripasso" senza modificare i progressi
+function markNotStudied(idx) {
     if (!state.currentPin || !dbUsers[state.currentPin]) return;
+    
     const data = session.q[idx];
-    if (!dbUsers[state.currentPin].ripasso) dbUsers[state.currentPin].ripasso = { wrong: [], notStudied: [] };
+    const user = dbUsers[state.currentPin];
+
+    // Inizializza l'oggetto ripasso se non esiste
+    if (!user.ripasso) {
+        user.ripasso = { wrong: [], notStudied: [] };
+    }
 
     // Aggiunge alla lista notStudied evitando duplicati
-    if (!dbUsers[state.currentPin].ripasso.notStudied.some(d => d.q === data.q)) {
-        dbUsers[state.currentPin].ripasso.notStudied.push({
+    const giaPresente = user.ripasso.notStudied.some(d => d.q === data.q);
+    
+    if (!giaPresente) {
+        user.ripasso.notStudied.push({
             q: data.q,
             options: data.options,
             correct: data.correct,
             exp: data.exp
         });
+        saveMasterDB();
     }
-    saveMasterDB();
-    document.getElementById('fb').innerText = "Aggiunta a ripasso 📌";
+    
+    document.getElementById('fb').innerHTML = `<div style="color:var(--accent); margin-top:10px">Aggiunta a ripasso 📌</div>`;
 }
 
 function check(isOk) {
