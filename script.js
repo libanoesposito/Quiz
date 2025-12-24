@@ -513,43 +513,43 @@ const noScrollStyle = `
 #profile-scroll {
     height: 100%;
     width: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden; /* Blocca lo scroll globale */
     display: flex;
     flex-direction: column;
     align-items: center;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
     background: transparent;
-}
-#profile-scroll::-webkit-scrollbar {
-    display: none !important;
 }
 .profile-container {
     display: flex;
     flex-direction: column;
     width: 100%;
+    max-height: 100vh; /* Limita l'altezza al viewport */
     align-items: center;
-    padding: 0;
-    background: transparent;
+    padding: 10px 0;
 }
+/* Classe chirurgica per le sezioni espandibili */
+.scrollable-content {
+    max-height: 300px; /* Altezza massima variabile a piacere */
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-right: 5px;
+}
+.scrollable-content::-webkit-scrollbar { display: none; }
+
 #profile-scroll .glass-card {
     background: var(--card-bg);
     backdrop-filter: blur(40px) saturate(180%);
     -webkit-backdrop-filter: blur(40px) saturate(180%);
-    border: none; /* rimosso il bordo per uniformità */
     border-radius: 30px;
-    padding: 25px;
+    padding: 20px;
     width: calc(100% - 40px);
     max-width: 500px;
     margin: 6px auto;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
     box-sizing: border-box;
+    flex-shrink: 0; /* Impedisce alle card di schiacciarsi */
 }
-input, select, textarea { font-size: 16px !important; }
 </style>
 `;
 
@@ -642,10 +642,15 @@ input, select, textarea { font-size: 16px !important; }
             </div>
         </div>
 
-        <div class="glass-card" id="card-prog" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
-            <div style="font-weight:600">Progressi generali</div>
-            <div id="detailed-progress" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">${progHtml}</div>
+      <div class="glass-card" id="card-prog" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
+    <div style="font-weight:600">Progressi generali</div>
+    <div id="detailed-progress" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">
+        <div class="scrollable-content">
+            ${progHtml}
         </div>
+    </div>
+</div>
+
 
         <div class="glass-card" id="card-sec" onclick="toggleGeneralContent('security-content', this)" style="cursor:pointer">
             <strong>Sicurezza</strong>
@@ -657,8 +662,10 @@ input, select, textarea { font-size: 16px !important; }
         </div>
 
         <div class="glass-card" id="card-hist" onclick="toggleGeneralContent('history-content', this)" style="cursor:pointer">
-            <strong>Storico</strong>
-            <div id="history-content" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">${generateHistoryHTML(u)}</div>
+    <strong>Storico</strong>
+    <div id="history-content" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">
+        <div class="scrollable-content">
+            ${generateHistoryHTML(u)}
         </div>
     </div>
 </div>`;
