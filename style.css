@@ -13,29 +13,38 @@ body {
 .nav-slot { flex: 1; }
 h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; letter-spacing: 1.5px; }
 
-.main-container {
-    flex: 1;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: stretch;
-    padding-bottom: 0;
-    overflow: hidden;
+.main-container { 
+    flex: 1; 
+    width: 100%; 
+    display: flex; 
+    justify-content: center; 
+    align-items: flex-start; /* Mantiene la card in alto */
+    overflow-y: auto;        /* Permette lo scroll del contenuto */
+    overflow-x: hidden;
+    padding-bottom: 2px;     /* Il tuo scarto di 2px dal fondo */
 }
-.glass-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    border: 1px solid var(--border);
-    border-radius: 30px;
-    padding: 25px;
-    width: 100%;
-    max-width: 500px;
-    flex-shrink: 0;
-    height: auto;
-    margin-bottom: 2px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+
+.glass-card { 
+    background: var(--card-bg); 
+    backdrop-filter: blur(40px) saturate(180%); 
+    -webkit-backdrop-filter: blur(40px) saturate(180%); 
+    border: 1px solid var(--border); 
+    border-radius: 30px; 
+    padding: 25px; 
+    width: calc(100% - 40px); 
+    max-width: 500px; 
+    
+    /* Modifiche solo per l'altezza */
+    min-height: auto;
+    height: auto; 
+    
+    display: flex; 
+    flex-direction: column; 
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1); 
+    margin-top: 2px;    /* Spazio di 2px sopra */
+    margin-bottom: 2px; /* Spazio di 2px sotto */
 }
+
 
 /*.glass-card {
     background: var(--card-bg);
