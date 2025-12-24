@@ -515,7 +515,7 @@ const noScrollStyle = `
     background: var(--card-bg);
     backdrop-filter: blur(40px) saturate(180%);
     -webkit-backdrop-filter: blur(40px) saturate(180%);
-    border: 1px solid var(--border);
+    border: none; /* rimosso il bordo per uniformità */
     border-radius: 30px;
     padding: 25px;
     width: calc(100% - 40px);
