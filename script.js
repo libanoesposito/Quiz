@@ -364,46 +364,41 @@ function renderL5(lang) {
     `;
 }
 
-function updateCodeHighlight(text) {
-    const pre = document.getElementById('highlighting');
-    // Semplice Regex per simulare VS Code
-    let highlighted = text
-        .replace(/\b(for|in|if|while|def|return|import|as)\b/g, '<span style="color:#569cd6">$1</span>') // Parole chiave
-        .replace(/\b(range|print|len|int|str)\b/g, '<span style="color:#dcdcaa">$1</span>') // Funzioni
-        .replace(/(\d+)/g, '<span style="color:#b5cea8">$1</span>') // Numeri
-        .replace(/"(.*?)"/g, '<span style="color:#ce9178">"$1"</span>') // Stringhe
-        .replace(/:/g, '<span style="color:#ffd700">:</span>'); // Due punti
+function renderL5(lang) {
+    updateNav(true, `showLevels('${lang}')`);
+    const container = document.getElementById('content-area');
+    
+    container.innerHTML = `
+        <div class="glass-card" style="box-shadow: none !important; background: rgba(120, 120, 128, 0.08) !important; border-radius: 20px; padding: 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
+                <h2 style="font-size:18px; margin:0">ESAMINATORE: ${lang.toUpperCase()}</h2>
+                <div style="display:flex; gap:5px">
+                    <div style="width:10px; height:10px; border-radius:50%; background:#ff5f56"></div>
+                    <div style="width:10px; height:10px; border-radius:50%; background:#ffbd2e"></div>
+                    <div style="width:10px; height:10px; border-radius:50%; background:#27c93f"></div>
+                </div>
+            </div>
+            
+            <p style="font-size:14px; margin-bottom:15px; opacity:0.8"><b>Sfida:</b> Crea un ciclo che stampi i numeri da 1 a 10</p>
+            
+            <div style="position:relative; background:#1e1e1e; border-radius:8px; padding:15px; border:1px solid #333; min-height:150px">
+                <div id="code-editor" 
+                     contenteditable="true" 
+                     spellcheck="false"
+                     oninput="handleCodeInput(this)"
+                     style="width:100%; min-height:120px; color:#d4d4d4; font-family:'Courier New', monospace; font-size:14px; line-height:1.5; outline:none; white-space:pre; overflow-wrap:normal; overflow-x:auto;"></div>
+            </div>
 
-    pre.innerHTML = highlighted + (text.endsWith('\n') ? '\n' : '');
+            <button class="btn-apple" onclick="checkL5('${lang}')" style="margin-top:15px; background:var(--accent); color:white; width:100%">Esegui e Verifica</button>
+            
+            <div id="terminal-output" style="display:none; margin-top:20px; background:#000; border-radius:8px; padding:15px; font-family:monospace; border:1px solid #333;">
+                <div style="color:#34c759; font-size:12px; margin-bottom:5px;">● TERMINALE</div>
+                <pre id="console-res" style="color:#fff; margin:0; font-size:13px; white-space:pre-wrap;"></pre>
+            </div>
+        </div>
+    `;
 }
 
-function checkL5(lang) {
-    const userCode = document.getElementById('code-editor').value.trim();
-    const terminal = document.getElementById('terminal-output');
-    const consoleRes = document.getElementById('console-res');
-    const fb = document.getElementById('fb');
-    
-    // In un'app reale useresti un interprete, qui simuliamo la verifica
-    // Recuperiamo la soluzione attesa dal tuo repo
-    const sfida = domandaRepo[lang].L5[0];
-
-    terminal.style.display = "block";
-    
-    if (userCode === sfida.solution.trim()) {
-        consoleRes.innerText = sfida.expected;
-        fb.innerHTML = `<div style="color:#34c759; margin-top:10px;">Complimenti! Codice corretto ed eseguito.</div>`;
-        
-        // Se è un utente, salviamo il progresso
-        if (state.mode === 'user') {
-            state.progress[lang] = 5;
-            saveMasterDB();
-        }
-    } else {
-        consoleRes.innerText = "Error: Syntax mismatch or logic error.";
-        consoleRes.style.color = "#ff3b30";
-        fb.innerHTML = `<div style="color:#ff3b30; margin-top:10px;">Il risultato non è quello atteso. Riprova!</div>`;
-    }
-}
 
 
 function renderQ() {
