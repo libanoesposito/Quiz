@@ -487,16 +487,7 @@ function renderProfile() {
     
 const noScrollStyle = `
 <style>
-    /* 1. Blocca lo scroll esterno ma mantiene lo sfondo del sito */
-    body {
-        overflow: hidden !important;
-        height: 100vh !important;
-        margin: 0;
-        background: var(--bg);
-    }
-
-    /* 2. Contenitore dello scroll (Main Container della funzione) */
-    #profile-scroll {
+#profile-scroll {
     height: 100%;
     width: 100%;
     overflow-y: auto;
@@ -507,12 +498,20 @@ const noScrollStyle = `
     align-items: center;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    background: transparent;
 }
-
 #profile-scroll::-webkit-scrollbar {
     display: none !important;
 }
-    #profile-scroll .glass-card {
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+    padding: 0;
+    background: transparent;
+}
+#profile-scroll .glass-card {
     background: var(--card-bg);
     backdrop-filter: blur(40px) saturate(180%);
     -webkit-backdrop-filter: blur(40px) saturate(180%);
@@ -526,45 +525,8 @@ const noScrollStyle = `
     flex-direction: column;
     box-shadow: 0 20px 50px rgba(0,0,0,0.1);
     box-sizing: border-box;
-    }
-
-    
-    /* 3. Contenitore interno delle card */
-    .profile-container {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    align-items: center;
-    padding: 0;
 }
-
-    /* 4. LA CARD: Copia esatta del tuo stile principale */
-    .glass-card {
-        background: var(--card-bg) !important;
-        backdrop-filter: blur(40px) saturate(180%) !important;
-        -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-        border: 1px solid var(--border) !important;
-        border-radius: 30px !important;
-        padding: 25px !important;
-        width: calc(100% - 40px) !important;
-        max-width: 500px !important;
-        
-        /* Coerenza distanze 6px */
-        margin-top: 6px !important;
-        margin-bottom: 6px !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-        
-        display: flex !important;
-        flex-direction: column !important;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.1) !important;
-        box-sizing: border-box !important;
-    }
-
-    /* Coerenza font per evitare zoom su mobile */
-    input, select, textarea {
-    font-size: 16px !important;
-    }
+input, select, textarea { font-size: 16px !important; }
 </style>
 `;
 
