@@ -38,7 +38,7 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
     -webkit-overflow-scrolling: touch; 
 }
 
-.glass-card { 
+/*.glass-card { 
     background: var(--card-bg); 
     backdrop-filter: blur(40px) saturate(180%); 
     -webkit-backdrop-filter: blur(40px) saturate(180%); 
@@ -48,7 +48,6 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
     width: calc(100% - 40px); 
     max-width: 500px; 
     
-    /* Gestione altezza e spazi */
     height: auto; 
     margin-top: 6px;
     margin-bottom: 6px;
@@ -56,6 +55,29 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
     display: flex; 
     flex-direction: column; 
     box-shadow: 0 20px 50px rgba(0,0,0,0.1); 
+}*/
+    .glass-card { 
+    /* Cambiamo lo sfondo per renderlo leggero come i percorsi */
+    background: rgba(120, 120, 128, 0.08); 
+    backdrop-filter: blur(10px); 
+    -webkit-backdrop-filter: blur(10px); 
+    
+    /* Mettiamo un bordo sottile e pulito */
+    border: 1px solid var(--border); 
+    border-radius: 30px; 
+    padding: 25px; 
+    width: calc(100% - 40px); 
+    max-width: 500px; 
+    
+    height: auto; 
+    margin-top: 6px;
+    margin-bottom: 6px;
+    
+    display: flex; 
+    flex-direction: column; 
+    
+    /* TOLTA L'OMBRA PESANTE: ora è piatto come i percorsi */
+    box-shadow: none; 
 }
 
 
