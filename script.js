@@ -329,6 +329,83 @@ function startStep(lang, lvl) {
     renderQ();
 }
 
+function renderL5(lang) {
+    updateNav(true, `showLevels('${lang}')`);
+    const container = document.getElementById('content-area');
+    
+    // Recuperiamo la sfida (assicurati di avere L5 in domandaRepo)
+    const sfide = domandaRepo[lang]?.L5 || [
+        { q: "Crea un ciclo che stampi i numeri da 1 a 10", solution: "for i in range(1, 11):\n    print(i)", expected: "1\n2\n3\n4\n5\n6\n7\n8\n9\n10" }
+    ];
+    const sfida = sfide[0]; 
+
+    container.innerHTML = `
+        <div class="glass-card" style="box-shadow: none !important; background: rgba(120, 120, 128, 0.08) !important; border-radius: 20px; padding: 20px;">
+            <h2 style="font-size:18px; margin-bottom:10px;">ESAMINATORE: ${lang.toUpperCase()}</h2>
+            <p style="font-size:14px; margin-bottom:20px; opacity:0.9"><b>Sfida:</b> ${sfida.q}</p>
+            
+            <div class="vscode-container" style="position:relative; background:#1e1e1e; border-radius:12px; padding:15px; overflow:hidden; border:1px solid #333;">
+                <pre id="highlighting" aria-hidden="true" style="margin:0; font-family:monospace; font-size:14px; line-height:1.5; white-space:pre-wrap; word-wrap:break-word; color:#d4d4d4; position:absolute; pointer-events:none;"></pre>
+                <textarea id="code-editor" spellcheck="false" 
+                    oninput="updateCodeHighlight(this.value)"
+                    style="width:100%; height:150px; background:transparent; color:transparent; caret-color:white; border:none; font-family:monospace; font-size:14px; line-height:1.5; outline:none; resize:none; position:relative; z-index:1; white-space:pre-wrap; word-wrap:break-word; margin:0; display:block;"
+                    placeholder="Scrivi qui il codice..."></textarea>
+            </div>
+
+            <button class="btn-apple" onclick="checkL5('${lang}')" style="margin-top:15px; background:var(--accent); color:white; width:100%">Esegui e Verifica</button>
+            
+            <div id="terminal-output" style="display:none; margin-top:20px; background:#000; border-radius:10px; padding:15px; font-family:monospace; font-size:13px; border:1px solid #333;">
+                <div style="color:#34c759; margin-bottom:5px;">> Terminale:</div>
+                <pre id="console-res" style="color:#fff; margin:0; white-space:pre-wrap;"></pre>
+            </div>
+            
+            <div id="fb" style="margin-top:10px"></div>
+        </div>
+    `;
+}
+
+function updateCodeHighlight(text) {
+    const pre = document.getElementById('highlighting');
+    // Semplice Regex per simulare VS Code
+    let highlighted = text
+        .replace(/\b(for|in|if|while|def|return|import|as)\b/g, '<span style="color:#569cd6">$1</span>') // Parole chiave
+        .replace(/\b(range|print|len|int|str)\b/g, '<span style="color:#dcdcaa">$1</span>') // Funzioni
+        .replace(/(\d+)/g, '<span style="color:#b5cea8">$1</span>') // Numeri
+        .replace(/"(.*?)"/g, '<span style="color:#ce9178">"$1"</span>') // Stringhe
+        .replace(/:/g, '<span style="color:#ffd700">:</span>'); // Due punti
+
+    pre.innerHTML = highlighted + (text.endsWith('\n') ? '\n' : '');
+}
+
+function checkL5(lang) {
+    const userCode = document.getElementById('code-editor').value.trim();
+    const terminal = document.getElementById('terminal-output');
+    const consoleRes = document.getElementById('console-res');
+    const fb = document.getElementById('fb');
+    
+    // In un'app reale useresti un interprete, qui simuliamo la verifica
+    // Recuperiamo la soluzione attesa dal tuo repo
+    const sfida = domandaRepo[lang].L5[0];
+
+    terminal.style.display = "block";
+    
+    if (userCode === sfida.solution.trim()) {
+        consoleRes.innerText = sfida.expected;
+        fb.innerHTML = `<div style="color:#34c759; margin-top:10px;">Complimenti! Codice corretto ed eseguito.</div>`;
+        
+        // Se è un utente, salviamo il progresso
+        if (state.mode === 'user') {
+            state.progress[lang] = 5;
+            saveMasterDB();
+        }
+    } else {
+        consoleRes.innerText = "Error: Syntax mismatch or logic error.";
+        consoleRes.style.color = "#ff3b30";
+        fb.innerHTML = `<div style="color:#ff3b30; margin-top:10px;">Il risultato non è quello atteso. Riprova!</div>`;
+    }
+}
+
+
 function renderQ() {
     updateNav(true, `showLevels('${session.lang}')`);
     const data = session.q[session.idx];
