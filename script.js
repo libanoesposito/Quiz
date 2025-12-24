@@ -1196,31 +1196,31 @@ function recalcUser(userId) {
 }
 
 function adminDeleteUser(userId) {
-    const u = findUserById(userId);
-    if (!u) return;
+    const pin = Object.keys(dbUsers).find(key => dbUsers[key].userId == userId);
+    const u = dbUsers[pin];
+    
+    if (!u) {
+        alert("Utente non trovato");
+        return;
+    }
 
     openModal(
         "Elimina utente",
         "L’utente verrà spostato nello storico degli eliminati.",
-        // Dentro la callback di conferma di adminDeleteUser
-() => {
-    const { history, name, userId } = u; 
-    
-    // IMPORTANTE: la chiave deve rimanere il PIN originale
-    dbUsers[u.currentPin] = { 
-        history: history || {}, 
-        name: name, 
-        userId: userId, // Deve chiamarsi esattamente userId
-        deleted: true 
-    }; 
-    
-    saveMasterDB();
-    renderAdminPanel();
-    }
-  };
-}
-
-
+        () => {
+            // Creiamo l'oggetto "deleted" mantenendo i dati necessari
+            dbUsers[pin] = { 
+                history: u.history || {}, 
+                name: u.name, 
+                userId: u.userId,
+                deleted: true 
+            }; 
+            
+            saveMasterDB();
+            renderAdminPanel();
+        }
+    );
+} }
 
 // Mostra i dettagli completi di un utente per l'admin
 function showUserDetails(pin) {
