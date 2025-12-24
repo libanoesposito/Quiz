@@ -1060,24 +1060,25 @@ function renderAdminPanel() {
 }
 
 function showUserHistory(userId) {
-    // Cerca l'utente (attivo o eliminato)
     const u = Object.values(dbUsers).find(user => user.userId == userId);
-    
-    if (!u) {
-        alert("Dati non trovati");
-        return;
-    }
+    if (!u) return;
 
     const htmlStorico = generateHistoryHTML(u);
 
     openModal(
         `Storico di ${u.name}`,
-        `<div style="max-height: 400px; overflow-y: auto; text-align: left; padding: 10px;">
-            ${htmlStorico}
-        </div>`,
-        null 
+        `<div style="max-height: 400px; overflow-y: auto; text-align: left; padding: 10px;">${htmlStorico}</div>`,
+        () => {} // Non serve un'azione specifica, il modale si chiude al click
     );
+
+    // Trasforma i tasti per la modalità "Sola Lettura"
+    const btnConfirm = document.getElementById('modal-confirm');
+    const btnCancel = document.getElementById('modal-cancel');
+    
+    if (btnConfirm) btnConfirm.innerText = "Chiudi";
+    if (btnCancel) btnCancel.style.display = "none";
 }
+
 
 function generateHistoryHTML(data) {
     let html = "";
@@ -1389,6 +1390,7 @@ function openModal(title, content, onConfirm) {
             <div class="modal-content">
                 <h3 id="modal-title"></h3>
                 <div id="modal-body"></div>
+
                 <button class="modal-btn btn-primary" id="modal-confirm">Conferma</button>
                 <button class="modal-btn btn-cancel" id="modal-cancel">Annulla</button>
             </div>
@@ -1398,7 +1400,12 @@ function openModal(title, content, onConfirm) {
 
     document.getElementById('modal-title').innerText = title;
     document.getElementById('modal-body').innerHTML = content;
-
+    
+    const btnConfirm = document.getElementById('modal-confirm');
+    const btnCancel = document.getElementById('modal-cancel');
+    if (btnConfirm) btnConfirm.innerText = "Conferma";
+    if (btnCancel) btnCancel.style.display = "inline-block";
+    
     overlay.style.display = 'flex';
 
     document.getElementById('modal-confirm').onclick = () => { onConfirm(); overlay.style.display='none'; };
