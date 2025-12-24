@@ -1188,27 +1188,22 @@ function adminDeleteUser(userId) {
     openModal(
         "Elimina utente",
         "L’utente verrà spostato nello storico degli eliminati.",
-        () => {
-            // Cerchiamo la chiave corretta (il PIN) nell'oggetto originale
-            for (let pin in dbUsers) {
-                if (dbUsers[pin].userId === userId) {
-                    // Manteniamo solo i dati necessari e aggiungiamo il flag deleted
-                    dbUsers[pin] = { 
-                        history: dbUsers[pin].history || [], 
-                        name: dbUsers[pin].name, 
-                        userId: userId, 
-                        deleted: true 
-                    };
-                    break;
-                }
-            }
-            
-            saveMasterDB();
-            document.getElementById('content-area').innerHTML = "";
-            renderAdminPanel();
-        }
-    );
+        // Dentro la callback di conferma di adminDeleteUser
+() => {
+    const { history, name, userId } = u; 
+    
+    // IMPORTANTE: la chiave deve rimanere il PIN originale
+    dbUsers[u.currentPin] = { 
+        history: history || {}, 
+        name: name, 
+        userId: userId, // Deve chiamarsi esattamente userId
+        deleted: true 
+    }; 
+    
+    saveMasterDB();
+    renderAdminPanel();
 }
+
 
 
 
