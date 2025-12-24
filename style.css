@@ -331,6 +331,20 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
     background: transparent !important;
 }
 
+/* Rimuove l'alone azzurro/nero da ogni campo di testo o bottone */
+input, textarea, select, button, [contenteditable] {
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent; /* Rimuove il lampo grigio su mobile */
+}
+
+/* Specifica per quando ci clicchi dentro (Stato Focus) */
+input:focus, textarea:focus, select:focus, button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: var(--border); /* Mantiene il tuo bordo originale senza aloni */
+}
+
 /* Colori Prism per VS Code Dark+ */
 .token.keyword { color: #569cd6 !important; }
 .token.string { color: #ce9178 !important; }
