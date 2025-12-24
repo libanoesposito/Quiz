@@ -28,12 +28,14 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
 .main-container { 
     flex: 1; 
     width: 100%; 
-    display: block; 
-    justify-content: center; 
-    align-items: flex-start; /* Fondamentale: la card inizia dall'alto */
-    padding: 0; /* Rimuoviamo il padding che ruba spazio */
-    overflow-y: scroll; /* Permette lo scroll solo qui dentro */
-    -webkit-overflow-scrolling: touch; /* Scroll fluido su iPhone */
+    display: flex;             /* Torniamo a flex per centrare la card */
+    flex-direction: column;    /* Impila i contenuti verticalmente */
+    align-items: center;       /* Centra la glass-card orizzontalmente */
+    justify-content: flex-start; /* Inizia sempre dall'alto */
+    padding: 0; 
+    overflow-y: auto;          /* "auto" è meglio di "scroll": appare solo se serve */
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch; 
 }
 
 
@@ -336,6 +338,37 @@ input, textarea, select, button, [contenteditable] {
     outline: none !important;
     box-shadow: none !important;
     -webkit-tap-highlight-color: transparent; /* Rimuove il lampo grigio su mobile */
+}
+/* --- EFFETTO RIMBALZO UNIVERSALE --- */
+
+/* 1. Applica la transizione a tutti gli elementi cliccabili */
+.lang-item, 
+.btn-apple, 
+.security-header, 
+.modal-btn, 
+.back-link, 
+.logout-link,
+.option-btn {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    cursor: pointer !important;
+}
+
+/* 2. Effetto "Pressione" quando clicchi (Mobile e Desktop) */
+.lang-item:active, 
+.btn-apple:active, 
+.security-header:active, 
+.modal-btn:active,
+.option-btn:active {
+    transform: scale(0.95) !important; /* Si restringe leggermente */
+}
+
+/* 3. Effetto "Sollevamento" quando passi il mouse (Solo Desktop) */
+@media (hover: hover) {
+    .lang-item:hover, 
+    .btn-apple:hover,
+    .security-header:hover {
+        transform: translateY(-3px) !important;
+    }
 }
 
 /* Specifica per quando ci clicchi dentro (Stato Focus) */
