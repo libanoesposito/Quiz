@@ -484,6 +484,52 @@ function renderProfile() {
     const isDark = document.body.classList.contains('dark-mode');
     const appleGray = isDark ? '#2c2c2e' : '#e5e5ea';
 
+    
+const noScrollStyle = `
+<style>
+    /* 1. Blocca lo scroll del body */
+    body {
+        overflow: hidden !important;
+        height: 100vh !important;
+        margin: 0;
+    }
+
+    /* 2. Il contenitore dello scroll deve occupare tutta la larghezza SENZA debordare */
+    #profile-scroll {
+        height: calc(100vh - 70px);
+        width: 100%;
+        overflow-y: auto;
+        overflow-x: hidden; /* Evita categoricamente tagli a destra */
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    #profile-scroll::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    /* 3. Il contenitore delle card deve avere margini simmetrici */
+    .profile-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px; /* Margine uguale a destra e sinistra */
+        box-sizing: border-box; /* Cruciale: include il padding nella larghezza 100% */
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* 4. Le card devono adattarsi e centrarsi */
+    .glass-card {
+        width: 100% !important;
+        max-width: 500px !important; /* Limite massimo per desktop */
+        margin: 0 auto !important; /* Centra perfettamente */
+        box-sizing: border-box !important;
+    }
+</style>
+`;
+    
     let progHtml = '';
     const totalQuestionsPerLevel = 15; 
     
