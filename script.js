@@ -1158,20 +1158,31 @@ function recalcUser(userId) {
 
 function adminDeleteUser(userId) {
     const u = findUserById(userId);
-if (!u) return;
+    if (!u) return;
 
-openModal(
-    "Elimina utente",
-    "L’utente verrà eliminato. Lo storico rimarrà visibile all’admin.",
-    () => {
-        // salva solo lo storico
-        const { history, name, userId } = u; // conservi questi
-        dbUsers[u.currentPin] = { history, name, userId }; // cancella tutto il resto
-        saveMasterDB();
-        renderAdminPanel();
-    }
-);
+    openModal(
+        "Elimina utente",
+        "L’utente verrà eliminato. Lo storico rimarrà visibile all’admin.",
+        () => {
+            const { history, name, userId: uId } = u; 
+            
+            // AGGIUNTA CHIRURGICA: deleted: true
+            dbUsers[u.currentPin] = { 
+                history, 
+                name, 
+                userId: uId, 
+                deleted: true 
+            }; 
+            
+            saveMasterDB();
+            
+            // RESET AREA PER EVITARE DUPLICATI
+            document.getElementById('content-area').innerHTML = "";
+            renderAdminPanel();
+        }
+    );
 }
+
 
 // Mostra i dettagli completi di un utente per l'admin
 function showUserDetails(pin) {
