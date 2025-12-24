@@ -511,43 +511,43 @@ function renderProfile() {
 const noScrollStyle = `
 <style>
 #profile-scroll {
-    height: 100%;
-    width: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    background: transparent;
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    background: transparent;
 }
 #profile-scroll::-webkit-scrollbar {
-    display: none !important;
+    display: none !important;
 }
 .profile-container {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    align-items: center;
-    padding: 0;
-    background: transparent;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+    padding: 0;
+    background: transparent;
 }
 #profile-scroll .glass-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    border: none; /* rimosso il bordo per uniformità */
-    border-radius: 30px;
-    padding: 25px;
-    width: calc(100% - 40px);
-    max-width: 500px;
-    margin: 6px auto;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-    box-sizing: border-box;
+    background: var(--card-bg);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: none; /* rimosso il bordo per uniformità */
+    border-radius: 30px;
+    padding: 25px;
+    width: calc(100% - 40px);
+    max-width: 500px;
+    margin: 6px auto;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+    box-sizing: border-box;
 }
 input, select, textarea { font-size: 16px !important; }
 </style>
