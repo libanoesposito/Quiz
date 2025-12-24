@@ -146,7 +146,7 @@ function validatePin(type) {
             return;
         }
 
-        // Controllo reale se il PIN esiste
+        // Se il PIN esiste già (anche se eliminato), non è disponibile
         if (dbUsers && dbUsers[pin]) {
             errorEl.innerText = "PIN non disponibile";
             errorEl.style.display = "block";
@@ -159,7 +159,6 @@ function validatePin(type) {
             return;
         }
 
-        // Creazione utente pulita
         dbUsers[pin] = {
             name: name,
             progress: {},
@@ -169,9 +168,16 @@ function validatePin(type) {
             ripasso: { wrong: [], notStudied: [] }
         };
     } else {
-        // Login
+        // --- MODIFICA CHIRURGICA LOGIN ---
         if (!dbUsers || !dbUsers[pin]) {
             errorEl.innerText = "PIN errato o utente inesistente";
+            errorEl.style.display = "block";
+            return;
+        }
+
+        // Controllo se l'account è stato eliminato dall'admin
+        if (dbUsers[pin].deleted) {
+            errorEl.innerText = "Questo account è stato disattivato";
             errorEl.style.display = "block";
             return;
         }
@@ -187,6 +193,7 @@ function validatePin(type) {
     saveMasterDB();
     showHome();
 }
+
 
 function setGuest() { 
     state.mode = 'guest'; state.progress = {}; state.history = {}; showHome(); 
@@ -1062,6 +1069,24 @@ function renderAdminPanel() {
     document.getElementById('content-area').innerHTML = html;
 }
 
+function showUserHistory(userId) {
+    const u = findUserById(userId);
+    if (!u) return;
+
+    // Se l'utente è eliminato, potrebbe non avere la struttura completa
+    // ma ha sicuramente .history
+    const historyHTML = generateHistoryHTML(u.history || {});
+
+    openModal(
+        `Storico di ${u.name}`,
+        `<div style="max-height:400px; overflow-y:auto; text-align:left;">
+            ${historyHTML || "Nessuno storico disponibile"}
+        </div>`,
+        null // null perché non serve un tasto "conferma", basta chiudere
+    );
+}
+
+
 function renderAdminUsers() {
     updateNav(true, "showHome()");
     const appTitle = document.getElementById('app-title');
@@ -1269,8 +1294,10 @@ function showUserDetails(pin) {
 }
 
 function findUserById(id) {
-    return Object.values(dbUsers).find(u => u.userId === id);
+    // Usiamo == invece di === per evitare problemi se l'id è salvato come stringa o numero
+    return Object.values(dbUsers).find(u => u.userId == id);
 }
+
 
 function adminResetAll() {
     openModal(
