@@ -497,30 +497,46 @@ const noScrollStyle = `
 
     /* 2. Contenitore dello scroll (Main Container della funzione) */
     #profile-scroll {
-        height: 100%;
-        width: 100%;
-        overflow-y: auto;
-        overflow-x: hidden;
-        -webkit-overflow-scrolling: touch;
-        display: flex;
-        flex-direction: column;
-        align-items: center; /* Centra la card come nel main site */
-        scrollbar-width: none;
-        -ms-overflow-style: none;
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+#profile-scroll::-webkit-scrollbar {
+    display: none !important;
+}
+    #profile-scroll .glass-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    padding: 25px;
+    width: calc(100% - 40px);
+    max-width: 500px;
+    margin: 6px auto;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+    box-sizing: border-box;
     }
 
-    #profile-scroll::-webkit-scrollbar {
-        display: none !important;
-    }
-
+    
     /* 3. Contenitore interno delle card */
     .profile-container {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        align-items: center;
-        padding: 0; /* Pulito per far agire i margini della card */
-    }
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+    padding: 0;
+}
 
     /* 4. LA CARD: Copia esatta del tuo stile principale */
     .glass-card {
@@ -547,7 +563,7 @@ const noScrollStyle = `
 
     /* Coerenza font per evitare zoom su mobile */
     input, select, textarea {
-        font-size: 16px !important;
+    font-size: 16px !important;
     }
 </style>
 `;
