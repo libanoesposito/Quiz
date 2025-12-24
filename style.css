@@ -12,6 +12,9 @@ body {
     flex-direction: column; 
     align-items: center; 
     overflow: hidden; /* Blocca il rimbalzo esterno del browser */
+    position: fixed;
+    top: 0;
+    left: 0;
     transition: background 0.5s ease; 
 }
 
@@ -25,11 +28,11 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
 .main-container { 
     flex: 1; 
     width: 100%; 
-    display: flex; 
+    display: block; 
     justify-content: center; 
     align-items: flex-start; /* Fondamentale: la card inizia dall'alto */
     padding: 0; /* Rimuoviamo il padding che ruba spazio */
-    overflow-y: auto; /* Permette lo scroll solo qui dentro */
+    overflow-y: scroll; /* Permette lo scroll solo qui dentro */
     -webkit-overflow-scrolling: touch; /* Scroll fluido su iPhone */
 }
 
@@ -46,8 +49,8 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
     
     /* Gestione altezza e spazi */
     height: auto; 
-    margin-top: 2px;
-    margin-bottom: 2px;
+    margin-top: 6px;
+    margin-bottom: 6px;
     
     display: flex; 
     flex-direction: column; 
@@ -73,7 +76,7 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
     overflow-y: auto;
     box-shadow: 0 20px 50px rgba(0,0,0,0.1);
 }*/
-@media (min-width: 768px) { .glass-card { max-width: 600px; padding: 35px; } }
+@media (min-width: 768px) { .glass-card { max-width: 600px; padding: 35px; margin: 6px auto; } }
 
 .lang-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; }
 .lang-item { background: rgba(120, 120, 128, 0.08); border-radius: 20px; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; border: 1px solid transparent; }
