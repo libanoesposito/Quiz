@@ -584,7 +584,8 @@ function renderProfile() {
             </div>
         </div>
     </div>
-</div>
+</div>`;
+}
 
 
 
