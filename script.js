@@ -466,13 +466,26 @@ function toggleSecurity(el) {
 }
 
 function renderProfile() {
-    const u = currentUser; 
-    const totalLevels = Object.keys(database);
-    const appleGray = "rgba(120,120,128,0.12)";
-    
+    if (!state.currentPin || !dbUsers[state.currentPin]) return;
+
+    ensureUserId();
+    updateNav(true, "showHome()");
+    document.getElementById('app-title').innerText = "IL MIO PROFILO";
+
+    const u = dbUsers[state.currentPin];
+    const stats = calcStats();
+    const totalLevels = Object.keys(domandaRepo);
+
+    const percentTotal = stats.total ? Math.round((stats.correct / stats.total) * 100) : 0;
+    const radius = 32;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (percentTotal / 100) * circumference;
+
+    const isDark = document.body.classList.contains('dark-mode');
+    const appleGray = isDark ? '#2c2c2e' : '#e5e5ea';
+
     const noScrollStyle = `
 <style>
-    /* 1. Blocca lo scroll esterno ma mantiene lo sfondo del sito */
     body {
         overflow: hidden !important;
         height: 100vh !important;
@@ -480,7 +493,6 @@ function renderProfile() {
         background: var(--bg);
     }
 
-    /* 2. Contenitore dello scroll (Main Container della funzione) */
     #profile-scroll {
         height: 100%;
         width: 100%;
@@ -489,25 +501,22 @@ function renderProfile() {
         -webkit-overflow-scrolling: touch;
         display: flex;
         flex-direction: column;
-        align-items: center; 
+        align-items: center;
         scrollbar-width: none;
         -ms-overflow-style: none;
     }
 
-    #profile-scroll::-webkit-scrollbar {
-        display: none !important;
-    }
+    #profile-scroll::-webkit-scrollbar { display: none !important; }
 
-    /* 3. Contenitore interno delle card */
     .profile-container {
         display: flex;
         flex-direction: column;
         width: 100%;
         align-items: center;
-        padding: 0; 
+        padding: 10px 0; 
     }
 
-    /* 4. LA CARD: Stile coerente con il file CSS principale */
+    /* Coerenza stile card senza rompere i tasti esterni */
     .glass-card {
         background: var(--card-bg) !important;
         backdrop-filter: blur(40px) saturate(180%) !important;
@@ -519,17 +528,13 @@ function renderProfile() {
         max-width: 500px !important;
         margin-top: 6px !important;
         margin-bottom: 6px !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
         display: flex !important;
         flex-direction: column !important;
         box-shadow: 0 20px 50px rgba(0,0,0,0.1) !important;
         box-sizing: border-box !important;
     }
 
-    input, select, textarea {
-        font-size: 16px !important;
-    }
+    input, select, textarea { font-size: 16px !important; }
 </style>
 `;
 
@@ -575,11 +580,6 @@ function renderProfile() {
     });
 
     const totalPotential = totalLevels.length * 5 * 15;
-    const stats = calculateUserStats(u);
-    const percentTotal = Math.round((stats.correct / totalPotential) * 100) || 0;
-    const radius = 34;
-    const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (percentTotal / 100) * circumference;
 
     document.getElementById('content-area').innerHTML = noScrollStyle + `
 <div id="profile-scroll">
@@ -644,6 +644,7 @@ function renderProfile() {
     </div>
 </div>`;
 }
+
 
 
 
