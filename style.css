@@ -38,32 +38,6 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
     -webkit-overflow-scrolling: touch; 
 }
 
-/* Allineamento contenitore profilo */
-.profile-container {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Centra le card come nella main-container */
-    gap: 12px; /* Spazio costante tra i moduli */
-    padding: 10px 0;
-}
-
-/* Reset dei bottoni per non farli sembrare "grezzi" */
-.btn-apple {
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 10px;
-    color: var(--text);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.btn-apple:active { background: rgba(0, 0, 0, 0.05); }
-.btn-destruct { color: #ff3b30; }
-
 .glass-card { 
     background: var(--card-bg); 
     backdrop-filter: blur(40px) saturate(180%); 
