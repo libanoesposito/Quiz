@@ -1060,7 +1060,7 @@ function renderAdminPanel() {
 
     html += `</div>`;
     document.getElementById('content-area').innerHTML = html;
-
+}
 
 function renderAdminUsers() {
     updateNav(true, "showHome()");
