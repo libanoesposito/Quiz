@@ -487,20 +487,24 @@ function renderProfile() {
     
 const noScrollStyle = `
 <style>
-    /* 1. Blocca lo scroll del body */
+    /* 1. Blocca lo scroll esterno ma mantiene lo sfondo del sito */
     body {
         overflow: hidden !important;
         height: 100vh !important;
         margin: 0;
+        background: var(--bg);
     }
 
-    /* 2. Il contenitore dello scroll deve occupare tutta la larghezza SENZA debordare */
+    /* 2. Contenitore dello scroll (Main Container della funzione) */
     #profile-scroll {
         height: 100%;
         width: 100%;
         overflow-y: auto;
-        overflow-x: hidden; /* Evita categoricamente tagli a destra */
+        overflow-x: hidden;
         -webkit-overflow-scrolling: touch;
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Centra la card come nel main site */
         scrollbar-width: none;
         -ms-overflow-style: none;
     }
@@ -509,26 +513,45 @@ const noScrollStyle = `
         display: none !important;
     }
 
-    /* 3. Il contenitore delle card deve avere margini simmetrici */
+    /* 3. Contenitore interno delle card */
     .profile-container {
         display: flex;
         flex-direction: column;
-        gap: 15px;
-        padding: 15px; /* Margine uguale a destra e sinistra */
-        box-sizing: border-box; /* Cruciale: include il padding nella larghezza 100% */
         width: 100%;
-        max-width: 100%;
+        align-items: center;
+        padding: 0; /* Pulito per far agire i margini della card */
     }
 
-    /* 4. Le card devono adattarsi e centrarsi */
+    /* 4. LA CARD: Copia esatta del tuo stile principale */
     .glass-card {
-        width: 100% !important;
-        max-width: 500px !important; /* Limite massimo per desktop */
-        margin: 0 auto !important; /* Centra perfettamente */
+        background: var(--card-bg) !important;
+        backdrop-filter: blur(40px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 30px !important;
+        padding: 25px !important;
+        width: calc(100% - 40px) !important;
+        max-width: 500px !important;
+        
+        /* Coerenza distanze 6px */
+        margin-top: 6px !important;
+        margin-bottom: 6px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        
+        display: flex !important;
+        flex-direction: column !important;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.1) !important;
         box-sizing: border-box !important;
+    }
+
+    /* Coerenza font per evitare zoom su mobile */
+    input, select, textarea {
+        font-size: 16px !important;
     }
 </style>
 `;
+
     
     let progHtml = '';
     const totalQuestionsPerLevel = 15; 
