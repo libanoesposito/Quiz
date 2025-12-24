@@ -1220,7 +1220,7 @@ function adminDeleteUser(userId) {
             renderAdminPanel();
         }
     );
-} }
+}
 
 // Mostra i dettagli completi di un utente per l'admin
 function showUserDetails(pin) {
