@@ -484,23 +484,99 @@ function renderProfile() {
     const isDark = document.body.classList.contains('dark-mode');
     const appleGray = isDark ? '#2c2c2e' : '#e5e5ea';
 
+    
+const noScrollStyle = `
+<style>
+    /* 1. Blocca lo scroll esterno ma mantiene lo sfondo del sito */
+    body {
+        overflow: hidden !important;
+        height: 100vh !important;
+        margin: 0;
+        background: var(--bg);
+    }
+
+    /* 2. Contenitore dello scroll (Main Container della funzione) */
+    #profile-scroll {
+        height: 100%;
+        width: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Centra la card come nel main site */
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    #profile-scroll::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    /* 3. Contenitore interno delle card */
+    .profile-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        align-items: center;
+        padding: 0; /* Pulito per far agire i margini della card */
+    }
+
+    /* 4. LA CARD: Copia esatta del tuo stile principale */
+    .glass-card {
+        background: var(--card-bg) !important;
+        backdrop-filter: blur(40px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 30px !important;
+        padding: 25px !important;
+        width: calc(100% - 40px) !important;
+        max-width: 500px !important;
+        
+        /* Coerenza distanze 6px */
+        margin-top: 6px !important;
+        margin-bottom: 6px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        
+        display: flex !important;
+        flex-direction: column !important;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.1) !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Coerenza font per evitare zoom su mobile */
+    input, select, textarea {
+        font-size: 16px !important;
+    }
+</style>
+`;
+
+    
     let progHtml = '';
     const totalQuestionsPerLevel = 15; 
+    
+    // Variabile per contare i "Non studiati" totali per la barra superiore
     let totalMarkedNotStudied = 0;
 
     totalLevels.forEach(lang => {
         progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
         for (let i = 1; i <= 5; i++) {
             let correct = 0, wrong = 0, markedNotStudied = 0;
+            
             if (u.history && u.history[lang]) {
                 u.history[lang].forEach(h => {
                     if (Number(h.lvl || h.level) == i) { 
-                        if (h.isNotStudied) { markedNotStudied++; totalMarkedNotStudied++; }
+                        if (h.isNotStudied) {
+                            markedNotStudied++;
+                            totalMarkedNotStudied++; // Accumulo per la card generale
+                        }
                         else if (h.ok) correct++;
                         else wrong++;
                     }
                 });
             }
+
             const wGreen = (correct / totalQuestionsPerLevel) * 100;
             const wRed   = (wrong / totalQuestionsPerLevel) * 100;
             const wBlue  = (markedNotStudied / totalQuestionsPerLevel) * 100;
@@ -520,57 +596,59 @@ function renderProfile() {
         progHtml += `</div>`;
     });
 
+    // Calcolo del potenziale totale (es. 15 domande * 5 livelli * numero lingue)
     const totalPotential = totalLevels.length * 5 * 15;
 
-    document.getElementById('content-area').innerHTML = `
+    document.getElementById('content-area').innerHTML = noScrollStyle + `
 <div id="profile-scroll">
     <div class="profile-container">
-        <!-- Card normale -->
         <div class="glass-card">
             <div><strong>Nome:</strong> ${u.name}</div>
             <div><strong>ID Utente:</strong> ${u.userId}</div>
         </div>
 
-        <!-- Statistiche -->
         <div class="glass-card">
             <strong>Statistiche</strong>
-            <div class="stats-wrapper">
-                <div class="stats-circle">
+            <div style="margin-top:15px; display:flex; gap:20px; align-items:center">
+                <div style="position:relative; width:80px; height:80px">
                     <svg width="80" height="80" style="transform:rotate(-90deg)">
                         <circle cx="40" cy="40" r="${radius}" stroke="${appleGray}" stroke-width="6" fill="none"/>
                         <circle cx="40" cy="40" r="${radius}" stroke="#34c759" stroke-width="6" fill="none"
                             stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
                     </svg>
-                    <div class="stats-percent">${percentTotal}%</div>
+                    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">${percentTotal}%</div>
                 </div>
-                <div class="stats-bars">
-                    <div class="stats-bar">
-                        <div class="stats-label">Corrette: ${stats.correct}</div>
-                        <div class="progress-container">
-                            <div class="progress-bar-fill" style="width:${(stats.correct / totalPotential) * 100}%"></div>
+                <div style="flex:1; display:flex; flex-direction:column; gap:8px">
+                    <div>
+                        <div style="font-size:12px">Corrette: ${stats.correct}</div>
+                        <div style="height:8px; background:${appleGray}; border-radius:6px">
+                            <div style="width:${(stats.correct / totalPotential) * 100}%; height:100%; background:#34c759; border-radius:6px"></div>
                         </div>
                     </div>
-                    <div class="stats-bar">
-                        <div class="stats-label">Non studiate: ${totalMarkedNotStudied}</div>
-                        <div class="progress-container">
-                            <div class="progress-bar-fill" style="width:${(totalMarkedNotStudied / totalPotential) * 100}%; background:#0a84ff"></div>
+                    <div>
+                        <div style="font-size:12px">Non studiate: ${totalMarkedNotStudied}</div>
+                        <div style="height:8px; background:${appleGray}; border-radius:6px">
+                            <div style="width:${(totalMarkedNotStudied / totalPotential) * 100}%; height:100%; background:#0a84ff; border-radius:6px"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size:12px">Sbagliate: ${stats.wrong}</div>
+                        <div style="height:8px; background:${appleGray}; border-radius:6px">
+                            <div style="width:${(stats.wrong / totalPotential) * 100}%; height:100%; background:#ff3b30; border-radius:6px"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Card cliccabili -->
         <div class="glass-card" id="card-prog" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
             <div style="font-weight:600">Progressi generali</div>
-            <div id="detailed-progress" class="mod-content">
-                ${progHtml}
-            </div>
+            <div id="detailed-progress" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">${progHtml}</div>
         </div>
 
         <div class="glass-card" id="card-sec" onclick="toggleGeneralContent('security-content', this)" style="cursor:pointer">
             <strong>Sicurezza</strong>
-            <div id="security-content" class="mod-content">
+            <div id="security-content" style="display:none; flex-direction:column; gap:8px; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">
                 <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
                 <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
                 <button class="btn-apple btn-destruct" onclick="userDeleteAccount()">Elimina account</button>
@@ -579,14 +657,11 @@ function renderProfile() {
 
         <div class="glass-card" id="card-hist" onclick="toggleGeneralContent('history-content', this)" style="cursor:pointer">
             <strong>Storico</strong>
-            <div id="history-content" class="mod-content">
-                ${generateHistoryHTML(u)}
-            </div>
+            <div id="history-content" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">${generateHistoryHTML(u)}</div>
         </div>
     </div>
 </div>`;
 }
-
 
 
 // FINESTRE DI APERTURA (Versioni Window)
