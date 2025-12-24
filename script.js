@@ -993,47 +993,75 @@ function renderAdminPanel() {
     let html = `<div style="width:100%">`;
 
         // Inserimento Card Globale in alto
+        let html = `<div style="width:100%">`;
+
+    // Blocco Manutenzione
     html += `
         <div class="review-card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-left: 4px solid #ff3b30">
             <div>
                 <strong style="color:#ff3b30">Manutenzione Sistema</strong>
-                <div style="font-size:12px; opacity:0.6">Azione irreversibile su tutto il DB</div>
+                <div style="font-size:12px; opacity:0.6">Reset totale database</div>
             </div>
-            <div style="cursor:pointer; font-size:22px; padding:5px" onclick="adminResetAll()" title="Reset Totale">
-                🗑️
-            </div>
+            <div style="cursor:pointer; font-size:22px; padding:5px" onclick="adminResetAll()">🗑️</div>
         </div>
     `;
 
-    if (users.length === 0) {
-        html += `<div style="text-align:center; padding:20px; color:#666">Nessun utente registrato</div>`;
+    // Divisione Utenti
+    const attivi = users.filter(u => !u.deleted);
+    const eliminati = users.filter(u => u.deleted);
+
+    // Rendering Utenti Attivi
+    if (attivi.length === 0) {
+        html += `<div style="text-align:center; padding:20px; color:#666">Nessun utente attivo</div>`;
     } else {
-        users.forEach(u => {
+        attivi.forEach(u => {
             const statsText = u.stats.total ? `${u.stats.correct}/${u.stats.total} corrette · ${u.stats.perc}%` : "Nessun progresso";
             html += `
-                <div class="review-card ${u.deleted ? 'is-err' : 'is-ok'}">
+                <div class="review-card is-ok">
                     <div style="display:flex; justify-content:space-between; align-items:center">
                         <div>
                             <strong>${u.name}</strong>
                             <div style="font-size:12px; opacity:0.6">ID ${u.id}</div>
                         </div>
-                                                <div style="display:flex; gap:18px; font-size:18px">
-                            <span style="cursor:pointer" onclick="showUserHistory(${u.id})" title="Storico">⏳</span>
-                            <span style="cursor:pointer" onclick="recalcUser(${u.id})" title="Ricalcola">🔄</span>
-                            <span style="cursor:pointer; color:#ff3b30" onclick="adminDeleteUser(${u.id})" title="Elimina Utente">🗑</span>
+                        <div style="display:flex; gap:18px; font-size:18px">
+                            <span style="cursor:pointer" onclick="showUserHistory(${u.id})">⏳</span>
+                            <span style="cursor:pointer" onclick="recalcUser(${u.id})">🔄</span>
+                            <span style="cursor:pointer; color:#ff3b30" onclick="adminDeleteUser(${u.id})">🗑</span>
                         </div>
                     </div>
-                    <div style="margin-top:8px; font-size:13px">
-                        ${statsText}
-                    </div>
-                </div>
-            `;
+                    <div style="margin-top:8px; font-size:13px">${statsText}</div>
+                </div>`;
         });
+    }
+
+    // Sezione Glass Card per Eliminati (Espandibile)
+    if (eliminati.length > 0) {
+        html += `
+            <div class="glass-card" style="margin-top:30px; border:1px solid rgba(255,59,48,0.2)">
+                <div onclick="document.getElementById('deleted-list').style.display = document.getElementById('deleted-list').style.display === 'none' ? 'block' : 'none'" 
+                     style="cursor:pointer; display:flex; justify-content:space-between; align-items:center">
+                    <strong style="color:#ff3b30">UTENTI ELIMINATI (${eliminati.length})</strong>
+                    <span>▼</span>
+                </div>
+                <div id="deleted-list" style="display:none; margin-top:15px">`;
+        
+        eliminati.forEach(u => {
+            html += `
+                <div style="padding:10px 0; border-bottom:1px solid rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center">
+                    <div>
+                        <span style="font-weight:600">${u.name}</span>
+                        <div style="font-size:11px; opacity:0.5">ID ${u.id}</div>
+                    </div>
+                    <span style="cursor:pointer" onclick="showUserHistory(${u.id})">⏳ Vedi Storico</span>
+                </div>`;
+        });
+
+        html += `</div></div>`;
     }
 
     html += `</div>`;
     document.getElementById('content-area').innerHTML = html;
-}
+
 
 function renderAdminUsers() {
     updateNav(true, "showHome()");
