@@ -470,48 +470,68 @@ function renderProfile() {
     const totalLevels = Object.keys(database);
     const appleGray = "rgba(120,120,128,0.12)";
     
-    // --- STILE COERENTE (Senza sovrascritture pesanti) ---
     const noScrollStyle = `
-    <style>
-        body {
-            overflow: hidden !important;
-            height: 100vh !important;
-            margin: 0;
-            background: var(--bg);
-        }
+<style>
+    /* 1. Blocca lo scroll esterno ma mantiene lo sfondo del sito */
+    body {
+        overflow: hidden !important;
+        height: 100vh !important;
+        margin: 0;
+        background: var(--bg);
+    }
 
-        #profile-scroll {
-            height: 100%;
-            width: 100%;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            display: flex;
-            flex-direction: column;
-            align-items: center; 
-            scrollbar-width: none;
-        }
+    /* 2. Contenitore dello scroll (Main Container della funzione) */
+    #profile-scroll {
+        height: 100%;
+        width: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        display: flex;
+        flex-direction: column;
+        align-items: center; 
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
 
-        #profile-scroll::-webkit-scrollbar { display: none !important; }
+    #profile-scroll::-webkit-scrollbar {
+        display: none !important;
+    }
 
-        .profile-container {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            align-items: center;
-            padding: 0; 
-        }
+    /* 3. Contenitore interno delle card */
+    .profile-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        align-items: center;
+        padding: 0; 
+    }
 
-        /* Utilizzo della classe glass-card del tuo CSS globale */
-        .glass-card {
-            margin-top: 6px !important;
-            margin-bottom: 6px !important;
-            /* Le altre proprietà come blur e background vengono lette dal tuo file CSS */
-        }
+    /* 4. LA CARD: Stile coerente con il file CSS principale */
+    .glass-card {
+        background: var(--card-bg) !important;
+        backdrop-filter: blur(40px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 30px !important;
+        padding: 25px !important;
+        width: calc(100% - 40px) !important;
+        max-width: 500px !important;
+        margin-top: 6px !important;
+        margin-bottom: 6px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.1) !important;
+        box-sizing: border-box !important;
+    }
 
-        input, select, textarea { font-size: 16px !important; }
-    </style>
-    `;
+    input, select, textarea {
+        font-size: 16px !important;
+    }
+</style>
+`;
 
     let progHtml = '';
     const totalQuestionsPerLevel = 15; 
@@ -624,6 +644,7 @@ function renderProfile() {
     </div>
 </div>`;
 }
+
 
 
 
