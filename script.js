@@ -465,7 +465,7 @@ function toggleSecurity(el) {
     content.style.display = content.style.display === 'none' ? 'flex' : 'none';
 }
 
-Function renderProfile() {
+function renderProfile() {
     if (!state.currentPin || !dbUsers[state.currentPin]) return;
 
     ensureUserId();
