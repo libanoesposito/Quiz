@@ -344,3 +344,26 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
 .token.operator { color: #d4d4d4 !important; }
 .token.comment { color: #6a9955 !important; }
 
+/* Gestione Profilo: si adatta allo spazio della glass-card senza romperlo */
+#profile-scroll {
+    flex: 1;
+    width: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+#profile-scroll::-webkit-scrollbar {
+    display: none !important;
+}
+
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 5px; /* Padding ridotto per evitare tagli su mobile */
+    box-sizing: border-box;
+    width: 100%;
+}
+
