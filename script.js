@@ -549,21 +549,24 @@ const noScrollStyle = `
 .scrollable-content::-webkit-scrollbar { display: none; }
 
 #profile-scroll .glass-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    border: none !important; 
-    border-radius: 30px;
-    padding: 25px;
+    /* Cambiato da var(--card-bg) a quello dei percorsi */
+    background: rgba(120, 120, 128, 0.08) !important; 
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     
-    /* MODIFICA CHIRURGICA: Adattamento al main */
+    /* Tolto l'ombra */
+    box-shadow: none !important; 
+    
+    /* Bordi uguali ai percorsi */
+    border: 1px solid var(--border) !important;
+    border-radius: 20px; 
+    
+    padding: 25px;
     width: 100%; 
     max-width: none; 
     margin: 8px 0; 
-    
     display: flex;
     flex-direction: column;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
     box-sizing: border-box;
     flex-shrink: 0;
 }
