@@ -1070,21 +1070,27 @@ function renderAdminPanel() {
 }
 
 function showUserHistory(userId) {
-    const u = findUserById(userId);
-    if (!u) return;
+    // Cerchiamo l'utente in tutto il DB, inclusi gli eliminati
+    const u = Object.values(dbUsers).find(user => user.userId == userId);
+    
+    if (!u) {
+        alert("Errore: Dati utente non trovati.");
+        return;
+    }
 
-    // Se l'utente è eliminato, potrebbe non avere la struttura completa
-    // ma ha sicuramente .history
+    // Usiamo la tua funzione esistente per generare l'HTML
     const historyHTML = generateHistoryHTML(u.history || {});
 
+    // Mostriamo lo storico nella modale che hai già
     openModal(
         `Storico di ${u.name}`,
-        `<div style="max-height:400px; overflow-y:auto; text-align:left;">
-            ${historyHTML || "Nessuno storico disponibile"}
+        `<div style="max-height: 400px; overflow-y: auto; text-align: left; padding: 10px;">
+            ${historyHTML && historyHTML !== "" ? historyHTML : "Nessun dato registrato nello storico."}
         </div>`,
-        null // null perché non serve un tasto "conferma", basta chiudere
+        null // Passiamo null perché è solo visualizzazione
     );
 }
+
 
 
 function renderAdminUsers() {
