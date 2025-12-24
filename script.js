@@ -507,16 +507,20 @@ function renderProfile() {
     const isDark = document.body.classList.contains('dark-mode');
     const appleGray = isDark ? '#2c2c2e' : '#e5e5ea';
 
-    
+
 const noScrollStyle = `
 <style>
 #profile-scroll {
     height: 100%;
     width: 100%;
-    overflow: hidden; /* 1. MODIFICATO: Impedisce lo scroll della pagina intera */
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     display: flex;
     flex-direction: column;
     align-items: center;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     background: transparent;
 }
 #profile-scroll::-webkit-scrollbar {
@@ -534,7 +538,7 @@ const noScrollStyle = `
     background: var(--card-bg);
     backdrop-filter: blur(40px) saturate(180%);
     -webkit-backdrop-filter: blur(40px) saturate(180%);
-    border: none; 
+    border: none; /* rimosso il bordo per uniformità */
     border-radius: 30px;
     padding: 25px;
     width: calc(100% - 40px);
@@ -545,23 +549,58 @@ const noScrollStyle = `
     box-shadow: 0 20px 50px rgba(0,0,0,0.1);
     box-sizing: border-box;
 }
-
-/* 2. AGGIUNTO: Questa classe permette lo scroll solo dentro le liste */
-.internal-scroll {
-    max-height: 300px; 
-    overflow-y: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-.internal-scroll::-webkit-scrollbar { display: none; }
-
 input, select, textarea { font-size: 16px !important; }
 </style>
 `;
 
-// ... (tutta la parte centrale del tuo codice rimane identica) ...
+    
+    let progHtml = '';
+    const totalQuestionsPerLevel = 15; 
+    
+    // Variabile per contare i "Non studiati" totali per la barra superiore
+    let totalMarkedNotStudied = 0;
 
-document.getElementById('content-area').innerHTML = noScrollStyle + `
+    totalLevels.forEach(lang => {
+        progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
+        for (let i = 1; i <= 5; i++) {
+            let correct = 0, wrong = 0, markedNotStudied = 0;
+            
+            if (u.history && u.history[lang]) {
+                u.history[lang].forEach(h => {
+                    if (Number(h.lvl || h.level) == i) { 
+                        if (h.isNotStudied) {
+                            markedNotStudied++;
+                            totalMarkedNotStudied++; // Accumulo per la card generale
+                        }
+                        else if (h.ok) correct++;
+                        else wrong++;
+                    }
+                });
+            }
+
+            const wGreen = (correct / totalQuestionsPerLevel) * 100;
+            const wRed   = (wrong / totalQuestionsPerLevel) * 100;
+            const wBlue  = (markedNotStudied / totalQuestionsPerLevel) * 100;
+            const percent = Math.round((correct / totalQuestionsPerLevel) * 100);
+
+            progHtml += `
+            <div style="margin-bottom:10px">
+                <div style="font-size:13px">Livello ${i}</div>
+                <div style="height:10px; border-radius:6px; overflow:hidden; display:flex; background:${appleGray}; width:100%">
+                    ${wGreen > 0 ? `<div style="width:${wGreen}%; background:#34c759; height:100%"></div>` : ''}
+                    ${wRed > 0 ? `<div style="width:${wRed}%; background:#ff3b30; height:100%"></div>` : ''}
+                    ${wBlue > 0 ? `<div style="width:${wBlue}%; background:#0a84ff; height:100%"></div>` : ''}
+                </div>
+                <div style="font-size:11px; text-align:right; margin-top:2px; opacity:0.8">${percent}% corrette</div>
+            </div>`;
+        }
+        progHtml += `</div>`;
+    });
+
+    // Calcolo del potenziale totale (es. 15 domande * 5 livelli * numero lingue)
+    const totalPotential = totalLevels.length * 5 * 15;
+
+    document.getElementById('content-area').innerHTML = noScrollStyle + `
 <div id="profile-scroll">
     <div class="profile-container">
         <div class="glass-card">
@@ -571,11 +610,41 @@ document.getElementById('content-area').innerHTML = noScrollStyle + `
 
         <div class="glass-card">
             <strong>Statistiche</strong>
+            <div style="margin-top:15px; display:flex; gap:20px; align-items:center">
+                <div style="position:relative; width:80px; height:80px">
+                    <svg width="80" height="80" style="transform:rotate(-90deg)">
+                        <circle cx="40" cy="40" r="${radius}" stroke="${appleGray}" stroke-width="6" fill="none"/>
+                        <circle cx="40" cy="40" r="${radius}" stroke="#34c759" stroke-width="6" fill="none"
+                            stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
+                    </svg>
+                    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">${percentTotal}%</div>
+                </div>
+                <div style="flex:1; display:flex; flex-direction:column; gap:8px">
+                    <div>
+                        <div style="font-size:12px">Corrette: ${stats.correct}</div>
+                        <div style="height:8px; background:${appleGray}; border-radius:6px">
+                            <div style="width:${(stats.correct / totalPotential) * 100}%; height:100%; background:#34c759; border-radius:6px"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size:12px">Non studiate: ${totalMarkedNotStudied}</div>
+                        <div style="height:8px; background:${appleGray}; border-radius:6px">
+                            <div style="width:${(totalMarkedNotStudied / totalPotential) * 100}%; height:100%; background:#0a84ff; border-radius:6px"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size:12px">Sbagliate: ${stats.wrong}</div>
+                        <div style="height:8px; background:${appleGray}; border-radius:6px">
+                            <div style="width:${(stats.wrong / totalPotential) * 100}%; height:100%; background:#ff3b30; border-radius:6px"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
+        </div>
 
         <div class="glass-card" id="card-prog" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
             <div style="font-weight:600">Progressi generali</div>
-            <div id="detailed-progress" class="internal-scroll" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">${progHtml}</div>
+            <div id="detailed-progress" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">${progHtml}</div>
         </div>
 
         <div class="glass-card" id="card-sec" onclick="toggleGeneralContent('security-content', this)" style="cursor:pointer">
@@ -589,11 +658,10 @@ document.getElementById('content-area').innerHTML = noScrollStyle + `
 
         <div class="glass-card" id="card-hist" onclick="toggleGeneralContent('history-content', this)" style="cursor:pointer">
             <strong>Storico</strong>
-            <div id="history-content" class="internal-scroll" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">${generateHistoryHTML(u)}</div>
+            <div id="history-content" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">${generateHistoryHTML(u)}</div>
         </div>
     </div>
 </div>`;
-
 }
 
 
