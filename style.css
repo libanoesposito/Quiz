@@ -106,11 +106,13 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
     border-radius: 15px; 
     animation: slideIn 0.3s; 
     font-size: 14px;
-    /* AGGIUNGI QUESTE RIGHE */
     width: 100%; 
     box-sizing: border-box; 
     display: block;
+    /* AGGIUNGI QUESTA RIGA FONDAMENTALE */
+    align-self: stretch; 
 }
+
 
 .correct { background: rgba(52, 199, 89, 0.15); border: 1px solid #34c759; }
 .wrong { background: rgba(255, 59, 48, 0.15); border: 1px solid #ff3b30; }
@@ -291,7 +293,7 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     gap: 15px;
     -webkit-overflow-scrolling: touch;
 }
