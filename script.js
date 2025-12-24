@@ -509,13 +509,67 @@ function renderProfile() {
 
 
 const noScrollStyle = `
+<style>
+#profile-scroll {
+    height: 100%;
+    width: 100%;
+    overflow: hidden; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: transparent;
+}
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-height: 100vh;
+    align-items: center;
+    padding: 10px 0;
+}
+.scrollable-content {
+    max-height: 300px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.scrollable-content::-webkit-scrollbar { display: none; }
+
+#profile-scroll .glass-card {
+    background: var(--card-bg); /* Mantiene il colore di fondo del tema */
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    
+    /* CHIRURGIA: Rimosso solo il bordo */
+    border: 0px solid transparent !important; 
+    
+    border-radius: 30px;
+    padding: 25px;
+    width: calc(100% - 40px);
+    max-width: 500px;
+    margin: 6px auto;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+input, select, textarea { font-size: 16px !important; }
+</style>
+`;
+ 
+    
+    
+    /*Vecchia modicifca
+
+`
 <style
 #profile-scroll .glass-card {
     background: var(--card-bg);
     backdrop-filter: blur(40px) saturate(180%);
     -webkit-backdrop-filter: blur(40px) saturate(180%);
     
-    /* RIMOZIONE CONTORNO */
+   
     border: none !important; 
     outline: none !important;
     
@@ -525,7 +579,7 @@ const noScrollStyle = `
     max-width: 500px;
     margin: 6px auto;
     
-    /* Ombra più morbida per evitare l'effetto 'stacco' bianco */
+   
     box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
     box-sizing: border-box;
     flex-shrink: 0;
@@ -535,13 +589,13 @@ const noScrollStyle = `
     display: flex;
     flex-direction: column;
     width: 100%;
-    max-height: 100vh; /* Limita l'altezza al viewport */
+    max-height: 100vh; 
     align-items: center;
     padding: 10px 0;
 }
-/* Classe chirurgica per le sezioni espandibili */
+
 .scrollable-content {
-    max-height: 300px; /* Altezza massima variabile a piacere */
+    max-height: 300px; 
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -560,10 +614,10 @@ const noScrollStyle = `
     margin: 6px auto;
     box-shadow: 0 10px 30px rgba(0,0,0,0.05);
     box-sizing: border-box;
-    flex-shrink: 0; /* Impedisce alle card di schiacciarsi */
+    flex-shrink: 0;  
 }
 </style>
-`;
+`;*/
 
     
     let progHtml = '';
