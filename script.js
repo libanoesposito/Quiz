@@ -466,64 +466,55 @@ function toggleSecurity(el) {
 }
 
 function renderProfile() {
-    if (!state.currentPin || !dbUsers[state.currentPin]) return;
-
-    ensureUserId();
-    updateNav(true, "showHome()");
-    document.getElementById('app-title').innerText = "IL MIO PROFILO";
-
-    const u = dbUsers[state.currentPin];
-    const stats = calcStats();
-    const totalLevels = Object.keys(domandaRepo);
-
-    const percentTotal = stats.total ? Math.round((stats.correct / stats.total) * 100) : 0;
-    const radius = 32;
-    const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (percentTotal / 100) * circumference;
-
-    const isDark = document.body.classList.contains('dark-mode');
-    const appleGray = isDark ? '#2c2c2e' : '#e5e5ea';
-
+    const u = currentUser; 
+    const totalLevels = Object.keys(database);
+    const appleGray = "rgba(120,120,128,0.12)";
     
-const noScrollStyle = `
-<style>
-    body {
-        overflow: hidden !important;
-        height: 100vh !important;
-    }
+    // --- STILE COERENTE (Senza sovrascritture pesanti) ---
+    const noScrollStyle = `
+    <style>
+        body {
+            overflow: hidden !important;
+            height: 100vh !important;
+            margin: 0;
+            background: var(--bg);
+        }
 
-    #profile-scroll {
-        height: 100%;
-        width: 100%;
-        overflow-y: auto;
-        overflow-x: hidden;
-        -webkit-overflow-scrolling: touch;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        scrollbar-width: none;
-    }
+        #profile-scroll {
+            height: 100%;
+            width: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            scrollbar-width: none;
+        }
 
-    #profile-scroll::-webkit-scrollbar { display: none !important; }
+        #profile-scroll::-webkit-scrollbar { display: none !important; }
 
-    .profile-container {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        align-items: center;
-        padding-top: 10px;
-        padding-bottom: 40px; /* Spazio extra in fondo per non toccare il bordo */
-    }
+        .profile-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            align-items: center;
+            padding: 0; 
+        }
 
-    /* Coerenza input */
-    input, select, textarea { font-size: 16px !important; }
-</style>
-`;
-    
+        /* Utilizzo della classe glass-card del tuo CSS globale */
+        .glass-card {
+            margin-top: 6px !important;
+            margin-bottom: 6px !important;
+            /* Le altre proprietà come blur e background vengono lette dal tuo file CSS */
+        }
+
+        input, select, textarea { font-size: 16px !important; }
+    </style>
+    `;
+
     let progHtml = '';
     const totalQuestionsPerLevel = 15; 
-    
-    // Variabile per contare i "Non studiati" totali per la barra superiore
     let totalMarkedNotStudied = 0;
 
     totalLevels.forEach(lang => {
@@ -536,7 +527,7 @@ const noScrollStyle = `
                     if (Number(h.lvl || h.level) == i) { 
                         if (h.isNotStudied) {
                             markedNotStudied++;
-                            totalMarkedNotStudied++; // Accumulo per la card generale
+                            totalMarkedNotStudied++; 
                         }
                         else if (h.ok) correct++;
                         else wrong++;
@@ -563,39 +554,49 @@ const noScrollStyle = `
         progHtml += `</div>`;
     });
 
-    // Calcolo del potenziale totale (es. 15 domande * 5 livelli * numero lingue)
     const totalPotential = totalLevels.length * 5 * 15;
+    const stats = calculateUserStats(u);
+    const percentTotal = Math.round((stats.correct / totalPotential) * 100) || 0;
+    const radius = 34;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (percentTotal / 100) * circumference;
 
     document.getElementById('content-area').innerHTML = noScrollStyle + `
 <div id="profile-scroll">
     <div class="profile-container">
         <div class="glass-card">
-            <div style="margin-bottom: 8px;"><strong>Nome:</strong> ${u.name}</div>
-            <div style="opacity: 0.7; font-size: 13px;"><strong>ID Utente:</strong> ${u.userId}</div>
+            <div><strong>Nome:</strong> ${u.name}</div>
+            <div><strong>ID Utente:</strong> ${u.userId}</div>
         </div>
 
         <div class="glass-card">
-            <strong style="font-size: 18px;">Statistiche</strong>
-            <div style="margin-top:20px; display:flex; gap:20px; align-items:center">
+            <strong>Statistiche</strong>
+            <div style="margin-top:15px; display:flex; gap:20px; align-items:center">
                 <div style="position:relative; width:80px; height:80px">
                     <svg width="80" height="80" style="transform:rotate(-90deg)">
-                        <circle cx="40" cy="40" r="${radius}" stroke="var(--border)" stroke-width="6" fill="none"/>
+                        <circle cx="40" cy="40" r="${radius}" stroke="${appleGray}" stroke-width="6" fill="none"/>
                         <circle cx="40" cy="40" r="${radius}" stroke="#34c759" stroke-width="6" fill="none"
                             stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
                     </svg>
-                    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; color:var(--text);">${percentTotal}%</div>
+                    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">${percentTotal}%</div>
                 </div>
-                <div style="flex:1; display:flex; flex-direction:column; gap:10px">
+                <div style="flex:1; display:flex; flex-direction:column; gap:8px">
                     <div>
-                        <div style="font-size:12px; margin-bottom:4px">Corrette: ${stats.correct}</div>
-                        <div style="height:6px; background:rgba(120,120,128,0.1); border-radius:3px">
-                            <div style="width:${(stats.correct / totalPotential) * 100}%; height:100%; background:#34c759; border-radius:3px"></div>
+                        <div style="font-size:12px">Corrette: ${stats.correct}</div>
+                        <div style="height:8px; background:${appleGray}; border-radius:6px">
+                            <div style="width:${(stats.correct / totalPotential) * 100}%; height:100%; background:#34c759; border-radius:6px"></div>
                         </div>
                     </div>
                     <div>
-                        <div style="font-size:12px; margin-bottom:4px">Non studiate: ${totalMarkedNotStudied}</div>
-                        <div style="height:6px; background:rgba(120,120,128,0.1); border-radius:3px">
-                            <div style="width:${(totalMarkedNotStudied / totalPotential) * 100}%; height:100%; background:#0a84ff; border-radius:3px"></div>
+                        <div style="font-size:12px">Non studiate: ${totalMarkedNotStudied}</div>
+                        <div style="height:8px; background:${appleGray}; border-radius:6px">
+                            <div style="width:${(totalMarkedNotStudied / totalPotential) * 100}%; height:100%; background:#0a84ff; border-radius:6px"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size:12px">Sbagliate: ${stats.wrong}</div>
+                        <div style="height:8px; background:${appleGray}; border-radius:6px">
+                            <div style="width:${(stats.wrong / totalPotential) * 100}%; height:100%; background:#ff3b30; border-radius:6px"></div>
                         </div>
                     </div>
                 </div>
@@ -603,21 +604,13 @@ const noScrollStyle = `
         </div>
 
         <div class="glass-card" id="card-prog" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
-            <div style="display:flex; justify-content:space-between; align-items:center">
-                <strong style="font-size: 16px;">Progressi generali</strong>
-                <span class="chevron">›</span>
-            </div>
-            <div id="detailed-progress" style="display:none; margin-top:15px; border-top:0.5px solid var(--border); padding-top:15px;">
-                ${progHtml}
-            </div>
+            <div style="font-weight:600">Progressi generali</div>
+            <div id="detailed-progress" style="display:none; margin-top:15px; border-top:1px solid var(--border); padding-top:15px;">${progHtml}</div>
         </div>
 
         <div class="glass-card" id="card-sec" onclick="toggleGeneralContent('security-content', this)" style="cursor:pointer">
-            <div style="display:flex; justify-content:space-between; align-items:center">
-                <strong style="font-size: 16px;">Sicurezza</strong>
-                <span class="chevron">›</span>
-            </div>
-            <div id="security-content" style="display:none; flex-direction:column; gap:10px; margin-top:15px; border-top:0.5px solid var(--border); padding-top:15px;">
+            <strong>Sicurezza</strong>
+            <div id="security-content" style="display:none; flex-direction:column; gap:8px; margin-top:15px; border-top:1px solid var(--border); padding-top:15px;">
                 <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
                 <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
                 <button class="btn-apple btn-destruct" onclick="userDeleteAccount()">Elimina account</button>
@@ -625,16 +618,13 @@ const noScrollStyle = `
         </div>
 
         <div class="glass-card" id="card-hist" onclick="toggleGeneralContent('history-content', this)" style="cursor:pointer">
-            <div style="display:flex; justify-content:space-between; align-items:center">
-                <strong style="font-size: 16px;">Storico</strong>
-                <span class="chevron">›</span>
-            </div>
-            <div id="history-content" style="display:none; margin-top:15px; border-top:0.5px solid var(--border); padding-top:15px;">
-                ${generateHistoryHTML(u)}
-            </div>
+            <strong>Storico</strong>
+            <div id="history-content" style="display:none; margin-top:15px; border-top:1px solid var(--border); padding-top:15px;">${generateHistoryHTML(u)}</div>
         </div>
     </div>
 </div>`;
+}
+
 
 
 
