@@ -29,7 +29,34 @@ transition: background 0.5s ease;
 .nav-slot { flex: 1; }
 h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; letter-spacing: 1.5px; }
 
-.main-container { flex: 1; width: 100%; display: flex; justify-content: center; align-items: flex-start; padding-bottom: 40px; overflow: hidden; }
-.glass-card { background: var(--card-bg); backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%); border: 1px solid var(--border); border-radius: 30px; padding: 25px; width: calc(100% - 40px); max-width: 500px; max-height: 85vh; display: flex; flex-direction: column; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
+.main-container { 
+    flex: 1; 
+    width: 100%; 
+    display: flex; 
+    justify-content: center; 
+    align-items: flex-start; /* Resta ancorata sotto la navbar come vuoi tu */
+    padding-bottom: 20px;    /* Ridotto per permettere alla card di scendere di più */
+    overflow: hidden; 
+}
+
+.glass-card { 
+    background: var(--card-bg); 
+    backdrop-filter: blur(40px) saturate(180%); 
+    -webkit-backdrop-filter: blur(40px) saturate(180%); 
+    border: 1px solid var(--border); 
+    border-radius: 30px; 
+    padding: 25px; 
+    width: calc(100% - 40px); 
+    max-width: 500px; 
+    
+    /* MODIFICA QUI: */
+    max-height: calc(100% - 20px); /* Si allunga verso il basso adattandosi al fine schermo */
+    
+    display: flex; 
+    flex-direction: column; 
+    overflow-y: auto; 
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1); 
+}
+
 
 @media (min-width: 768px) { .glass-card { max-width: 600px; padding: 35px; } }
