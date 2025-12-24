@@ -537,24 +537,25 @@ const noScrollStyle = `
 .scrollable-content::-webkit-scrollbar { display: none; }
 
 #profile-scroll .glass-card {
-    background: var(--card-bg); /* Mantiene il colore di fondo del tema */
+    background: var(--card-bg);
     backdrop-filter: blur(40px) saturate(180%);
     -webkit-backdrop-filter: blur(40px) saturate(180%);
-    
-    /* CHIRURGIA: Rimosso solo il bordo */
-    border: 0px solid transparent !important; 
-    
+    border: none !important; 
     border-radius: 30px;
     padding: 25px;
-    width: calc(100% - 40px);
-    max-width: 500px;
-    margin: 6px auto;
+    
+    /* MODIFICA CHIRURGICA: Adattamento al main */
+    width: 100%; 
+    max-width: none; 
+    margin: 8px 0; 
+    
     display: flex;
     flex-direction: column;
     box-shadow: 0 20px 50px rgba(0,0,0,0.1);
     box-sizing: border-box;
     flex-shrink: 0;
 }
+
 input, select, textarea { font-size: 16px !important; }
 </style>
 `;
