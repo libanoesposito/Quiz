@@ -487,15 +487,11 @@ function renderProfile() {
     
 const noScrollStyle = `
 <style>
-    /* 1. Blocca lo scroll esterno ma mantiene lo sfondo del sito */
     body {
         overflow: hidden !important;
         height: 100vh !important;
-        margin: 0;
-        background: var(--bg);
     }
 
-    /* 2. Contenitore dello scroll (Main Container della funzione) */
     #profile-scroll {
         height: 100%;
         width: 100%;
@@ -504,54 +500,25 @@ const noScrollStyle = `
         -webkit-overflow-scrolling: touch;
         display: flex;
         flex-direction: column;
-        align-items: center; /* Centra la card come nel main site */
+        align-items: center;
         scrollbar-width: none;
-        -ms-overflow-style: none;
     }
 
-    #profile-scroll::-webkit-scrollbar {
-        display: none !important;
-    }
+    #profile-scroll::-webkit-scrollbar { display: none !important; }
 
-    /* 3. Contenitore interno delle card */
     .profile-container {
         display: flex;
         flex-direction: column;
         width: 100%;
         align-items: center;
-        padding: 0; /* Pulito per far agire i margini della card */
+        padding-top: 10px;
+        padding-bottom: 40px; /* Spazio extra in fondo per non toccare il bordo */
     }
 
-    /* 4. LA CARD: Copia esatta del tuo stile principale */
-    .glass-card {
-        background: var(--card-bg) !important;
-        backdrop-filter: blur(40px) saturate(180%) !important;
-        -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-        border: 1px solid var(--border) !important;
-        border-radius: 30px !important;
-        padding: 25px !important;
-        width: calc(100% - 40px) !important;
-        max-width: 500px !important;
-        
-        /* Coerenza distanze 6px */
-        margin-top: 6px !important;
-        margin-bottom: 6px !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-        
-        display: flex !important;
-        flex-direction: column !important;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.1) !important;
-        box-sizing: border-box !important;
-    }
-
-    /* Coerenza font per evitare zoom su mobile */
-    input, select, textarea {
-        font-size: 16px !important;
-    }
+    /* Coerenza input */
+    input, select, textarea { font-size: 16px !important; }
 </style>
 `;
-
     
     let progHtml = '';
     const totalQuestionsPerLevel = 15; 
@@ -603,38 +570,32 @@ const noScrollStyle = `
 <div id="profile-scroll">
     <div class="profile-container">
         <div class="glass-card">
-            <div><strong>Nome:</strong> ${u.name}</div>
-            <div><strong>ID Utente:</strong> ${u.userId}</div>
+            <div style="margin-bottom: 8px;"><strong>Nome:</strong> ${u.name}</div>
+            <div style="opacity: 0.7; font-size: 13px;"><strong>ID Utente:</strong> ${u.userId}</div>
         </div>
 
         <div class="glass-card">
-            <strong>Statistiche</strong>
-            <div style="margin-top:15px; display:flex; gap:20px; align-items:center">
+            <strong style="font-size: 18px;">Statistiche</strong>
+            <div style="margin-top:20px; display:flex; gap:20px; align-items:center">
                 <div style="position:relative; width:80px; height:80px">
                     <svg width="80" height="80" style="transform:rotate(-90deg)">
-                        <circle cx="40" cy="40" r="${radius}" stroke="${appleGray}" stroke-width="6" fill="none"/>
+                        <circle cx="40" cy="40" r="${radius}" stroke="var(--border)" stroke-width="6" fill="none"/>
                         <circle cx="40" cy="40" r="${radius}" stroke="#34c759" stroke-width="6" fill="none"
                             stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
                     </svg>
-                    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">${percentTotal}%</div>
+                    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; color:var(--text);">${percentTotal}%</div>
                 </div>
-                <div style="flex:1; display:flex; flex-direction:column; gap:8px">
+                <div style="flex:1; display:flex; flex-direction:column; gap:10px">
                     <div>
-                        <div style="font-size:12px">Corrette: ${stats.correct}</div>
-                        <div style="height:8px; background:${appleGray}; border-radius:6px">
-                            <div style="width:${(stats.correct / totalPotential) * 100}%; height:100%; background:#34c759; border-radius:6px"></div>
+                        <div style="font-size:12px; margin-bottom:4px">Corrette: ${stats.correct}</div>
+                        <div style="height:6px; background:rgba(120,120,128,0.1); border-radius:3px">
+                            <div style="width:${(stats.correct / totalPotential) * 100}%; height:100%; background:#34c759; border-radius:3px"></div>
                         </div>
                     </div>
                     <div>
-                        <div style="font-size:12px">Non studiate: ${totalMarkedNotStudied}</div>
-                        <div style="height:8px; background:${appleGray}; border-radius:6px">
-                            <div style="width:${(totalMarkedNotStudied / totalPotential) * 100}%; height:100%; background:#0a84ff; border-radius:6px"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div style="font-size:12px">Sbagliate: ${stats.wrong}</div>
-                        <div style="height:8px; background:${appleGray}; border-radius:6px">
-                            <div style="width:${(stats.wrong / totalPotential) * 100}%; height:100%; background:#ff3b30; border-radius:6px"></div>
+                        <div style="font-size:12px; margin-bottom:4px">Non studiate: ${totalMarkedNotStudied}</div>
+                        <div style="height:6px; background:rgba(120,120,128,0.1); border-radius:3px">
+                            <div style="width:${(totalMarkedNotStudied / totalPotential) * 100}%; height:100%; background:#0a84ff; border-radius:3px"></div>
                         </div>
                     </div>
                 </div>
@@ -642,13 +603,21 @@ const noScrollStyle = `
         </div>
 
         <div class="glass-card" id="card-prog" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
-            <div style="font-weight:600">Progressi generali</div>
-            <div id="detailed-progress" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">${progHtml}</div>
+            <div style="display:flex; justify-content:space-between; align-items:center">
+                <strong style="font-size: 16px;">Progressi generali</strong>
+                <span class="chevron">›</span>
+            </div>
+            <div id="detailed-progress" style="display:none; margin-top:15px; border-top:0.5px solid var(--border); padding-top:15px;">
+                ${progHtml}
+            </div>
         </div>
 
         <div class="glass-card" id="card-sec" onclick="toggleGeneralContent('security-content', this)" style="cursor:pointer">
-            <strong>Sicurezza</strong>
-            <div id="security-content" style="display:none; flex-direction:column; gap:8px; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+                <strong style="font-size: 16px;">Sicurezza</strong>
+                <span class="chevron">›</span>
+            </div>
+            <div id="security-content" style="display:none; flex-direction:column; gap:10px; margin-top:15px; border-top:0.5px solid var(--border); padding-top:15px;">
                 <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
                 <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
                 <button class="btn-apple btn-destruct" onclick="userDeleteAccount()">Elimina account</button>
@@ -656,12 +625,17 @@ const noScrollStyle = `
         </div>
 
         <div class="glass-card" id="card-hist" onclick="toggleGeneralContent('history-content', this)" style="cursor:pointer">
-            <strong>Storico</strong>
-            <div id="history-content" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">${generateHistoryHTML(u)}</div>
+            <div style="display:flex; justify-content:space-between; align-items:center">
+                <strong style="font-size: 16px;">Storico</strong>
+                <span class="chevron">›</span>
+            </div>
+            <div id="history-content" style="display:none; margin-top:15px; border-top:0.5px solid var(--border); padding-top:15px;">
+                ${generateHistoryHTML(u)}
+            </div>
         </div>
     </div>
 </div>`;
-}
+
 
 
 // FINESTRE DI APERTURA (Versioni Window)
