@@ -1162,26 +1162,29 @@ function adminDeleteUser(userId) {
 
     openModal(
         "Elimina utente",
-        "L’utente verrà eliminato. Lo storico rimarrà visibile all’admin.",
+        "L’utente verrà spostato nello storico degli eliminati.",
         () => {
-            const { history, name, userId: uId } = u; 
-            
-            // AGGIUNTA CHIRURGICA: deleted: true
-            dbUsers[u.currentPin] = { 
-                history, 
-                name, 
-                userId: uId, 
-                deleted: true 
-            }; 
+            // Cerchiamo la chiave corretta (il PIN) nell'oggetto originale
+            for (let pin in dbUsers) {
+                if (dbUsers[pin].userId === userId) {
+                    // Manteniamo solo i dati necessari e aggiungiamo il flag deleted
+                    dbUsers[pin] = { 
+                        history: dbUsers[pin].history || [], 
+                        name: dbUsers[pin].name, 
+                        userId: userId, 
+                        deleted: true 
+                    };
+                    break;
+                }
+            }
             
             saveMasterDB();
-            
-            // RESET AREA PER EVITARE DUPLICATI
             document.getElementById('content-area').innerHTML = "";
             renderAdminPanel();
         }
     );
 }
+
 
 
 // Mostra i dettagli completi di un utente per l'admin
