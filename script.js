@@ -1060,30 +1060,28 @@ function renderAdminPanel() {
 }
 
 function showUserHistory(userId) {
-    // Cerchiamo l'utente in tutto il DB, inclusi gli eliminati
+    // Cerca l'utente (attivo o eliminato)
     const u = Object.values(dbUsers).find(user => user.userId == userId);
     
     if (!u) {
-        alert("Errore: Dati utente non trovati.");
+        alert("Dati non trovati");
         return;
     }
 
-    // Usiamo la tua funzione esistente per generare l'HTML
-    const historyHTML = generateHistoryHTML(u.history || {});
+    const htmlStorico = generateHistoryHTML(u);
 
-    // Mostriamo lo storico nella modale che hai già
     openModal(
         `Storico di ${u.name}`,
         `<div style="max-height: 400px; overflow-y: auto; text-align: left; padding: 10px;">
-            ${historyHTML && historyHTML !== "" ? historyHTML : "Nessun dato registrato nello storico."}
+            ${htmlStorico}
         </div>`,
-        null // Passiamo null perché è solo visualizzazione
+        null 
     );
 }
 
 function generateHistoryHTML(data) {
     let html = "";
-    // Capisce se l'input è l'intero oggetto utente o solo la cartella history
+    // Se passiamo l'intero oggetto utente prendiamo .history, altrimenti usiamo data
     const historyData = data.history ? data.history : data;
 
     Object.keys(historyData || {}).forEach(lang => {
@@ -1100,6 +1098,7 @@ function generateHistoryHTML(data) {
     });
     return html || "<div style='font-size:12px; opacity:0.6'>Nessuna domanda fatta</div>";
 }
+
 
 
 function renderAdminUsers() {
@@ -1218,7 +1217,8 @@ function adminDeleteUser(userId) {
     saveMasterDB();
     renderAdminPanel();
     }
- }
+  };
+}
 
 
 
