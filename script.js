@@ -990,7 +990,6 @@ function renderAdminPanel() {
         }))
         .sort((a, b) => b.stats.perc - a.stats.perc);
 
-    let html = `<div style="width:100%">`;
 
         // Inserimento Card Globale in alto
         let html = `<div style="width:100%">`;
