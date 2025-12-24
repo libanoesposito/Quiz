@@ -339,37 +339,25 @@ input, textarea, select, button, [contenteditable] {
     box-shadow: none !important;
     -webkit-tap-highlight-color: transparent; /* Rimuove il lampo grigio su mobile */
 }
-/* --- EFFETTO RIMBALZO UNIVERSALE --- */
+/* EFFETTO RIMBALZO MIRATO */
 
-/* 1. Applica la transizione a tutti gli elementi cliccabili */
-.lang-item, 
-.btn-apple, 
-.security-header, 
-.modal-btn, 
-.back-link, 
-.logout-link,
-.option-btn {
+/* 1. Identifichiamo i tasti specifici */
+/* .btn-pin (Accedi con PIN), .btn-confirm (Il Conferma), .btn-profile (Profilo), .btn-admin (Admin) */
+.btn-login-pin, 
+.btn-confirm-action, 
+.btn-user-profile, 
+.btn-admin-panel {
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-    cursor: pointer !important;
 }
 
-/* 2. Effetto "Pressione" quando clicchi (Mobile e Desktop) */
-.lang-item:active, 
-.btn-apple:active, 
-.security-header:active, 
-.modal-btn:active,
-.option-btn:active {
-    transform: scale(0.95) !important; /* Si restringe leggermente */
+/* 2. Applichiamo il rimbalzo solo alla pressione */
+.btn-login-pin:active, 
+.btn-confirm-action:active, 
+.btn-user-profile:active, 
+.btn-admin-panel:active {
+    transform: scale(0.95) !important;
 }
 
-/* 3. Effetto "Sollevamento" quando passi il mouse (Solo Desktop) */
-@media (hover: hover) {
-    .lang-item:hover, 
-    .btn-apple:hover,
-    .security-header:hover {
-        transform: translateY(-3px) !important;
-    }
-}
 
 /* Specifica per quando ci clicchi dentro (Stato Focus) */
 input:focus, textarea:focus, select:focus, button:focus {
