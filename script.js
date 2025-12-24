@@ -189,7 +189,9 @@ function validatePin(type) {
     state.mode = 'user';
     state.progress = dbUsers[pin].progress || {};
     state.history = dbUsers[pin].history || {};
-    
+
+    localStorage.setItem('sessionPin', pin);
+
     saveMasterDB();
     showHome();
 }
@@ -448,6 +450,7 @@ function next() {
 }
 
 function logout() {
+    localStorage.removeItem('sessionPin');
     state.mode = null; state.currentPin = null; session = null; renderLogin();
 }
 
@@ -703,6 +706,21 @@ window.toggleGeneralContent = function(id, card) {
     content.style.display = isHidden ? 'flex' : 'none';
     if (isHidden && card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
+
+window.addEventListener('load', () => {
+    const savedPin = localStorage.getItem('sessionPin');
+    if (savedPin && dbUsers && dbUsers[savedPin] && !dbUsers[savedPin].deleted) {
+        state.currentPin = savedPin;
+        state.currentUser = dbUsers[savedPin].name;
+        state.mode = (savedPin === "0000") ? 'admin' : 'user'; 
+        state.progress = dbUsers[savedPin].progress || {};
+        state.history = dbUsers[savedPin].history || {};
+        showHome();
+    } else {
+        renderLogin();
+    }
+});
+
    
 function toggleHistory(el) {
     const content = el.nextElementSibling;
@@ -1413,5 +1431,7 @@ function openModal(title, content, onConfirm) {
     document.getElementById('modal-confirm').onclick = () => { onConfirm(); overlay.style.display='none'; };
     document.getElementById('modal-cancel').onclick = () => { overlay.style.display='none'; };
 }
+
+
 // Inserisci qui le tue funzioni renderProfile, adminReset, adminDelete, userChangePin che hai nel file
 // (Mantenile come sono, sono corrette nel tuo originale)
