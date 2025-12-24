@@ -484,10 +484,8 @@ function renderProfile() {
     const isDark = document.body.classList.contains('dark-mode');
     const appleGray = isDark ? '#2c2c2e' : '#e5e5ea';
 
-    
-const noScrollStyle = `
+    const noScrollStyle = `
 <style>
-    /* 1. Blocca lo scroll esterno ma mantiene lo sfondo del sito */
     body {
         overflow: hidden !important;
         height: 100vh !important;
@@ -495,7 +493,6 @@ const noScrollStyle = `
         background: var(--bg);
     }
 
-    /* 2. Contenitore dello scroll (Main Container della funzione) */
     #profile-scroll {
         height: 100%;
         width: 100%;
@@ -504,25 +501,21 @@ const noScrollStyle = `
         -webkit-overflow-scrolling: touch;
         display: flex;
         flex-direction: column;
-        align-items: center; /* Centra la card come nel main site */
+        align-items: center;
         scrollbar-width: none;
         -ms-overflow-style: none;
     }
 
-    #profile-scroll::-webkit-scrollbar {
-        display: none !important;
-    }
+    #profile-scroll::-webkit-scrollbar { display: none !important; }
 
-    /* 3. Contenitore interno delle card */
     .profile-container {
         display: flex;
         flex-direction: column;
         width: 100%;
         align-items: center;
-        padding: 0; /* Pulito per far agire i margini della card */
+        padding: 0;
     }
 
-    /* 4. LA CARD: Copia esatta del tuo stile principale */
     .glass-card {
         background: var(--card-bg) !important;
         backdrop-filter: blur(40px) saturate(180%) !important;
@@ -532,51 +525,37 @@ const noScrollStyle = `
         padding: 25px !important;
         width: calc(100% - 40px) !important;
         max-width: 500px !important;
-        
-        /* Coerenza distanze 6px */
         margin-top: 6px !important;
         margin-bottom: 6px !important;
         margin-left: auto !important;
         margin-right: auto !important;
-        
         display: flex !important;
         flex-direction: column !important;
         box-shadow: 0 20px 50px rgba(0,0,0,0.1) !important;
         box-sizing: border-box !important;
     }
 
-    /* Coerenza font per evitare zoom su mobile */
-    input, select, textarea {
-        font-size: 16px !important;
-    }
+    input, select, textarea { font-size: 16px !important; }
 </style>
 `;
 
-    
     let progHtml = '';
     const totalQuestionsPerLevel = 15; 
-    
-    // Variabile per contare i "Non studiati" totali per la barra superiore
     let totalMarkedNotStudied = 0;
 
     totalLevels.forEach(lang => {
         progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
         for (let i = 1; i <= 5; i++) {
             let correct = 0, wrong = 0, markedNotStudied = 0;
-            
             if (u.history && u.history[lang]) {
                 u.history[lang].forEach(h => {
                     if (Number(h.lvl || h.level) == i) { 
-                        if (h.isNotStudied) {
-                            markedNotStudied++;
-                            totalMarkedNotStudied++; // Accumulo per la card generale
-                        }
+                        if (h.isNotStudied) { markedNotStudied++; totalMarkedNotStudied++; }
                         else if (h.ok) correct++;
                         else wrong++;
                     }
                 });
             }
-
             const wGreen = (correct / totalQuestionsPerLevel) * 100;
             const wRed   = (wrong / totalQuestionsPerLevel) * 100;
             const wBlue  = (markedNotStudied / totalQuestionsPerLevel) * 100;
@@ -596,7 +575,6 @@ const noScrollStyle = `
         progHtml += `</div>`;
     });
 
-    // Calcolo del potenziale totale (es. 15 domande * 5 livelli * numero lingue)
     const totalPotential = totalLevels.length * 5 * 15;
 
     document.getElementById('content-area').innerHTML = noScrollStyle + `
@@ -631,24 +609,18 @@ const noScrollStyle = `
                             <div style="width:${(totalMarkedNotStudied / totalPotential) * 100}%; height:100%; background:#0a84ff; border-radius:6px"></div>
                         </div>
                     </div>
-                    <div>
-                        <div style="font-size:12px">Sbagliate: ${stats.wrong}</div>
-                        <div style="height:8px; background:${appleGray}; border-radius:6px">
-                            <div style="width:${(stats.wrong / totalPotential) * 100}%; height:100%; background:#ff3b30; border-radius:6px"></div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
 
         <div class="glass-card" id="card-prog" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
             <div style="font-weight:600">Progressi generali</div>
-            <div id="detailed-progress" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">${progHtml}</div>
+            <div id="detailed-progress" style="display:none; margin-top:15px; border-top:1px solid var(--border); padding-top:15px;">${progHtml}</div>
         </div>
 
         <div class="glass-card" id="card-sec" onclick="toggleGeneralContent('security-content', this)" style="cursor:pointer">
             <strong>Sicurezza</strong>
-            <div id="security-content" style="display:none; flex-direction:column; gap:8px; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">
+            <div id="security-content" style="display:none; flex-direction:column; gap:8px; margin-top:15px; border-top:1px solid var(--border); padding-top:15px;">
                 <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
                 <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
                 <button class="btn-apple btn-destruct" onclick="userDeleteAccount()">Elimina account</button>
@@ -657,11 +629,12 @@ const noScrollStyle = `
 
         <div class="glass-card" id="card-hist" onclick="toggleGeneralContent('history-content', this)" style="cursor:pointer">
             <strong>Storico</strong>
-            <div id="history-content" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">${generateHistoryHTML(u)}</div>
+            <div id="history-content" style="display:none; margin-top:15px; border-top:1px solid var(--border); padding-top:15px;">${generateHistoryHTML(u)}</div>
         </div>
     </div>
 </div>`;
 }
+
 
 
 // FINESTRE DI APERTURA (Versioni Window)
