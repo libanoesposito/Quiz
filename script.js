@@ -484,61 +484,6 @@ function renderProfile() {
     const isDark = document.body.classList.contains('dark-mode');
     const appleGray = isDark ? '#2c2c2e' : '#e5e5ea';
 
-    const noScrollStyle = `
-<style>
-    body {
-        overflow: hidden !important;
-        height: 100vh !important;
-        margin: 0;
-        background: var(--bg);
-    }
-
-    #profile-scroll {
-        height: 100%;
-        width: 100%;
-        overflow-y: auto;
-        overflow-x: hidden;
-        -webkit-overflow-scrolling: touch;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-    }
-
-    #profile-scroll::-webkit-scrollbar { display: none !important; }
-
-    .profile-container {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        align-items: center;
-        padding: 0;
-    }
-
-    .glass-card {
-        background: var(--card-bg) !important;
-        backdrop-filter: blur(40px) saturate(180%) !important;
-        -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-        border: 1px solid var(--border) !important;
-        border-radius: 30px !important;
-        padding: 25px !important;
-        width: calc(100% - 40px) !important;
-        max-width: 500px !important;
-        margin-top: 6px !important;
-        margin-bottom: 6px !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-        display: flex !important;
-        flex-direction: column !important;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.1) !important;
-        box-sizing: border-box !important;
-    }
-
-    input, select, textarea { font-size: 16px !important; }
-</style>
-`;
-
     let progHtml = '';
     const totalQuestionsPerLevel = 15; 
     let totalMarkedNotStudied = 0;
@@ -577,14 +522,16 @@ function renderProfile() {
 
     const totalPotential = totalLevels.length * 5 * 15;
 
-    document.getElementById('content-area').innerHTML = noScrollStyle + `
+    document.getElementById('content-area').innerHTML = `
 <div id="profile-scroll">
     <div class="profile-container">
+        <!-- Card normale -->
         <div class="glass-card">
             <div><strong>Nome:</strong> ${u.name}</div>
             <div><strong>ID Utente:</strong> ${u.userId}</div>
         </div>
 
+        <!-- Statistiche -->
         <div class="glass-card">
             <strong>Statistiche</strong>
             <div style="margin-top:15px; display:flex; gap:20px; align-items:center">
@@ -613,6 +560,7 @@ function renderProfile() {
             </div>
         </div>
 
+        <!-- Card cliccabili -->
         <div class="glass-card" id="card-prog" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
             <div style="font-weight:600">Progressi generali</div>
             <div id="detailed-progress" style="display:none; margin-top:15px; border-top:1px solid var(--border); padding-top:15px;">${progHtml}</div>
