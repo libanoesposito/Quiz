@@ -855,17 +855,7 @@ function deleteAccount() {
     );
 }
 
-function openModal(title, desc, onConfirm) {
-    document.getElementById("modal-title").innerText = title;
-    document.getElementById("modal-desc").innerText = desc;
-    const btn = document.getElementById("modal-confirm-btn");
-    btn.onclick = () => { closeModal(); onConfirm(); };
-    document.getElementById("universal-modal").style.display = "flex";
-}
 
-function closeModal() {
-    document.getElementById("universal-modal").style.display = "none";
-}
 /* =========================
    LOGICA GUEST (DEMO)
    ========================= */
@@ -1091,6 +1081,25 @@ function showUserHistory(userId) {
     );
 }
 
+function generateHistoryHTML(data) {
+    let html = "";
+    // Capisce se l'input è l'intero oggetto utente o solo la cartella history
+    const historyData = data.history ? data.history : data;
+
+    Object.keys(historyData || {}).forEach(lang => {
+        html += `<div style="margin-bottom:10px; border-bottom:1px solid rgba(120,120,120,0.1); padding-bottom:5px"><strong>${lang}</strong></div>`;
+        if (Array.isArray(historyData[lang])) {
+            historyData[lang].forEach((h, idx) => {
+                const status = h.ok ? "✅" : (h.isNotStudied ? "🟦" : "❌");
+                html += `<div style="font-size:12px; margin-bottom:6px">
+                            ${status} Q${idx + 1}: ${h.question}<br>
+                            <em style="opacity:0.6">Risposta: ${h.correctAnswer || 'N/A'}</em>
+                         </div>`;
+            });
+        }
+    });
+    return html || "<div style='font-size:12px; opacity:0.6'>Nessuna domanda fatta</div>";
+}
 
 
 function renderAdminUsers() {
