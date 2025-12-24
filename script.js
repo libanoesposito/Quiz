@@ -490,7 +490,7 @@ const noScrollStyle = `
     /* 1. Blocca lo scroll del body */
     body {
         overflow: hidden !important;
-        height: 100vh !important;
+        height: 100%;
         margin: 0;
     }
 
