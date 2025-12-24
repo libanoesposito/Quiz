@@ -534,26 +534,26 @@ function renderProfile() {
         <!-- Statistiche -->
         <div class="glass-card">
             <strong>Statistiche</strong>
-            <div style="margin-top:15px; display:flex; gap:20px; align-items:center">
-                <div style="position:relative; width:80px; height:80px">
+            <div class="stats-wrapper">
+                <div class="stats-circle">
                     <svg width="80" height="80" style="transform:rotate(-90deg)">
                         <circle cx="40" cy="40" r="${radius}" stroke="${appleGray}" stroke-width="6" fill="none"/>
                         <circle cx="40" cy="40" r="${radius}" stroke="#34c759" stroke-width="6" fill="none"
                             stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
                     </svg>
-                    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">${percentTotal}%</div>
+                    <div class="stats-percent">${percentTotal}%</div>
                 </div>
-                <div style="flex:1; display:flex; flex-direction:column; gap:8px">
-                    <div>
-                        <div style="font-size:12px">Corrette: ${stats.correct}</div>
-                        <div style="height:8px; background:${appleGray}; border-radius:6px">
-                            <div style="width:${(stats.correct / totalPotential) * 100}%; height:100%; background:#34c759; border-radius:6px"></div>
+                <div class="stats-bars">
+                    <div class="stats-bar">
+                        <div class="stats-label">Corrette: ${stats.correct}</div>
+                        <div class="progress-container">
+                            <div class="progress-bar-fill" style="width:${(stats.correct / totalPotential) * 100}%"></div>
                         </div>
                     </div>
-                    <div>
-                        <div style="font-size:12px">Non studiate: ${totalMarkedNotStudied}</div>
-                        <div style="height:8px; background:${appleGray}; border-radius:6px">
-                            <div style="width:${(totalMarkedNotStudied / totalPotential) * 100}%; height:100%; background:#0a84ff; border-radius:6px"></div>
+                    <div class="stats-bar">
+                        <div class="stats-label">Non studiate: ${totalMarkedNotStudied}</div>
+                        <div class="progress-container">
+                            <div class="progress-bar-fill" style="width:${(totalMarkedNotStudied / totalPotential) * 100}%; background:#0a84ff"></div>
                         </div>
                     </div>
                 </div>
@@ -563,12 +563,14 @@ function renderProfile() {
         <!-- Card cliccabili -->
         <div class="glass-card" id="card-prog" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
             <div style="font-weight:600">Progressi generali</div>
-            <div id="detailed-progress" style="display:none; margin-top:15px; border-top:1px solid var(--border); padding-top:15px;">${progHtml}</div>
+            <div id="detailed-progress" class="mod-content">
+                ${progHtml}
+            </div>
         </div>
 
         <div class="glass-card" id="card-sec" onclick="toggleGeneralContent('security-content', this)" style="cursor:pointer">
             <strong>Sicurezza</strong>
-            <div id="security-content" style="display:none; flex-direction:column; gap:8px; margin-top:15px; border-top:1px solid var(--border); padding-top:15px;">
+            <div id="security-content" class="mod-content">
                 <button class="btn-apple" onclick="userChangePin()">Cambia PIN</button>
                 <button class="btn-apple" onclick="resetStats()">Azzera statistiche</button>
                 <button class="btn-apple btn-destruct" onclick="userDeleteAccount()">Elimina account</button>
@@ -577,11 +579,12 @@ function renderProfile() {
 
         <div class="glass-card" id="card-hist" onclick="toggleGeneralContent('history-content', this)" style="cursor:pointer">
             <strong>Storico</strong>
-            <div id="history-content" style="display:none; margin-top:15px; border-top:1px solid var(--border); padding-top:15px;">${generateHistoryHTML(u)}</div>
+            <div id="history-content" class="mod-content">
+                ${generateHistoryHTML(u)}
+            </div>
         </div>
     </div>
-</div>`;
-}
+</div>
 
 
 
