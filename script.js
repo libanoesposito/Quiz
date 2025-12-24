@@ -490,13 +490,13 @@ const noScrollStyle = `
     /* 1. Blocca lo scroll del body */
     body {
         overflow: hidden !important;
-        height: 100%;
+        height: 100vh !important;
         margin: 0;
     }
 
     /* 2. Il contenitore dello scroll deve occupare tutta la larghezza SENZA debordare */
     #profile-scroll {
-        height: calc(100vh - 70px);
+        height: 100%;
         width: 100%;
         overflow-y: auto;
         overflow-x: hidden; /* Evita categoricamente tagli a destra */
