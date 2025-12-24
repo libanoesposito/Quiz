@@ -510,73 +510,51 @@ function renderProfile() {
     
 const noScrollStyle = `
 <style>
+/* Il contenitore principale ora NON deve scrollare */
 #profile-scroll {
-    height: 100%;
+    height: auto; 
     width: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible; /* Rimosso lo scrolling globale */
     display: flex;
     flex-direction: column;
     align-items: center;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    
-    /* FIX: Rende il contenitore neutrale per il rendering */
-    background: transparent !important;
-    background-color: transparent !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    
-    /* Forza il browser a non isolare questo layer */
-    isolation: auto !important;
-    mix-blend-mode: normal !important;
+    background: transparent;
 }
 
-#profile-scroll::-webkit-scrollbar {
-    display: none !important;
-}
-
+/* Rimuoviamo il contenitore intermedio che creava problemi */
 .profile-container {
     display: flex;
     flex-direction: column;
     width: 100%;
     align-items: center;
-    padding: 0;
-    
-    /* FIX: Assicura che non ci siano clipping che bloccano il filtro */
-    background: transparent !important;
-    overflow: visible !important;
-    transform-style: flat !important;
+    background: transparent;
 }
 
+/* La card rimane identica, ma ora riflette bene il fondo */
 #profile-scroll .glass-card {
-    /* Usa le tue variabili, assicurati che abbiano opacità (es. rgba) */
     background: var(--card-bg);
-    
-    /* Effetto Glass */
     backdrop-filter: blur(40px) saturate(180%);
     -webkit-backdrop-filter: blur(40px) saturate(180%);
-    
-    border: none;
     border-radius: 30px;
     padding: 25px;
     width: calc(100% - 40px);
     max-width: 500px;
-    margin: 6px auto;
-    display: flex;
-    flex-direction: column;
+    margin: 12px auto; /* Aumentato leggermente il margine per respiro */
     box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-    box-sizing: border-box;
-
-    /* FIX: Evita che la card stessa crei un isolamento che sporca la trasparenza */
-    transform: translateZ(0); 
-    will-change: auto;
 }
 
-/* Fix per input su mobile */
-input, select, textarea { 
-    font-size: 16px !important; 
+/* NUOVO: Applichiamo lo scroll SOLO dove serve (Progressi/Storico) */
+.section-scroll-area {
+    max-height: 300px; /* Imposta l'altezza che preferisci */
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-right: 5px; /* Evita che il testo tocchi il bordo */
+}
+
+.section-scroll-area::-webkit-scrollbar {
+    display: none;
 }
 </style>
 `;
