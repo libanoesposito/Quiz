@@ -358,6 +358,13 @@ input, textarea, select, button, [contenteditable] {
     transform: scale(0.95) !important;
 }
 
+input, textarea, select {
+    outline: none !important;
+    box-shadow: none !important;
+    /* AGGIUNGI QUESTA RIGA */
+    font-size: 16px !important; 
+}
+
 
 /* Specifica per quando ci clicchi dentro (Stato Focus) */
 input:focus, textarea:focus, select:focus, button:focus {
