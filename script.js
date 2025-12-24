@@ -393,6 +393,7 @@ function markNotStudied(idx) {
     // 5. NUOVO: Passa subito alla prossima domanda
     next();
 }
+
 function check(isOk) {
     const data = session.q[session.idx];
     if(state.mode === 'user') {
@@ -420,14 +421,15 @@ function check(isOk) {
         });
     }
 }
-    document.getElementById('opts').style.pointerEvents = "none";
+        document.getElementById('opts').style.pointerEvents = "none";
     document.getElementById('fb').innerHTML = `
-        <div class="feedback-box ${isOk?'correct':'wrong'}">
-            <strong>${isOk?'Giusto!':'Sbagliato'}</strong>
-            <p>${data.exp}</p>
-            <button class="btn-apple btn-primary" onclick="next()">Continua</button>
+        <div class="feedback-box ${isOk?'correct':'wrong'}" style="width:100%; margin: 15px 0; padding: 15px; box-sizing: border-box; border-radius: 14px;">
+            <strong style="display: block; margin-bottom: 8px;">${isOk?'Giusto!':'Sbagliato'}</strong>
+            <p style="margin-bottom: 15px; font-size: 14px; line-height: 1.4;">${data.exp}</p>
+            <button class="btn-apple btn-primary" style="width:100%; margin:0;" onclick="next()">Continua</button>
         </div>`;
 }
+
 
 function next() {
     session.idx++; 
