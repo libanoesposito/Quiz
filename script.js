@@ -1034,30 +1034,30 @@ function renderAdminPanel() {
     }
 
     // Sezione Glass Card per Eliminati (Espandibile)
-    if (eliminati.length > 0) {
+        if (eliminati.length > 0) {
         html += `
             <div class="glass-card" style="margin-top:30px; border:1px solid rgba(255,59,48,0.2)">
-                <div onclick="document.getElementById('deleted-list').style.display = document.getElementById('deleted-list').style.display === 'none' ? 'block' : 'none'" 
-                     style="cursor:pointer; display:flex; justify-content:space-between; align-items:center">
-                    <strong style="color:#ff3b30">UTENTI ELIMINATI (${eliminati.length})</strong>
-                    <span>▼</span>
+                <div onclick="const el = document.getElementById('deleted-list'); el.style.display = el.style.display === 'none' ? 'block' : 'none'" 
+                     style="cursor:pointer; display:flex; justify-content:center; align-items:center">
+                    <strong style="color:#ff3b30; font-size:12px; letter-spacing:1px">UTENTI ELIMINATI (${eliminati.length})</strong>
                 </div>
                 <div id="deleted-list" style="display:none; margin-top:15px">`;
         
         eliminati.forEach(u => {
             html += `
-                <div style="padding:10px 0; border-bottom:1px solid rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center">
+                <div style="padding:12px 0; border-bottom:1px solid rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center">
                     <div>
                         <span style="font-weight:600">${u.name}</span>
                         <div style="font-size:11px; opacity:0.5">ID ${u.id}</div>
                     </div>
-                    <span style="cursor:pointer" onclick="showUserHistory(${u.id})">⏳ Vedi Storico</span>
+                    <div style="cursor:pointer; color:#0a84ff; font-weight:600; font-size:13px" onclick="showUserHistory(${u.id})">
+                        VEDI STORICO
+                    </div>
                 </div>`;
         });
 
         html += `</div></div>`;
     }
-
     html += `</div>`;
     document.getElementById('content-area').innerHTML = html;
 }
