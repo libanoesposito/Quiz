@@ -559,67 +559,6 @@ const noScrollStyle = `
 input, select, textarea { font-size: 16px !important; }
 </style>
 `;
- 
-    
-    
-    /*Vecchia modicifca
-
-`
-<style
-#profile-scroll .glass-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    
-   
-    border: none !important; 
-    outline: none !important;
-    
-    border-radius: 30px;
-    padding: 20px;
-    width: calc(100% - 40px);
-    max-width: 500px;
-    margin: 6px auto;
-    
-   
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
-    box-sizing: border-box;
-    flex-shrink: 0;
-}
-
-.profile-container {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-height: 100vh; 
-    align-items: center;
-    padding: 10px 0;
-}
-
-.scrollable-content {
-    max-height: 300px; 
-    overflow-y: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding-right: 5px;
-}
-.scrollable-content::-webkit-scrollbar { display: none; }
-
-#profile-scroll .glass-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    border-radius: 30px;
-    padding: 20px;
-    width: calc(100% - 40px);
-    max-width: 500px;
-    margin: 6px auto;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-    box-sizing: border-box;
-    flex-shrink: 0;  
-}
-</style>
-`;*/
 
     
     let progHtml = '';
@@ -1053,6 +992,19 @@ function renderAdminPanel() {
 
     let html = `<div style="width:100%">`;
 
+        // Inserimento Card Globale in alto
+    html += `
+        <div class="review-card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-left: 4px solid #ff3b30">
+            <div>
+                <strong style="color:#ff3b30">Manutenzione Sistema</strong>
+                <div style="font-size:12px; opacity:0.6">Azione irreversibile su tutto il DB</div>
+            </div>
+            <div style="cursor:pointer; font-size:22px; padding:5px" onclick="adminResetAll()" title="Reset Totale">
+                🗑️
+            </div>
+        </div>
+    `;
+
     if (users.length === 0) {
         html += `<div style="text-align:center; padding:20px; color:#666">Nessun utente registrato</div>`;
     } else {
@@ -1065,11 +1017,10 @@ function renderAdminPanel() {
                             <strong>${u.name}</strong>
                             <div style="font-size:12px; opacity:0.6">ID ${u.id}</div>
                         </div>
-                        <div style="display:flex; gap:10px">
-                            <span style="cursor:pointer" onclick="showUserHistory(${u.id})">⏳</span>
-                            <span style="cursor:pointer" onclick="recalcUser(${u.id})">🔄</span>
-                            <span style="cursor:pointer; color:#ff3b30" onclick="adminDeleteUser(${u.id})">🗑</span>
-                            <span style="cursor:pointer" onclick="adminResetAll()">🗑️🆕</span>
+                                                <div style="display:flex; gap:18px; font-size:18px">
+                            <span style="cursor:pointer" onclick="showUserHistory(${u.id})" title="Storico">⏳</span>
+                            <span style="cursor:pointer" onclick="recalcUser(${u.id})" title="Ricalcola">🔄</span>
+                            <span style="cursor:pointer; color:#ff3b30" onclick="adminDeleteUser(${u.id})" title="Elimina Utente">🗑</span>
                         </div>
                     </div>
                     <div style="margin-top:8px; font-size:13px">
