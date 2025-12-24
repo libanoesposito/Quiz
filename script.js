@@ -1208,8 +1208,8 @@ function adminDeleteUser(userId) {
     
     saveMasterDB();
     renderAdminPanel();
-}
-
+    }
+ }
 
 
 
