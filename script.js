@@ -207,25 +207,20 @@ function showHome() {
     });
 
     // Ripasso e Profilo (Solo Utente)
-        if(state.mode === 'user') {
+            if(state.mode === 'user') {
         html += `
-        <div class="lang-item" onclick="renderRipasso()" style="background: rgba(120,120,120,0.1); border: none;">
+        <div class="lang-item" onclick="renderRipasso()">
             <img src="https://cdn-icons-png.flaticon.com/512/3389/3389081.png" width="35">
             <div style="margin-top:10px; font-weight:700; font-size:13px">RIPASSO</div>
         </div>
-        <div class="lang-item" onclick="renderProfile()" style="background: #0a84ff; border: none; box-shadow: 0 4px 15px rgba(10, 132, 255, 0.3);">
-            <img src="https://cdn-icons-png.flaticon.com/512/1144/1144760.png" width="35" style="filter: brightness(0) invert(1);">
-            <div style="margin-top:10px; font-weight:700; font-size:13px; color: #ffffff">IL MIO PROFILO</div>
+        <div class="lang-item profile-slot" onclick="renderProfile()" style="background: #0a84ff; color: white;">
+            <div style="font-weight:700">IL MIO PROFILO</div>
         </div>`;
     }
 
 
-        if(state.mode === 'admin') {
-        html += `
-        <div class="lang-item" onclick="renderAdminPanel()" style="background: #0a84ff; border: none; box-shadow: 0 4px 15px rgba(10, 132, 255, 0.3);">
-            <img src="https://cdn-icons-png.flaticon.com/512/3930/3930234.png" width="35" style="filter: brightness(0) invert(1);">
-            <div style="margin-top:10px; font-weight:700; font-size:13px; color: #ffffff">PANNELLO ADMIN</div>
-        </div>`;
+            if(state.mode === 'admin') {
+        html += `<div class="lang-item profile-slot" onclick="renderAdminPanel()" style="background: #0a84ff; color: white;"><div style="font-weight:700">PANNELLO ADMIN</div></div>`;
     }
 
     html += `</div>`;
