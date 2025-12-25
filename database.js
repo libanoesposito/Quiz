@@ -1,429 +1,398 @@
-// Questo è il tuo magazzino domande (scrivine quante ne vuoi per livello)
 const domandaRepo = {
     Python: {
         L1: [
             "Come stampi Ciao?|print('Ciao')|echo 'Ciao'|console.log('Ciao')|0|In Python si usa print().",
-"Come assegni il valore 5 alla variabile x?|x == 5|x = 5|5 -> x|1|In Python si usa = per assegnare valori.",
-"Quale tipo di dato è 3.14?|int|str|float|2|3.14 è un numero decimale, quindi float.",
-"Come fai un commento in Python?|# Questo è un commento|// Commento|/* Commento */|0|I commenti iniziano con #.",
-"Come controlli se x è uguale a 10?|x = 10|x == 10|x === 10|1|Per confrontare valori si usa ==.",
-"Come sommi due numeri x e y?|x + y|x add y|x & y|0|In Python l'operatore + somma i numeri.",
-"Come sottrai y da x?|x - y|x sub y|x * y|0|L'operatore - sottrae i valori.",
-"Come moltiplichi x e y?|x * y|x x y|x . y|0|L'operatore * moltiplica i valori.",
-"Come dividi x per y?|x / y|x // y|x % y|0|L'operatore / esegue la divisione.",
-"Come fai il resto della divisione di x per y?|x % y|x / y|x // y|0|L'operatore % calcola il modulo.",
-"Qual è il risultato di 3 ** 2?|6|9|8|1|** è l'operatore di potenza, 3²=9.",
-"Come scrivi una condizione if?|if x > 0:|if(x > 0)|if x > 0 then|0|Python usa if seguito da due punti.",
-"Come scrivi un else?|else:|otherwise|else if|0|Si usa else seguito da :.",
-"Come scrivi un elif?|elif x == 0:|elseif x == 0|else if x == 0|0|elif è elif, non elseif.",
-"Come fai un ciclo for per x in lista?|for x in lista:|for x = lista|for each x in lista|0|Sintassi corretta: for x in lista:",
-"Come fai un ciclo while?|while x < 5:|while(x < 5)|do while x < 5|0|while usa i due punti per iniziare il blocco.",
-"Come interrompi un ciclo?|break|stop|exit|0|break esce dal ciclo immediatamente.",
-"Come salti un’iterazione di un ciclo?|continue|skip|pass|0|continue salta l'iterazione corrente.",
-"Come fai nulla in Python?|pass|null|none|0|pass è un'istruzione nulla.",
-"Qual è il valore booleano vero?|True|TRUE|1|0|In Python True è booleano vero.",
-"Qual è il valore booleano falso?|False|0|Falsey|0|False rappresenta il booleano falso.",
-"Come unisci due stringhe 'Ciao' e 'Mondo'?|'Ciao' + 'Mondo'|'Ciao'.concat('Mondo')|'Ciao'.append('Mondo')|0|L’operatore + concatena le stringhe.",
-"Come ripeti una stringa 3 volte|'Ciao' * 3|'Ciao'.repeat(3)|'Ciao'.times(3)|0|'Ciao' * 3 = 'CiaoCiaoCiao'.",
-"Come trasformi '123' in numero?|int('123')|str('123')|float('123')|0|int() converte la stringa in intero.",
-"Come trasformi 123 in stringa?|str(123)|int(123)|format(123)|0|str() converte un numero in stringa.",
-"Qual è il risultato di True and False?|True|False|None|1|True and False = False.",
-"Qual è il risultato di True or False?|True|False|None|0|True or False = True.",
-"Qual è il risultato di not True?|True|False|None|1|not True = False.",
-"Come controlli se un elemento è in lista?|x in lista|x exists lista|lista.has(x)|0|in verifica presenza.",
-"Come controlli se non è in lista?|x not in lista|x !in lista|x not exists lista|0|not in verifica assenza.",
-"Come scarti spazi iniziali e finali di una stringa?|s.strip()|s.trim()|s.clean()|0|strip() rimuove spazi iniziali e finali.",
-"Come trasformi una stringa in maiuscolo?|s.upper()|s.toUpperCase()|s.cap()|0|upper() converte in maiuscolo.",
-"Come trasformi una stringa in minuscolo?|s.lower()|s.toLowerCase()|s.min()|0|lower() converte in minuscolo.",
-"Come dividi una stringa s per spazi?|s.split()|s.divide()|s.cut()|0|split() divide la stringa in lista.",
-"Come unisci una lista di stringhe?|''.join(lista)|concat(lista)|merge(lista)|0|join() unisce gli elementi in una stringa.",
-"Quale tipo di dato è [1, 2, 3]?|list|tuple|dict|0|Le liste sono delimitate da []",
-"Quale tipo di dato è (1, 2, 3)?|tuple|list|set|0|Le tuple sono delimitate da ()",
-"Quale tipo di dato è {1, 2, 3}?|set|list|tuple|0|I set sono delimitati da {} senza chiavi",
-"Quale tipo di dato è {'a': 1}|dict|list|set|0|Dizionario ha coppie chiave:valore.",
-"Come elimini un elemento da una lista?|lista.remove(x)|lista.delete(x)|del lista[x]|0|remove() rimuove un valore specifico."
-            // Aggiungi qui le altre 97 domande seguendo lo schema
+            "Come assegni il valore 5 alla variabile x?|x == 5|x = 5|5 -> x|1|In Python si usa = per assegnare valori.",
+            "Quale tipo di dato è 3.14?|int|str|float|2|3.14 è un numero decimale, quindi float.",
+            "Come fai un commento in Python?|# Questo è un commento|// Commento|/* Commento */|0|I commenti iniziano con #.",
+            "Come controlli se x è uguale a 10?|x = 10|x == 10|x === 10|1|Per confrontare valori si usa ==.",
+            "Come sommi due numeri x e y?|x + y|x add y|x & y|0|In Python l'operatore + somma i numeri.",
+            "Come sottrai y da x?|x - y|x sub y|x * y|0|L'operatore - sottrae i valori.",
+            "Come moltiplichi x e y?|x * y|x x y|x . y|0|L'operatore * moltiplica i valori.",
+            "Come dividi x per y?|x / y|x // y|x % y|0|L'operatore / esegue la divisione.",
+            "Come fai il resto della divisione di x per y?|x % y|x / y|x // y|0|L'operatore % calcola il modulo.",
+            "Qual è il risultato di 3 ** 2?|6|9|8|1|** è l'operatore di potenza, 3²=9.",
+            "Come scrivi una condizione if?|if x > 0:|if(x > 0)|if x > 0 then|0|Python usa if seguito da due punti.",
+            "Come scrivi un else?|else:|otherwise|else if|0|Si usa else seguito da :.",
+            "Come scrivi un elif?|elif x == 0:|elseif x == 0|else if x == 0|0|elif è elif, non elseif.",
+            "Come fai un ciclo for per x in lista?|for x in lista:|for x = lista|for each x in lista|0|Sintassi corretta: for x in lista:",
+            "Come fai un ciclo while?|while x < 5:|while(x < 5)|do while x < 5|0|while usa i due punti per iniziare il blocco.",
+            "Come interrompi un ciclo?|break|stop|exit|0|break esce dal ciclo immediatamente.",
+            "Come salti un’iterazione di un ciclo?|continue|skip|pass|0|continue salta l'iterazione corrente.",
+            "Come fai nulla in Python?|pass|null|none|0|pass è un'istruzione nulla.",
+            "Qual è il valore booleano vero?|True|TRUE|1|0|In Python True è booleano vero.",
+            "Qual è il valore booleano falso?|False|0|Falsey|0|False rappresenta il booleano falso.",
+            "Come unisci due stringhe 'Ciao' e 'Mondo'?|'Ciao' + 'Mondo'|'Ciao'.concat('Mondo')|'Ciao'.append('Mondo')|0|L’operatore + concatena le stringhe.",
+            "Come ripeti una stringa 3 volte?|'Ciao' * 3|'Ciao'.repeat(3)|'Ciao'.times(3)|0|'Ciao' * 3 = 'CiaoCiaoCiao'.",
+            "Come trasformi '123' in numero?|int('123')|str('123')|float('123')|0|int() converte la stringa in intero.",
+            "Come trasformi 123 in stringa?|str(123)|int(123)|format(123)|0|str() converte un numero in stringa.",
+
+            // +5 nuove L1
+            "Come ottieni il tipo di una variabile?|type(x)|typeof x|x.type|0|type() restituisce il tipo.",
+            "Come ottieni input da tastiera?|input()|read()|scan()|0|input() legge da input.",
+            "Come converti input in intero?|int(input())|input(int)|readInt()|0|Serve int().",
+            "Come controlli lunghezza stringa?|len(s)|s.length|count(s)|0|len() restituisce la lunghezza.",
+            "Come arrotondi un numero?|round(x)|floor(x)|int(x)|0|round() arrotonda."
         ],
-        L2: ["Come aggiungi un elemento a una lista chiamata lista?|lista.append(5)|lista.add(5)|lista.push(5)|0|In Python si usa append() per aggiungere elementi a una lista.",
-"Come ottieni la lunghezza di una lista?|len(lista)|lista.length|lista.size|0|len() restituisce il numero di elementi.",
-"Come gestisci un errore in Python?|try/except|catch|error handling|0|Il blocco try/except cattura le eccezioni.",
-"Come estrai il primo elemento di una lista?|lista[0]|lista.first|lista.get(0)|0|In Python gli indici partono da 0.",
-"Come definisci una funzione chiamata saluta?|def saluta():|function saluta()|saluta =>|0|In Python le funzioni si dichiarano con def.",
-"Come passi un argomento a una funzione?|def f(x):|function f(){x}|f -> x|0|Si dichiarano parametri tra parentesi.",
-"Come ritorni un valore da una funzione?|return x|yield x|output x|0|return restituisce il valore dalla funzione.",
-"Come fai una copia superficiale di una lista?|lista.copy()|list(lista)|lista.shallow()|0|copy() crea una copia superficiale della lista.",
-"Come concatenare due liste?|lista1 + lista2|lista1.concat(lista2)|lista1.append(lista2)|0|L'operatore + unisce le liste.",
-"Come ordini una lista in ordine crescente?|lista.sort()|sorted(lista)|lista.order()|1|sorted() restituisce una lista ordinata senza modificare l'originale.",
-"Come ordini una lista senza modificarla?|sorted(lista)|lista.sort()|lista.order()|0|sorted() restituisce una nuova lista ordinata.",
-"Come trovi il massimo in una lista?|max(lista)|lista.max()|maximum(lista)|0|max() restituisce il valore massimo.",
-"Come trovi il minimo in una lista?|min(lista)|lista.min()|minimum(lista)|0|min() restituisce il valore minimo.",
-"Come unisci due dizionari?|dict1.update(dict2)|dict1 + dict2|merge(dict1, dict2)|0|update() unisce i contenuti di dict2 in dict1.",
-"Come controlli se una chiave è in un dizionario?|key in dict|dict.has(key)|dict.contains(key)|0|in verifica se la chiave esiste nel dizionario.",
-"Come elimini una chiave da un dizionario?|del dict[key]|dict.remove(key)|dict.delete(key)|0|del elimina una chiave dal dizionario.",
-"Come si crea un set?|set([1,2,3])|{1,2,3}|[1,2,3]|0|set() crea un insieme unico di elementi.",
-"Come aggiungi un elemento a un set?|set.add(4)|set.push(4)|set.append(4)|0|add() aggiunge un elemento al set.",
-"Come rimuovi un elemento da un set?|set.remove(4)|set.pop(4)|del set[4]|0|remove() elimina un elemento specifico.",
-"Come fai l'intersezione di due set?|set1 & set2|set1.intersect(set2)|set1.merge(set2)|0|L'operatore & restituisce l'intersezione dei set.",
-"Come fai l'unione di due set?|set1 | set2|set1.union(set2)|set1 + set2|0|L'operatore | o union() restituisce l'unione dei set.",
-"Come fai la differenza tra due set?|set1 - set2|set1.diff(set2)|set1.remove(set2)|0|L'operatore - restituisce gli elementi di set1 non in set2.",
-"Come fai una comprensione di lista?|[x*2 for x in lista]|for x in lista: x*2|lista.map(lambda x: x*2)|0|Le comprensioni di lista creano nuove liste in una sola riga.",
-"Come fai una comprensione con condizione?|[x for x in lista if x>0]|filter(lambda x: x>0, lista)|for x in lista: if x>0|0|Si può aggiungere if alla comprensione di lista.",
-"Come apri un file in lettura?|open('file.txt','r')|file.open('file.txt')|read('file.txt')|0|open() apre file con modalità 'r' per leggere.",
-"Come apri un file in scrittura?|open('file.txt','w')|file.write('file.txt')|write('file.txt')|0|Modalità 'w' apre un file per scrivere, sovrascrivendo.",
-"Come leggi tutto il contenuto di un file?|file.read()|file.readlines()|read(file)|0|read() restituisce tutto il contenuto del file come stringa.",
-"Come leggi riga per riga?|file.readlines()|file.read()|file.line()|0|readlines() restituisce tutte le righe come lista.",
-"Come chiudi un file?|file.close()|close(file)|file.end()|0|close() chiude il file e libera risorse.",
-"Come usare with per aprire un file?|with open('file.txt','r') as f:|open('file.txt') as f:|file.open('file.txt')|0|with gestisce automaticamente apertura e chiusura del file.",
-"Come converti una stringa in intero?|int('123')|str('123')|float('123')|0|int() converte una stringa in numero intero.",
-"Come converti una stringa in float?|float('3.14')|int('3.14')|str('3.14')|0|float() converte una stringa in numero decimale.",
-"Come converti un numero in stringa?|str(123)|int(123)|float(123)|0|str() converte il numero in stringa.",
-"Come importi un modulo?|import math|include math|require('math')|0|import importa un modulo in Python.",
-"Come importi solo una funzione da un modulo?|from math import sqrt|import math.sqrt|use math.sqrt|0|from ... import ... importa solo la funzione specifica."
-            ],
-        L3: ["Come definisci una classe chiamata Persona?|class Persona:|def Persona():|Persona class|0|In Python le classi si definiscono con class.",
-"Come erediti da una classe Animal in Python?|class Dog(Animal):|class Dog < Animal:|class Dog inherits Animal|0|La sintassi è class NomeClasse(ClasseBase):",
-"Come definisci un metodo speciale per inizializzare un oggetto?|def __init__(self):|def init():|def constructor():|0|Il metodo __init__ è il costruttore in Python.",
-"Come accedi a un attributo di istanza di un oggetto?|oggetto.attributo|oggetto->attributo|oggetto[attributo]|0|In Python si usa punto per accedere agli attributi.",
-"Come crei un metodo di classe?|@classmethod def metodo(cls):|def metodo():|def metodo(self):|0|@classmethod definisce un metodo legato alla classe.",
-"Come crei un metodo statico?|@staticmethod def metodo():|def metodo():|@static def metodo():|0|@staticmethod definisce un metodo non legato a istanza o classe.",
-"Come definisci un metodo privato?|def __metodo(self):|def _metodo(self):|def metodo(self):|0|Doppio underscore rende l'attributo o metodo privato.",
-"Come usi il polimorfismo con metodi?|def metodo(self):|override del metodo in sottoclasse|entrambi|1|Il polimorfismo permette di ridefinire metodi in sottoclassi.",
-"Come sovrascrivi il metodo __str__?|def __str__(self):|def str(self):|def __repr__(self):|0|__str__ definisce la rappresentazione a stringa dell’oggetto.",
-"Come usi super() per chiamare il costruttore della classe base?|super().__init__()|super()|Base.__init__()|0|super() richiama metodi della classe base.",
-"Come definisci una classe astratta?|from abc import ABC, abstractmethod|class Abstract:|abstract class ABC|0|Si importa ABC e si usano abstractmethod per definire astratte.",
-"Come definisci un metodo astratto?|@abstractmethod def metodo(self):|def metodo():|def abstract metodo():|0|@abstractmethod obbliga le sottoclassi a implementarlo.",
-"Come implementi un'interfaccia in Python?|class MiaClasse(Interfaccia):|implements Interfaccia|class MiaClasse: Interfaccia|0|In Python si usa ereditarietà per simulare interfacce.",
-"Come crei un generatore?|def gen(): yield x|def gen(): return x|def gen(): print(x)|0|yield restituisce valori uno alla volta creando un generatore.",
-"Come si usa next() su un generatore?|next(gen)|gen.next()|next.gen()|0|next() restituisce il prossimo valore del generatore.",
-"Come si crea una funzione lambda?|lambda x, y: x + y|def f(x, y): return x + y|f = x+y|0|lambda crea funzioni anonime in una sola riga.",
-"Come usi map su una lista?|map(lambda x: x*2, lista)|lista.map(lambda x: x*2)|apply(lambda x: x*2, lista)|0|map applica una funzione a tutti gli elementi.",
-"Come usi filter su una lista?|filter(lambda x: x>0, lista)|lista.filter(lambda x: x>0)|select(lambda x>0, lista)|0|filter restituisce solo gli elementi che soddisfano la condizione.",
-"Come usi reduce su una lista?|from functools import reduce; reduce(f, lista)|lista.reduce(f)|reduce(lista, f)|0|reduce accumula gli elementi secondo la funzione f.",
-"Come gestisci eccezioni multiple?|try: ... except (TypeError, ValueError): ...|except TypeError, ValueError:|try/catch TypeError, ValueError|0|Si elencano le eccezioni tra parentesi.",
-"Come lanci un’eccezione?|raise ValueError('msg')|throw ValueError('msg')|error('msg')|0|raise genera un’eccezione in Python.",
-"Come definisci proprietà getter e setter?|@property / @nome.setter|get()/set()|property()|0|@property permette di creare proprietà gestite.",
-"Come introspezioni un oggetto?|dir(obj)|inspect(obj)|obj.info()|0|dir() mostra attributi e metodi di un oggetto.",
-"Come usi il modulo inspect per funzioni?|import inspect; inspect.getmembers(obj)|inspect(obj)|obj.inspect()|0|inspect permette di ottenere informazioni dettagliate su oggetti e funzioni.",
-"Come definisci metodi speciali per operatori?|def __add__(self, other):|def add(self, other):|def operator_add(self, other):|0|I metodi __nome__ definiscono operatori speciali.",
-"Come controlli tipi di oggetti?|isinstance(obj, Classe)|type(obj) == Classe|obj.type == Classe|0|isinstance verifica se un oggetto appartiene a una classe.",
-"Come usi decoratori per funzioni?|@decorator def f():|def @decorator f():|decorator(f)|0|Un decoratore modifica il comportamento di una funzione.",
-"Come memorizzi valori con functools lru_cache?|@lru_cache()|cache(f)|functools.cache(f)|0|lru_cache memorizza i risultati di funzioni costose.",
-"Come lavori con generator expressions?|(x*2 for x in lista)|[x*2 for x in lista]|{x*2 for x in lista}|0|Le generator expressions creano valori su richiesta, senza lista completa.",
-"Come lavori con iterators personalizzati?|def __iter__(self): ... def __next__(self): ...|for i in obj|iter(obj)|0|Definendo __iter__ e __next__ si crea un iteratore personalizzato."
-            ], L4: ["Come definisci un contesto manager personalizzato?|class MioContesto: def __enter__(self): ... def __exit__(self, exc_type, exc_val, exc_tb): ...|class MioContesto: pass|def context(): ...|0|Definendo __enter__ e __exit__ crei un context manager personalizzato.",
-"Come si usa un context manager personalizzato?|with MioContesto() as c: ...|MioContesto().start()|start(MioContesto())|0|with chiama __enter__ all’inizio e __exit__ alla fine.",
-"Come usi metaclasses in Python?|class Meta(type): ...|class Meta(): ...|def Meta(): ...|0|Metaclass definisce il comportamento delle classi stesse.",
-"Come crei una classe con metaclass?|class MiaClasse(metaclass=Meta): ...|class MiaClasse(Meta): ...|def MiaClasse(): ...|0|Si specifica metaclass=Meta nella definizione della classe.",
-"Come usi il decoratore @staticmethod avanzato?|@staticmethod def f(): ...|def f(): ...|@staticmethod f(): ...|0|@staticmethod crea metodi indipendenti dall’istanza.",
-"Come usi il decoratore @classmethod avanzato?|@classmethod def f(cls): ...|def f(): ...|@classmethod f(): ...|0|@classmethod crea metodi legati alla classe.",
-"Come crei generatori annidati?|def gen(): yield from altro_gen()|yield altro_gen()|for x in altro_gen(): yield x|0|yield from permette di delegare a un altro generatore.",
-"Come fai coroutine con async/await?|async def f(): await g()|def f(): yield g()|def f(): async g()|0|async/await definiscono coroutine per operazioni asincrone.",
-"Come lanci un task asincrono?|import asyncio; asyncio.create_task(f())|f()|task(f())|0|create_task permette di eseguire coroutine in background.",
-"Come gestisci loop asincroni?|asyncio.run(main())|main()|loop.run(main)|0|asyncio.run avvia il loop principale per le coroutine.",
-"Come crei descriptor personalizzati?|class Descriptor: def __get__(self,obj,type): ... def __set__(self,obj,val): ...|property|get/set|0|Definendo __get__ e __set__ si controlla accesso e assegnazione di attributi.",
-"Come fai weak references?|import weakref; weakref.ref(obj)|ref(obj)|weak(obj)|0|weakref.ref crea riferimento debole a un oggetto.",
-"Come fai caching avanzato con functools lru_cache?|@lru_cache(maxsize=128) def f(): ...|cache(f)|@cache def f(): ...|0|lru_cache memorizza i risultati per ridurre calcoli ripetuti.",
-"Come usi il modulo threading per thread avanzati?|import threading; t = threading.Thread(target=f); t.start()|thread(f)|thread.start(f)|0|threading.Thread crea e avvia un thread.",
-"Come usi threading.Lock per sincronizzazione?|lock = threading.Lock(); lock.acquire(); ...; lock.release()|lock.lock()|lock.sync()|0|Lock previene accesso concorrente a risorse condivise.",
-"Come usi threading.Event?|event = threading.Event(); event.wait(); event.set()|event.trigger()|event.start()|0|Event permette di sincronizzare thread tramite segnali.",
-"Come lavori con multiprocessing avanzato?|from multiprocessing import Process; p = Process(target=f); p.start()|process(f)|multiprocess(f)|0|multiprocessing permette di creare processi paralleli indipendenti.",
-"Come condividi dati tra processi?|from multiprocessing import Queue; q.put(x)|shared_memory|queue.put(x)|0|Queue permette di scambiare dati tra processi in sicurezza.",
-"Come usi asyncio.gather per più coroutine?|await asyncio.gather(coro1,coro2)|await coro1 + coro2|gather(coro1,coro2)|0|gather esegue più coroutine contemporaneamente.",
-"Come usi asyncio.wait?|done, pending = await asyncio.wait(tasks)|await tasks|wait(tasks)|0|wait permette di attendere più coroutine fino al completamento.",
-"Come gestisci exception propagation nelle coroutine?|try: await coro() except Exception as e: ...|coro().catch()|try: coro()|0|Le eccezioni nelle coroutine possono essere catturate con try/except.",
-"Come usi contextlib.contextmanager?|from contextlib import contextmanager; @contextmanager def cm(): yield ...|def cm(): ...|contextmanager(cm)|0|@contextmanager semplifica la creazione di context manager.",
-"Come crei un singleton avanzato?|def __new__(cls): if not hasattr(cls,'_instance'): cls._instance = super().__new__(cls); return cls._instance|class Singleton(): ...|singleton = Singleton()|0|__new__ permette di controllare l’allocazione dell’istanza.",
-"Come fai monkey patching avanzato?|modulo.funzione = nuova_funzione|patch(modulo.funzione)|modulo.override(funzione)|0|Si sovrascrive dinamicamente la funzione o metodo.",
-"Come usi metodi speciali per operatori avanzati?|def __mul__(self, other): ...|def multiply(self, other): ...|def __operator_mul__(self, other): ...|0|I metodi __nome__ definiscono comportamenti per operatori come +, *, ecc.",
-"Come si usa typing per type hints avanzati?|from typing import List, Dict; def f(x: List[int]) -> Dict[str,int]: ...|def f(x) -> ...|typehint(f)|0|typing fornisce suggerimenti di tipo statici.",
-"Come definire classi generiche?|from typing import Generic, TypeVar; T = TypeVar('T'); class MyClass(Generic[T]): ...|class MyClass<T>: ...|GenericClass(T)|0|Generic permette classi parametrizzate da tipi.",
-"Come usare __slots__ per ottimizzare memoria?|class C: __slots__ = ['x','y']|class C: pass|__slots__(C)|0|__slots__ limita gli attributi e riduce l’uso di memoria.",
-"Come fare introspezione avanzata?|import inspect; inspect.getmembers(obj)|dir(obj)|obj.inspect()|0|inspect permette di esplorare oggetti e classi in dettaglio.",
-"Come serializzare oggetti complessi?|import pickle; pickle.dump(obj,f)|json.dump(obj,f)|serialize(obj)|0|pickle permette di salvare oggetti Python complessi su file.",
-"Come deserializzare oggetti complessi?|import pickle; obj = pickle.load(f)|json.load(f)|deserialize(f)|0|pickle.load ricrea l’oggetto Python dal file."
-                   ]
-    },
-    JavaScript: {
-        L1: ["Come stampi in console?|console.log('Ciao')|print('Ciao')|echo 'Ciao'|0|In JavaScript si usa console.log().",
-"Come dichiari una variabile?|let x = 5|int x = 5|x := 5|0|let dichiara una variabile.",
-"Quale tipo è 'ciao'?|string|number|boolean|0|Il testo è di tipo string.",
-"Come fai un commento su una riga?|// commento|# commento|<!-- commento -->|0|// crea un commento.",
-"Come assegni un valore?|x = 10|x == 10|10 = x|0|= assegna un valore.",
-"Come confronti due valori?|==|=|=>|0|== confronta i valori.",
-"Come dichiari una costante?|const x = 5|let x = 5|var x == 5|0|const crea una costante.",
-"Quale valore è booleano?|true|1|'true'|0|true è booleano.",
-"Come fai un if?|if(x > 0){}|if x > 0|when x > 0|0|if usa parentesi e graffe.",
-"Come fai un else?|else {}|elseif {}|otherwise {}|0|else gestisce il caso alternativo.",
-"Come crei un array?|[1,2,3]|(1,2,3)|{1,2,3}|0|Gli array usano [].",
-"Come accedi al primo elemento di un array?|arr[0]|arr(0)|arr.first()|0|Gli array partono da indice 0.",
-"Come trovi la lunghezza di un array?|arr.length|arr.size|length(arr)|0|length restituisce la dimensione.",
-"Come fai un ciclo for?|for(let i=0;i<5;i++)|for i in 5|loop i|0|for è il ciclo base.",
-"Come converti una stringa in numero?|Number('5')|toInt('5')|parse('5')|0|Number converte in numero."
-],
-        L2: ["Come dichiari una funzione?|function f(){}|def f(){}|func f(){}|0|function definisce una funzione.",
-"Come passi un parametro?|f(x)|f = x|call f x|0|I parametri vanno tra parentesi.",
-"Come restituisci un valore?|return x|print x|echo x|0|return restituisce un valore.",
-"Come verifichi il tipo?|typeof x|type(x)|x.type|0|typeof controlla il tipo.",
-"Come concateni stringhe?|a + b|a , b|concat(a,b)|0|+ unisce stringhe.",
-"Come converti numero in stringa?|String(5)|toString(5)|parseString(5)|0|String converte in stringa.",
-"Come aggiungi a un array?|arr.push(x)|arr.add(x)|arr.append(x)|0|push aggiunge alla fine.",
-"Come rimuovi ultimo elemento?|arr.pop()|arr.remove()|arr.delete()|0|pop rimuove l’ultimo.",
-"Come fai un ciclo while?|while(x<5){}|loop while|for while|0|while ripete finché vero.",
-"Come controlli più condizioni?|else if|elseif|if else|0|else if aggiunge condizioni.",
-"Come crei un oggetto?|{a:1}|[a:1]|(a:1)|0|Gli oggetti usano {}.",
-"Come accedi a una proprietà?|obj.a|obj[a]|obj->a|0|Il punto accede alle proprietà.",
-"Come verifichi uguaglianza stretta?|===|==|=|0|=== confronta tipo e valore.",
-"Come importi un file?|import x from 'y'|include y|require y|0|import carica moduli.",
-"Come esporti una funzione?|export function f(){}|share f()|public f()|0|export rende disponibile il codice."
-            ],
-        L3: ["Cos’è una arrow function?|Funzione compatta|Classe|Oggetto|0|Usa => per sintassi breve.",
-"Sintassi arrow function?|() => {}|=> function()|function =>|0|La forma è () => {}.",
-"Cos’è una callback?|Funzione passata|Variabile globale|Evento HTML|0|Le callback sono funzioni argomento.",
-"Cos’è una promise?|Oggetto asincrono|Array|Thread|0|Promise gestisce async.",
-"Stato di una promise?|pending|waiting|loading|0|pending è lo stato iniziale.",
-"Come gestisci promise?|then/catch|try/except|await only|0|then e catch gestiscono risultati.",
-"Cos’è setTimeout?|Esegue dopo tempo|Ciclo|Evento click|0|setTimeout ritarda l’esecuzione.",
-"Cos’è setInterval?|Esegue a intervalli|Timeout singolo|Promise|0|Ripete nel tempo.",
-"Cos’è map?|Trasforma array|Filtra array|Ordina array|0|map restituisce nuovo array.",
-"Cos’è filter?|Filtra elementi|Modifica array|Somma valori|0|filter seleziona elementi.",
-"Cos’è reduce?|Riduce a valore|Filtra|Ordina|0|reduce accumula valori.",
-"Cos’è il destructuring?|Estrazione valori|Copia oggetti|Merge array|0|Destructuring semplifica accesso.",
-"Come copi un array?|[...arr]|arr.copy()|clone(arr)|0|Spread copia l’array.",
-"Cos’è lo spread operator?|...|***|+++|0|... espande array o oggetti.",
-"Cos’è JSON?|Formato dati|Libreria|Database|0|JSON è testo strutturato.",
-                   ], L4: ["Cos’è async?|Funzione asincrona|Thread|Classe|0|async abilita await.",
-"Cos’è await?|Attende promise|Blocca thread|Loop|0|await aspetta il risultato.",
-"Come gestisci errori async?|try/catch|then only|error()|0|try/catch funziona con await.",
-"Cos’è una closure?|Scope mantenuto|Classe privata|Oggetto|0|Closure ricorda variabili esterne.",
-"Cos’è il lexical scope?|Scope statico|Scope dinamico|Globale|0|Dipende dalla posizione nel codice.",
-"Cos’è l’event loop?|Gestione async|Thread manager|Garbage collector|0|Coordina operazioni asincrone.",
-"Cos’è call stack?|Pila chiamate|Heap|Queue|0|Gestisce le funzioni attive.",
-"Cos’è hoisting?|Spostamento dichiarazioni|Import automatico|Override|0|Variabili e funzioni vengono alzate.",
-"Differenza let e var?|Scope diverso|Stessa cosa|var è moderno|0|let ha scope di blocco.",
-"Cos’è this?|Contesto|Classe|Modulo|0|this dipende da come è chiamata.",
-"Come fissi this?|bind()|lock()|fix()|0|bind imposta il contesto.",
-"Cos’è una IIFE?|Funzione autoeseguita|Callback|Promise|0|Si esegue subito.",
-"Cos’è strict mode?|Regole più rigide|Debug|Performance|0|'use strict' evita errori.",
-"Cos’è il debounce?|Limita chiamate|Accelera eventi|Blocca click|0|Riduce esecuzioni ripetute.",
-"Cos’è il throttle?|Limita frequenza|Ritarda eventi|Blocca funzioni|0|Controlla quante volte esegue."
-                          ]
-    },
-    Java: { L1: ["Come stampi a schermo?|System.out.println(\"Ciao\")|print('Ciao')|echo 'Ciao'|0|System.out.println stampa testo.",
-"Che tipo è int?|Intero|Decimale|Stringa|0|int è un numero intero.",
-"Come dichiari una variabile?|int x = 5|x := 5|var x == 5|0|Si specifica tipo e nome.",
-"Come fai un commento su una riga?|// commento|# commento|<!-- commento -->|0|// crea commenti.",
-"Come assegni un valore?|x = 10|x == 10|10 = x|0|= assegna un valore.",
-"Qual è il tipo per testo?|String|string|Text|0|String rappresenta testo.",
-"Come fai un if?|if(x > 0){}|if x > 0|when x > 0|0|if usa parentesi e graffe.",
-"Come fai un else?|else {}|elseif {}|otherwise {}|0|else gestisce alternativa.",
-"Come fai un ciclo for?|for(int i=0;i<5;i++)|for i in 5|loop i|0|for è il ciclo base.",
-"Come fai un ciclo while?|while(x<5){}|loop while|for while|0|while ripete finché vero.",
-"Quale valore è booleano?|true|1|'true'|0|true è booleano.",
-"Come dichiari una costante?|final int x = 5|const x = 5|static x = 5|0|final rende costante.",
-"Come crei un array?|int[] a = new int[3]|int a()|array int a|0|Gli array usano [].",
-"Indice primo elemento?|0|1|-1|0|Gli array partono da 0.",
-"Come stampi un array?|Arrays.toString(a)|print(a)|a.print()|0|Arrays.toString mostra valori."
-                ], L2: ["Come dichiari una classe?|class Persona {}|def Persona {}|Persona class {}|0|class definisce una classe.",
-"Come crei un oggetto?|new Persona()|Persona()|create Persona|0|new istanzia l’oggetto.",
-"Cos’è un costruttore?|Metodo speciale|Variabile|Classe|0|Inizializza l’oggetto.",
-"Nome del costruttore?|Uguale alla classe|main|init|0|Ha lo stesso nome.",
-"Cos’è un metodo?|Funzione di classe|Variabile|Oggetto|0|I metodi definiscono azioni.",
-"Come passi parametri?|metodo(x)|x.metodo|pass x|0|I parametri vanno tra parentesi.",
-"Come restituisci un valore?|return|print|echo|0|return restituisce dati.",
-"Cos’è this?|Riferimento all’oggetto|Classe|Metodo|0|this indica l’istanza.",
-"Modificatore più aperto?|public|private|protected|0|public è accessibile ovunque.",
-"Modificatore più chiuso?|private|public|protected|0|private limita l’accesso.",
-"Cos’è incapsulamento?|Dati protetti|Ereditarietà|Polimorfismo|0|Usa private e metodi.",
-"Come leggi input?|Scanner|InputReader|System.in.read()|0|Scanner legge input.",
-"Come importi una classe?|import package.Classe|include Classe|use Classe|0|import rende disponibile.",
-"Cos’è un package?|Raggruppa classi|Metodo|Oggetto|0|Organizza il codice.",
-"Come crei un package?|package nome;|new package|make package|0|package va in cima."
-                       ], L3: ["Cos’è l’ereditarietà?|Classe figlia|Interfaccia|Override|0|Una classe estende un’altra.",
-"Parola chiave ereditarietà?|extends|implements|inherits|0|extends crea ereditarietà.",
-"Cos’è override?|Ridefinizione metodo|Overload|Costruttore|0|Cambia comportamento.",
-"Annotazione override?|@Override|@Overload|@Rewrite|0|@Override segnala override.",
-"Cos’è overload?|Stesso nome, parametri diversi|Stesso codice|Override|0|Overload cambia firma.",
-"Cos’è un’interfaccia?|Contratto|Classe concreta|Oggetto|0|Definisce metodi.",
-"Parola chiave interfaccia?|interface|abstract|implements|0|interface la definisce.",
-"Come implementi un’interfaccia?|implements|extends|override|0|implements collega.",
-"Cos’è una classe astratta?|Classe incompleta|Interfaccia|Oggetto|0|Può avere metodi astratti.",
-"Parola chiave astratta?|abstract|static|final|0|abstract rende incompleta.",
-"Cos’è il polimorfismo?|Comportamenti diversi|Classe astratta|Ereditarietà|0|Stesso metodo, azioni diverse.",
-"Cos’è instanceof?|Controllo tipo|Cast|Override|0|Verifica il tipo.",
-"Cos’è un cast?|Conversione tipo|Override|Clone|0|Trasforma un tipo.",
-"Cos’è una eccezione?|Errore runtime|Errore sintassi|Warning|0|Blocca il flusso.",
-"Come gestisci eccezioni?|try/catch|if/error|handle()|0|try/catch gestisce errori."
-                              ], L4: ["Cos’è una lambda?|Funzione anonima|Classe|Thread|0|Sintassi compatta.",
-"Sintassi lambda?|() -> {}|=>|function()|0|Usa ->.",
-"Cos’è Stream API?|Elabora collezioni|Thread|I/O|0|Stream lavora sui dati.",
-"Metodo per filtrare stream?|filter()|map()|reduce()|0|filter seleziona.",
-"Metodo per trasformare?|map()|filter()|sort()|0|map trasforma elementi.",
-"Cos’è Optional?|Valore opzionale|Null|Eccezione|0|Evita NullPointer.",
-"Cos’è una collection?|Struttura dati|Classe base|Metodo|0|Gestisce gruppi.",
-"Differenza List e Set?|Set no duplicati|Uguali|List ordinata|0|Set evita duplicati.",
-"Cos’è HashMap?|Chiave-valore|Lista|Set|0|Mappa dati.",
-"Cos’è generics?|Tipi parametrizzati|Override|Cast|0|Rende codice sicuro.",
-"Cos’è final?|Non modificabile|Privato|Astratto|0|Blocca modifiche.",
-"Cos’è static?|Appartiene alla classe|All’oggetto|Locale|0|Non richiede istanza.",
-"Cos’è JVM?|Esegue Java|Compila|Interpreta JS|0|Java Virtual Machine.",
-"Cos’è garbage collector?|Libera memoria|Crea oggetti|Compila|0|Gestisce memoria.",
-"Cos’è multithreading?|Esecuzione parallela|Loop|Async JS|0|Più thread insieme."
-                                     ] },
-    MySQL: { L1: ["A cosa serve MySQL?|Gestire database|Creare siti|Scrivere codice|0|MySQL è un DBMS.",
-"Come selezioni tutti i dati?|SELECT * FROM tabella|GET ALL tabella|FETCH *|0|SELECT legge i dati.",
-"Come selezioni una colonna?|SELECT nome FROM tabella|GET nome|READ nome|0|Si indica la colonna.",
-"Come filtri i risultati?|WHERE|FILTER|IF|0|WHERE applica condizioni.",
-"Come inserisci dati?|INSERT INTO tabella VALUES(...)|ADD record|PUT data|0|INSERT aggiunge record.",
-"Come aggiorni dati?|UPDATE tabella SET col=val|CHANGE tabella|MODIFY record|0|UPDATE modifica record.",
-"Come elimini dati?|DELETE FROM tabella|REMOVE record|DROP record|0|DELETE elimina record.",
-"Come ordini risultati?|ORDER BY|SORT BY|GROUP BY|0|ORDER BY ordina.",
-"Come limiti risultati?|LIMIT|TOP|MAX|0|LIMIT riduce righe.",
-"Come conti le righe?|COUNT(*)|SUM(*)|TOTAL(*)|0|COUNT conta righe.",
-"Come inserisci più righe?|VALUES (),()|MULTI INSERT|ADD ALL|0|VALUES accetta più record.",
-"Che cos’è una tabella?|Struttura dati|Query|Database|0|Le tabelle contengono dati.",
-"Che cos’è una colonna?|Campo|Riga|Indice|0|La colonna è un campo.",
-"Che cos’è una riga?|Record|Campo|Query|0|La riga è un record.",
-"Come commenti una query?|-- commento|// commento|#* commento|0|-- crea commenti."
-                 ], L2: ["A cosa serve MySQL?|Gestire database|Creare siti|Scrivere codice|0|MySQL è un DBMS.",
-"Come selezioni tutti i dati?|SELECT * FROM tabella|GET ALL tabella|FETCH *|0|SELECT legge i dati.",
-"Come selezioni una colonna?|SELECT nome FROM tabella|GET nome|READ nome|0|Si indica la colonna.",
-"Come filtri i risultati?|WHERE|FILTER|IF|0|WHERE applica condizioni.",
-"Come inserisci dati?|INSERT INTO tabella VALUES(...)|ADD record|PUT data|0|INSERT aggiunge record.",
-"Come aggiorni dati?|UPDATE tabella SET col=val|CHANGE tabella|MODIFY record|0|UPDATE modifica record.",
-"Come elimini dati?|DELETE FROM tabella|REMOVE record|DROP record|0|DELETE elimina record.",
-"Come ordini risultati?|ORDER BY|SORT BY|GROUP BY|0|ORDER BY ordina.",
-"Come limiti risultati?|LIMIT|TOP|MAX|0|LIMIT riduce righe.",
-"Come conti le righe?|COUNT(*)|SUM(*)|TOTAL(*)|0|COUNT conta righe.",
-"Come inserisci più righe?|VALUES (),()|MULTI INSERT|ADD ALL|0|VALUES accetta più record.",
-"Che cos’è una tabella?|Struttura dati|Query|Database|0|Le tabelle contengono dati.",
-"Che cos’è una colonna?|Campo|Riga|Indice|0|La colonna è un campo.",
-"Che cos’è una riga?|Record|Campo|Query|0|La riga è un record.",
-"Come commenti una query?|-- commento|// commento|#* commento|0|-- crea commenti."
-                        ], L3: ["Cos’è una subquery?|Query dentro query|Join|Vista|0|Una query annidata.",
-"Dove può stare una subquery?|WHERE|FROM|SELECT|0|Può stare in più parti.",
-"Cos’è una view?|Tabella virtuale|Backup|Indice|0|La view salva una query.",
-"Come crei una view?|CREATE VIEW|MAKE VIEW|NEW VIEW|0|CREATE VIEW la definisce.",
-"Cos’è un indice?|Ottimizza ricerche|Chiave primaria|Relazione|0|Gli indici velocizzano.",
-"Come crei un indice?|CREATE INDEX|ADD INDEX|MAKE INDEX|0|CREATE INDEX lo crea.",
-"Cos’è EXPLAIN?|Analisi query|Esegue query|Backup|0|EXPLAIN mostra il piano.",
-"Cos’è una funzione aggregata?|COUNT,SUM|JOIN|WHERE|0|Aggregano valori.",
-"Cos’è SUM?|Somma valori|Conta righe|Media|0|SUM calcola la somma.",
-"Cos’è AVG?|Media|Somma|Conta|0|AVG calcola la media.",
-"Cos’è MIN?|Valore minimo|Valore massimo|Media|0|MIN trova il più piccolo.",
-"Cos’è MAX?|Valore massimo|Minimo|Somma|0|MAX trova il più grande.",
-"Cos’è una stored procedure?|Codice SQL salvato|Trigger|View|0|Procedure eseguono logica.",
-"Come crei una procedura?|CREATE PROCEDURE|MAKE PROCEDURE|NEW PROC|0|CREATE PROCEDURE la crea.",
-"Cos’è un parametro?|Valore in ingresso|Colonna|Indice|0|I parametri passano dati."
-                               ], L4: ["Cos’è una transazione?|Gruppo operazioni|Query singola|Backup|0|Garantisce coerenza.",
-"Come inizi una transazione?|START TRANSACTION|BEGIN QUERY|OPEN|0|Avvia la transazione.",
-"Come confermi una transazione?|COMMIT|SAVE|END|0|COMMIT salva le modifiche.",
-"Come annulli una transazione?|ROLLBACK|UNDO|CANCEL|0|ROLLBACK annulla.",
-"Cos’è ACID?|Regole transazioni|Indice|Join|0|Garantisce affidabilità.",
-"Cos’è un trigger?|Evento automatico|Procedura|Indice|0|Scatta su eventi.",
-"Quando scatta un trigger?|INSERT UPDATE DELETE|SELECT|JOIN|0|Reagisce a modifiche.",
-"Cos’è una funzione SQL?|Restituisce valore|Query|Vista|0|Le funzioni ritornano valori.",
-"Differenza funzione e procedura?|Return obbligatorio|Nessuna|Solo sintassi|0|La funzione ritorna valore.",
-"Cos’è un lock?|Blocco risorse|Indice|Join|0|Evita conflitti.",
-"Cos’è il deadlock?|Blocco reciproco|Errore sintassi|Timeout|0|Due transazioni bloccate.",
-"Cos’è normalizzazione?|Riduce duplicazioni|Backup|Indice|0|Migliora struttura dati.",
-"Forma normale più base?|Prima forma|Seconda forma|Terza forma|0|La 1NF è la base.",
-"Cos’è denormalizzazione?|Aggiunge duplicazioni|Errore|Indice|0|Migliora prestazioni.",
-"Cos’è un backup?|Copia dati|Query|Vista|0|Protegge i dati."
-                                      ] },
-    HTML: { L1: ["Cos’è HTML?|Linguaggio di markup|Linguaggio di programmazione|Database|0|HTML struttura le pagine.",
-"Qual è il tag principale?|<html>|<body>|<head>|0|html contiene tutto.",
-"Dove va il contenuto visibile?|<body>|<head>|<title>|0|body mostra il contenuto.",
-"Dove vanno i meta dati?|<head>|<body>|<footer>|0|head contiene informazioni.",
-"Come scrivi un titolo grande?|<h1>|<p>|<title>|0|h1 è il titolo principale.",
-"Come scrivi un paragrafo?|<p>|<div>|<span>|0|p crea un paragrafo.",
-"Come vai a capo?|<br>|<hr>|<p>|0|br va a capo.",
-"Come crei una lista non ordinata?|<ul>|<ol>|<li>|0|ul crea liste non ordinate.",
-"Come crei una lista ordinata?|<ol>|<ul>|<li>|0|ol crea liste ordinate.",
-"Quale tag è un elemento lista?|<li>|<ul>|<ol>|0|li è l’elemento.",
-"Come inserisci un link?|<a href='url'>|<link>|<url>|0|a crea collegamenti.",
-"Come inserisci un’immagine?|<img src='img'>|<image>|<pic>|0|img mostra immagini.",
-"Attributo link destinazione?|href|src|link|0|href indica l’URL.",
-"Attributo immagine percorso?|src|href|alt|0|src indica il file.",
-"Come fai un commento?|<!-- commento -->|// commento|# commento|0|Commenti HTML."
-                ], L2: ["Cos’è un attributo?|Info del tag|Tag|Contenuto|0|Descrive il tag.",
-"Cos’è id?|Identificatore unico|Classe|Tag|0|id è unico.",
-"Cos’è class?|Gruppo elementi|ID unico|Script|0|class raggruppa.",
-"Tag per input testo?|<input type='text'>|<text>|<field>|0|input accetta testo.",
-"Tag per form?|<form>|<input>|<fieldset>|0|form invia dati.",
-"Metodo form invio?|method|action|type|0|method definisce invio.",
-"Attributo destinazione form?|action|target|href|0|action indica URL.",
-"Input per password?|type='password'|type='text'|type='hidden'|0|password oscura testo.",
-"Input per checkbox?|type='checkbox'|type='radio'|type='check'|0|checkbox selezione multipla.",
-"Input per radio?|type='radio'|type='checkbox'|type='select'|0|radio scelta singola.",
-"Tag per menu a tendina?|<select>|<option>|<dropdown>|0|select crea menu.",
-"Tag opzione menu?|<option>|<select>|<li>|0|option è la scelta.",
-"Come invii un form?|type='submit'|type='send'|type='button'|0|submit invia.",
-"Cos’è placeholder?|Testo guida|Valore|Etichetta|0|Suggerisce input.",
-"Cos’è label?|Etichetta campo|Input|Valore|0|label descrive input."
-                       ], L3: ["Cos’è un div?|Contenitore|Testo|Link|0|div organizza layout.",
-"Cos’è span?|Inline container|Blocco|Titolo|0|span è inline.",
-"Differenza div e span?|Blocco vs inline|Uguali|Span obsoleto|0|Comportamento diverso.",
-"Cos’è HTML semantico?|Tag con significato|HTML veloce|CSS|0|Migliora struttura.",
-"Tag semantico header?|<header>|<div>|<top>|0|header è semantico.",
-"Tag semantico footer?|<footer>|<bottom>|<div>|0|footer chiude pagina.",
-"Tag semantico main?|<main>|<body>|<section>|0|main è contenuto centrale.",
-"Tag section?|Sezione contenuto|Titolo|Link|0|section divide contenuti.",
-"Tag article?|Contenuto autonomo|Layout|Menu|0|article è indipendente.",
-"Tag nav?|Menu navigazione|Footer|Aside|0|nav per menu.",
-"Cos’è iframe?|Pagina incorporata|Immagine|Script|0|iframe mostra pagine.",
-"Attributo alt immagine?|Testo alternativo|Percorso|Classe|0|alt per accessibilità.",
-"Cos’è accessibilità?|Usabilità per tutti|Design|Velocità|0|HTML aiuta l’accesso.",
-"Cos’è SEO?|Visibilità motori|Grafica|Hosting|0|HTML aiuta indicizzazione.",
-"Tag per video?|<video>|<media>|<movie>|0|video mostra filmati."
-                              ], L4: ["Cos’è data-attribute?|Dati personalizzati|Classe|ID|0|data-* salva info.",
-"Esempio data attribute?|data-id='1'|id-data='1'|attr-data='1'|0|data-* è standard.",
-"Cos’è meta charset?|Codifica testo|SEO|Viewport|0|Definisce caratteri.",
-"Meta viewport serve a?|Responsive|SEO|Font|0|Adatta ai dispositivi.",
-"Cos’è responsive?|Adattabile|Animato|Veloce|0|Si adatta allo schermo.",
-"Tag picture?|Immagini responsive|Video|Audio|0|picture cambia immagini.",
-"Attributo srcset?|Immagini multiple|Link|Video|0|srcset gestisce risoluzioni.",
-"Cos’è lazy loading?|Caricamento ritardato|Errore|Cache|0|Migliora performance.",
-"Attributo loading?|lazy|async|defer|0|loading='lazy' ritarda.",
-"Cos’è defer?|Ritarda script|Blocca script|Esegue prima|0|Esegue dopo HTML.",
-"Cos’è async?|Script asincrono|CSS|HTML|0|Carica in parallelo.",
-"Differenza async e defer?|Ordine diverso|Uguali|Solo sintassi|0|defer mantiene ordine.",
-"Cos’è noscript?|Fallback JS|Meta|Link|0|Mostra senza JS.",
-"Cos’è template?|HTML riutilizzabile|CSS|JS|0|template non renderizzato.",
-"Cos’è custom element?|Web component|Classe CSS|ID|0|Crea tag personalizzati."
-                                     ] }
+
+        L2: [
+            "Come aggiungi un elemento a una lista chiamata lista?|lista.append(5)|lista.add(5)|lista.push(5)|0|append() aggiunge elementi.",
+            "Come ottieni la lunghezza di una lista?|len(lista)|lista.length|lista.size|0|len() restituisce il numero di elementi.",
+            "Come gestisci un errore in Python?|try/except|catch|error handling|0|try/except cattura eccezioni.",
+            "Come estrai il primo elemento di una lista?|lista[0]|lista.first|lista.get(0)|0|Gli indici partono da 0.",
+            "Come definisci una funzione chiamata saluta?|def saluta():|function saluta()|saluta =>|0|def definisce funzioni.",
+            "Come ritorni un valore da una funzione?|return x|yield x|output x|0|return restituisce il valore.",
+            "Come fai una copia superficiale di una lista?|lista.copy()|list(lista)|lista.shallow()|0|copy() crea una copia.",
+            "Come concatenare due liste?|lista1 + lista2|lista1.concat(lista2)|lista1.append(lista2)|0|+ unisce liste.",
+            "Come ordini una lista in ordine crescente?|lista.sort()|sorted(lista)|lista.order()|0|sort() ordina la lista.",
+            "Come ordini una lista senza modificarla?|sorted(lista)|lista.sort()|lista.order()|0|sorted() restituisce una nuova lista.",
+
+            // +5 nuove L2
+            "Come inverti una lista?|lista.reverse()|reverse(lista)|lista.invert()|0|reverse() inverte la lista.",
+            "Come rimuovi ultimo elemento?|lista.pop()|lista.remove()|del lista|0|pop() rimuove ultimo.",
+            "Come conti occorrenze?|lista.count(x)|count(lista)|x.count()|0|count() conta valori.",
+            "Come copi una lista con slicing?|lista[:] |copy(lista)|slice(lista)|0|[:] crea copia.",
+            "Come fai enumerate?|enumerate(lista)|list.enumerate()|for index|0|enumerate() fornisce indice."
+        ],
+
+        L3: [
+            "Come definisci una classe chiamata Persona?|class Persona:|def Persona():|Persona class|0|class definisce classi.",
+            "Come erediti da una classe Animal?|class Dog(Animal):|class Dog < Animal:|class Dog inherits Animal|0|Sintassi corretta.",
+            "Come definisci il costruttore?|def __init__(self):|def init():|def constructor():|0|__init__ è il costruttore.",
+            "Come accedi a un attributo?|oggetto.attributo|oggetto->attributo|oggetto[attributo]|0|Si usa il punto.",
+            "Come sovrascrivi __str__?|def __str__(self):|def str(self):|def __repr__(self):|0|__str__ definisce stringa.",
+
+            // +5 nuove L3
+            "Come controlli il tipo?|isinstance(x, Classe)|type(x)==Classe|x is Classe|0|isinstance è corretto.",
+            "Come usi super?|super().__init__()|super()|Base.init()|0|super() chiama la base.",
+            "Come crei una lambda?|lambda x: x*2|def lambda()|x => x*2|0|lambda crea funzioni anonime.",
+            "Come usi map?|map(f, lista)|lista.map(f)|apply(f)|0|map applica funzione.",
+            "Come usi filter?|filter(f, lista)|lista.filter()|select(f)|0|filter filtra valori."
+        ],
+
+        L4: [
+            "Come fai coroutine?|async def f(): await g()|def f(): yield g()|async f()|0|async/await crea coroutine.",
+            "Come lanci un task async?|asyncio.create_task(f())|asyncio.run(f)|task(f)|0|create_task avvia task.",
+            "Come definisci context manager?|__enter__ / __exit__|with only|context()|0|Serve enter/exit.",
+            "Come fai weak reference?|weakref.ref(obj)|ref(obj)|weak(obj)|0|weakref crea ref debole.",
+            "Come serializzi oggetti?|pickle.dump(obj,f)|json.dump(obj)|save(obj)|0|pickle serializza oggetti.",
+
+            // +5 nuove L4
+            "Come usi yield from?|yield from gen()|yield gen()|for yield|0|yield from delega.",
+            "Come crei iteratori?|__iter__ e __next__|for loop|range|0|Definisce iteratore.",
+            "Come usi lru_cache?|@lru_cache()|@cache|cache(f)|0|Memorizza risultati.",
+            "Come definisci __slots__?|__slots__=['x']|slots()|@slots|0|Riduce memoria.",
+            "Come usi typing?|from typing import List|type(list)|hint()|0|typing fornisce hint."
+        ]
+    }
 };
 
 const challenges5 = {
     Python: [
-        { task: "Conta da 1 a 3", logic: "for i in range(1, 4)", output: "1\n2\n3", userStatus: null },
-        { task: "Stampa numeri pari fino a 6", logic: "for i in range(2,7,2)", output: "2\n4\n6", userStatus: null },
+        { task: "Conta da 1 a 3", logic: "for i in range(1,4): print(i)", output: "1\n2\n3", userStatus: null },
+        { task: "Stampa numeri pari fino a 6", logic: "for i in range(2,7,2): print(i)", output: "2\n4\n6", userStatus: null },
         { task: "Somma numeri da 1 a 5", logic: "sum(range(1,6))", output: "15", userStatus: null },
         { task: "Crea una lista di quadrati 1-5", logic: "[i*i for i in range(1,6)]", output: "[1, 4, 9, 16, 25]", userStatus: null },
         { task: "Stampa 'Ciao' 3 volte usando ciclo", logic: "for i in range(3): print('Ciao')", output: "Ciao\nCiao\nCiao", userStatus: null }
-    ],
+    ]
+};
+const domandaRepo = {
+    ...domandaRepo,
+    JavaScript: {
+        L1: [
+            "Come stampi Ciao?|console.log('Ciao')|print('Ciao')|echo 'Ciao'|0|console.log stampa in console.",
+            "Come dichiari una variabile?|let x = 5|var: x = 5|int x = 5|0|let dichiara variabili.",
+            "Che tipo è 'ciao'?|string|String|text|0|'ciao' è una stringa.",
+            "Come fai un commento?|// commento|# commento|<!-- -->|0|// è il commento JS.",
+            "Come confronti due valori uguali?|==|=|=>|0|== confronta valori.",
+
+            // +5 nuove L1
+            "Come confronti tipo e valore?|===|==|=|0|=== è confronto stretto.",
+            "Come sommi 2 numeri?|a + b|a plus b|add(a,b)|0|+ somma.",
+            "Come sottrai?|a - b|a minus b|sub(a,b)|0|- sottrae.",
+            "Come moltiplichi?|a * b|a x b|mul(a,b)|0|* moltiplica.",
+            "Come dividi?|a / b|a : b|div(a,b)|0|/ divide."
+        ],
+
+        L2: [
+            "Come crei una funzione?|function f(){}|def f()|fun f()|0|function definisce funzioni.",
+            "Come ritorni un valore?|return x|yield x|output x|0|return restituisce valore.",
+            "Come crei un array?|[1,2,3]|array(1,2,3)|{1,2,3}|0|[] crea array.",
+            "Come accedi al primo elemento?|arr[0]|arr.first|arr.get(0)|0|Indice 0.",
+            "Come aggiungi elemento a array?|arr.push(5)|arr.add(5)|push(arr,5)|0|push aggiunge.",
+
+            // +5 nuove L2
+            "Come rimuovi ultimo elemento?|arr.pop()|arr.remove()|pop(arr)|0|pop rimuove ultimo.",
+            "Come ottieni lunghezza?|arr.length|len(arr)|size(arr)|0|length è proprietà.",
+            "Come unisci array?|a.concat(b)|a + b|merge(a,b)|0|concat unisce.",
+            "Come iteri array?|forEach()|loop()|iterate()|0|forEach itera.",
+            "Come mappi array?|map()|foreach()|loop()|0|map trasforma."
+        ],
+
+        L3: [
+            "Come definisci una classe?|class A {}|function A(){}|new Class()|0|class definisce classi.",
+            "Come crei un oggetto?|new A()|A()|object A|0|new istanzia.",
+            "Come erediti?|class B extends A{}|class B:A|inherit A|0|extends eredita.",
+            "Come definisci costruttore?|constructor(){}|init(){}|new(){}|0|constructor è speciale.",
+            "Come accedi a proprietà?|obj.prop|obj->prop|obj[prop()]|0|Si usa il punto.",
+
+            // +5 nuove L3
+            "Come fai metodo statico?|static f(){}|function static f|class static|0|static crea metodo.",
+            "Come esporti modulo?|export default x|module x|public x|0|export esporta.",
+            "Come importi modulo?|import x from 'x'|include x|require x|0|import carica.",
+            "Come usi this?|this.x|self.x|me.x|0|this è contesto.",
+            "Come controlli array?|Array.isArray(x)|typeof x|x is array|0|isArray verifica."
+        ],
+
+        L4: [
+            "Come definisci funzione async?|async function f(){}|function async f|async f()|0|async abilita await.",
+            "Come attendi promessa?|await p|wait p|then p|0|await aspetta.",
+            "Come crei Promise?|new Promise()|Promise()|promise{}|0|Promise costruttore.",
+            "Come gestisci errori?|try/catch|if error|onerror|0|try/catch gestisce.",
+            "Come fai fetch?|fetch(url)|get(url)|request(url)|0|fetch fa richieste.",
+
+            // +5 nuove L4
+            "Come cloni oggetto?|{...obj}|clone(obj)|copy(obj)|0|spread clona.",
+            "Come destrutturi?|const {a}=obj|get a|obj[a]|0|destructuring estrae.",
+            "Come usa optional chaining?|obj?.a|obj.a?|if obj|0|?. evita errori.",
+            "Come usa nullish?|a ?? b|a || b|null(a,b)|0|?? gestisce null.",
+            "Come congeli oggetto?|Object.freeze(o)|freeze(o)|lock(o)|0|freeze blocca."
+        ]
+    }
+};
+
+const challenges5 = {
+    ...challenges5,
     JavaScript: [
-        { task: "Conta da 1 a 5", logic: "for(let i=1;i<=5;i++)", output: "1\n2\n3\n4\n5", userStatus: null },
-        { task: "Ciclo su array [1,2,3]", logic: "for(let x of [1,2,3])", output: "1\n2\n3", userStatus: null },
-        { task: "Somma numeri da 1 a 5", logic: "let sum=0;for(let i=1;i<=5;i++)", output: "15", userStatus: null },
-        { task: "Stampa solo numeri pari 1-10", logic: "if(i%2===0)", output: "2\n4\n6\n8\n10", userStatus: null },
-        { task: "Crea array di quadrati 1-5", logic: "[1,2,3,4,5].map(x=>x*x)", output: "[1,4,9,16,25]", userStatus: null }
-    ],
+        { task: "Stampa 1 a 3", logic: "for(let i=1;i<=3;i++){console.log(i)}", output: "1\n2\n3", userStatus: null },
+        { task: "Somma 1 a 5", logic: "let s=0;for(let i=1;i<=5;i++){s+=i}", output: "15", userStatus: null },
+        { task: "Array quadrati", logic: "[1,2,3,4,5].map(x=>x*x)", output: "[1,4,9,16,25]", userStatus: null },
+        { task: "Pari fino 6", logic: "for(let i=2;i<=6;i+=2){console.log(i)}", output: "2\n4\n6", userStatus: null },
+        { task: "Stampa Ciao 3 volte", logic: "for(let i=0;i<3;i++){console.log('Ciao')}", output: "Ciao\nCiao\nCiao", userStatus: null }
+    ]
+};
+const domandaRepo = {
+    ...domandaRepo,
+    Java: {
+        L1: [
+            "Come stampi Ciao?|System.out.println(\"Ciao\");|print(\"Ciao\")|echo Ciao|0|println stampa testo.",
+            "Come dichiari una variabile int?|int x = 5;|x = 5;|var x = 5;|0|int dichiara interi.",
+            "Che tipo è 3.14?|double|int|float|0|3.14 è double.",
+            "Come fai un commento?|// commento|# commento|<!-- -->|0|// commento singola linea.",
+            "Come confronti due numeri?|==|=|equals|0|== confronta primitivi.",
+
+            // +5 nuove L1
+            "Come sommi due int?|a + b|a plus b|add(a,b)|0|+ somma.",
+            "Come sottrai?|a - b|a minus b|sub(a,b)|0|- sottrae.",
+            "Come moltiplichi?|a * b|a x b|mul(a,b)|0|* moltiplica.",
+            "Come dividi?|a / b|a : b|div(a,b)|0|/ divide.",
+            "Come fai modulo?|a % b|a mod b|mod(a,b)|0|% resto."
+        ],
+
+        L2: [
+            "Come crei un array?|int[] a = {1,2,3};|array a = (1,2,3)|int a = []|0|Array con {}.",
+            "Come accedi primo elemento?|a[0]|a.first()|a.get(0)|0|Indice parte da 0.",
+            "Come ottieni lunghezza array?|a.length|len(a)|a.size()|0|length è proprietà.",
+            "Come fai ciclo for?|for(int i=0;i<5;i++)|for i in range(5)|foreach i|0|Sintassi for.",
+            "Come definisci metodo?|static void f(){}|def f()|function f()|0|Metodo Java.",
+
+            // +5 nuove L2
+            "Come fai foreach?|for(int x : a)|foreach x in a|for a|0|Enhanced for.",
+            "Come ritorni valore?|return x;|yield x|output x|0|return restituisce.",
+            "Come converti String a int?|Integer.parseInt(s)|int(s)|parse(s)|0|parseInt converte.",
+            "Come confronti String?|s.equals(t)|s==t|compare(s,t)|0|equals confronta.",
+            "Come aggiungi a ArrayList?|list.add(x)|list.push(x)|add(list,x)|0|add inserisce."
+        ],
+
+        L3: [
+            "Come definisci una classe?|class A {}|def A()|A = class|0|class definisce.",
+            "Come crei oggetto?|new A()|A()|create A|0|new istanzia.",
+            "Come erediti?|class B extends A|class B:A|inherit A|0|extends eredita.",
+            "Come definisci costruttore?|A(){}|constructor(){}|init(){}|0|Costruttore = nome classe.",
+            "Come accedi a campo?|obj.x|obj->x|obj[x]|0|Si usa il punto.",
+
+            // +5 nuove L3
+            "Come fai override?|@Override|override|@extend|0|Annotazione override.",
+            "Come definisci metodo statico?|static void f()|void static f()|function f()|0|static su metodo.",
+            "Come rendi campo privato?|private int x;|int x private|hide x|0|private nasconde.",
+            "Come usi super?|super()|base()|parent()|0|super chiama padre.",
+            "Come implementi interfaccia?|implements I|extends I|uses I|0|implements interfaccia."
+        ],
+
+        L4: [
+            "Come gestisci eccezioni?|try/catch|if error|onerror|0|try/catch.",
+            "Come lanci eccezione?|throw new Exception()|raise Exception()|error()|0|throw lancia.",
+            "Come usi generics?|List<String>|List(str)|Array<String>|0|Generics tipizzano.",
+            "Come crei thread?|new Thread()|thread()|Thread.create()|0|Thread Java.",
+            "Come sincronizzi metodo?|synchronized|lock|mutex|0|synchronized protegge.",
+
+            // +5 nuove L4
+            "Come usi lambda?|x -> x+1|lambda x|function(x)|0|Lambda Java.",
+            "Come usi stream?|list.stream()|list.flow()|stream(list)|0|Stream API.",
+            "Come filtri stream?|filter(x->x>0)|where(x)|select(x)|0|filter filtra.",
+            "Come mappi stream?|map(x->x*2)|transform(x)|each(x)|0|map trasforma.",
+            "Come raccogli?|collect()|gather()|toList()|0|collect raccoglie."
+        ]
+    }
+};
+
+const challenges5 = {
+    ...challenges5,
     Java: [
-        { task: "Main che stampa 'Ciao'", logic: "System.out.println(\"Ciao\")", output: "Ciao", userStatus: null },
-        { task: "Conta da 1 a 3", logic: "for(int i=1;i<=3;i++)", output: "1\n2\n3", userStatus: null },
-        { task: "Somma numeri 1-5", logic: "int sum=0;for(int i=1;i<=5;i++)", output: "15", userStatus: null },
-        { task: "Stampa numeri pari 1-6", logic: "if(i%2==0)", output: "2\n4\n6", userStatus: null }
-    ],
+        { task: "Stampa 1 a 3", logic: "for(int i=1;i<=3;i++){System.out.println(i);}", output: "1\n2\n3", userStatus: null },
+        { task: "Somma 1 a 5", logic: "int s=0;for(int i=1;i<=5;i++){s+=i;}", output: "15", userStatus: null },
+        { task: "Pari fino 6", logic: "for(int i=2;i<=6;i+=2){System.out.println(i);}", output: "2\n4\n6", userStatus: null },
+        { task: "Stampa Ciao 3 volte", logic: "for(int i=0;i<3;i++){System.out.println(\"Ciao\");}", output: "Ciao\nCiao\nCiao", userStatus: null },
+        { task: "Array quadrati", logic: "int[] a={1,2,3,4,5};for(int x:a){System.out.println(x*x);}", output: "1\n4\n9\n16\n25", userStatus: null }
+    ]
+};
+const domandaRepo = {
+    ...domandaRepo,
+    MySQL: {
+        L1: [
+            "Come selezioni tutti i dati da una tabella?|SELECT * FROM tabella;|GET * FROM tabella;|FETCH tabella;|0|SELECT * legge tutti i dati.",
+            "Come inserisci un record?|INSERT INTO tabella VALUES();|ADD RECORD tabella;|PUT tabella;|0|INSERT aggiunge dati.",
+            "Come aggiorni dati?|UPDATE tabella SET col=1;|MODIFY tabella;|CHANGE tabella;|0|UPDATE modifica dati.",
+            "Come cancelli dati?|DELETE FROM tabella;|REMOVE tabella;|DROP tabella;|0|DELETE cancella righe.",
+            "Come filtri risultati?|WHERE|FILTER|IF|0|WHERE filtra righe.",
+
+            // +5 nuove L1
+            "Come ordini risultati?|ORDER BY col|SORT col|GROUP col|0|ORDER BY ordina.",
+            "Come limiti risultati?|LIMIT 5|TOP 5|MAX 5|0|LIMIT limita.",
+            "Come eviti duplicati?|DISTINCT|UNIQUE|NODUP|0|DISTINCT elimina duplicati.",
+            "Come conti righe?|COUNT(*)|SUM(*)|TOTAL|0|COUNT conta.",
+            "Come rinomini colonna?|AS|RENAME|ALIAS|0|AS crea alias."
+        ],
+
+        L2: [
+            "Come unisci tabelle?|JOIN|MERGE|UNION|0|JOIN unisce tabelle.",
+            "Come fai LEFT JOIN?|LEFT JOIN|LEFT MERGE|OUTER LEFT|0|LEFT JOIN include null.",
+            "Come raggruppi?|GROUP BY|ORDER BY|COLLECT|0|GROUP BY raggruppa.",
+            "Come filtri gruppi?|HAVING|WHERE|FILTER|0|HAVING filtra gruppi.",
+            "Come crei indice?|CREATE INDEX|ADD INDEX|MAKE INDEX|0|INDEX velocizza.",
+
+            // +5 nuove L2
+            "Come unisci senza duplicati?|UNION|JOIN|MERGE|0|UNION elimina duplicati.",
+            "Come unisci con duplicati?|UNION ALL|UNION|JOIN|0|UNION ALL mantiene.",
+            "Come vedi struttura tabella?|DESCRIBE tabella|SHOW tabella|INFO tabella|0|DESCRIBE mostra schema.",
+            "Come rinomini tabella?|RENAME TABLE a TO b|ALTER a NAME b|MOVE a b|0|RENAME cambia nome.",
+            "Come elimini indice?|DROP INDEX|REMOVE INDEX|DELETE INDEX|0|DROP INDEX rimuove."
+        ],
+
+        L3: [
+            "Come crei tabella?|CREATE TABLE|MAKE TABLE|NEW TABLE|0|CREATE TABLE crea.",
+            "Come definisci chiave primaria?|PRIMARY KEY|MAIN KEY|ID KEY|0|PRIMARY KEY identifica.",
+            "Come definisci chiave esterna?|FOREIGN KEY|LINK KEY|OUT KEY|0|FOREIGN collega.",
+            "Come modifichi colonna?|ALTER TABLE|CHANGE TABLE|EDIT TABLE|0|ALTER modifica.",
+            "Come aggiungi colonna?|ADD COLUMN|NEW COLUMN|INSERT COLUMN|0|ADD COLUMN aggiunge.",
+
+            // +5 nuove L3
+            "Come imposti NOT NULL?|NOT NULL|NO NULL|REQUIRED|0|NOT NULL obbliga.",
+            "Come imposti default?|DEFAULT 0|SET 0|AUTO 0|0|DEFAULT valore.",
+            "Come auto increment?|AUTO_INCREMENT|AUTO|INCREMENT|0|AUTO_INCREMENT aumenta.",
+            "Come vincolo unico?|UNIQUE|DISTINCT|ONLY|0|UNIQUE vincolo.",
+            "Come elimina tabella?|DROP TABLE|DELETE TABLE|REMOVE TABLE|0|DROP elimina."
+        ],
+
+        L4: [
+            "Come inizi transazione?|START TRANSACTION|BEGIN|OPEN TRANS|0|Avvia transazione.",
+            "Come confermi?|COMMIT|SAVE|END|0|COMMIT salva.",
+            "Come annulli?|ROLLBACK|UNDO|CANCEL|0|ROLLBACK annulla.",
+            "Come crei vista?|CREATE VIEW|MAKE VIEW|NEW VIEW|0|VIEW salva query.",
+            "Come fai trigger?|CREATE TRIGGER|NEW TRIGGER|ADD TRIGGER|0|TRIGGER evento.",
+
+            // +5 nuove L4
+            "Come fai stored procedure?|CREATE PROCEDURE|MAKE PROC|NEW PROC|0|Procedure SQL.",
+            "Come chiami procedure?|CALL proc()|RUN proc()|EXEC proc()|0|CALL esegue.",
+            "Come usi IF?|IF(cond, a, b)|CASE|WHEN|0|IF condizionale.",
+            "Come usi CASE?|CASE WHEN THEN END|IF ELSE|SWITCH|0|CASE multiplo.",
+            "Come blocchi tabella?|LOCK TABLES|FREEZE|MUTEX|0|LOCK blocca."
+        ]
+    }
+};
+
+const challenges5 = {
+    ...challenges5,
     MySQL: [
-        { task: "Seleziona tutti da tabella utenti", logic: "SELECT * FROM utenti", output: "OK", userStatus: null },
-        { task: "Conta record tabella prodotti", logic: "SELECT COUNT(*) FROM prodotti", output: "OK", userStatus: null },
-        { task: "Seleziona nome e prezzo da prodotti", logic: "SELECT nome, prezzo FROM prodotti", output: "OK", userStatus: null },
-        { task: "Seleziona prodotti con prezzo > 100", logic: "SELECT * FROM prodotti WHERE prezzo>100", output: "OK", userStatus: null }
-    ],
+        { task: "Seleziona tutti utenti", logic: "SELECT * FROM utenti;", output: "tutti i record", userStatus: null },
+        { task: "Conta utenti", logic: "SELECT COUNT(*) FROM utenti;", output: "numero utenti", userStatus: null },
+        { task: "Utenti ordinati per nome", logic: "SELECT * FROM utenti ORDER BY nome;", output: "utenti ordinati", userStatus: null },
+        { task: "Limita a 5 risultati", logic: "SELECT * FROM utenti LIMIT 5;", output: "5 record", userStatus: null },
+        { task: "Utenti unici", logic: "SELECT DISTINCT nome FROM utenti;", output: "nomi unici", userStatus: null }
+    ]
+};
+const domandaRepo = {
+    ...domandaRepo,
+    HTML: {
+        L1: [
+            "Cos'è HTML?|Un linguaggio di markup|Un linguaggio di programmazione|Un database|0|HTML struttura pagine.",
+            "Quale tag crea un titolo?|<h1>|<p>|<title>|0|h1 è titolo.",
+            "Quale tag crea paragrafo?|<p>|<div>|<span>|0|p è paragrafo.",
+            "Come crei link?|<a href='url'>|<link>|<url>|0|a crea link.",
+            "Come inserisci immagine?|<img src='img'>|<image>|<pic>|0|img mostra immagini.",
+
+            // +5 nuove L1
+            "Quale tag lista non ordinata?|<ul>|<ol>|<li>|0|ul lista puntata.",
+            "Quale tag lista ordinata?|<ol>|<ul>|<li>|0|ol numerata.",
+            "Quale tag elemento lista?|<li>|<ul>|<ol>|0|li elemento.",
+            "Quale tag va a capo?|<br>|<hr>|<lb>|0|br va a capo.",
+            "Quale tag linea orizzontale?|<hr>|<br>|<line>|0|hr linea."
+        ],
+
+        L2: [
+            "Cos'è un attributo?|Info extra tag|Tag speciale|Valore CSS|0|Attributo estende tag.",
+            "Come aggiungi classe?|class='x'|id='x'|style='x'|0|class assegna classe.",
+            "Come aggiungi id?|id='x'|class='x'|name='x'|0|id identifica.",
+            "Come commenti HTML?|<!-- -->|//|#|0|Commento HTML.",
+            "Come includi CSS?|<link>|<style>|<css>|0|link collega CSS.",
+
+            // +5 nuove L2
+            "Come includi JS?|<script>|<js>|<code>|0|script carica JS.",
+            "Come input testo?|<input type='text'>|<text>|<input>|0|input testo.",
+            "Come checkbox?|<input type='checkbox'>|<check>|<box>|0|checkbox.",
+            "Come bottone?|<button>|<btn>|<click>|0|button cliccabile.",
+            "Come form?|<form>|<input>|<data>|0|form invia dati."
+        ],
+
+        L3: [
+            "Cos'è un div?|Contenitore|Testo|Immagine|0|div è contenitore.",
+            "Cos'è span?|Inline|Blocco|Lista|0|span inline.",
+            "Cos'è semantico?|Tag con significato|Solo stile|Solo JS|0|Semantica aiuta.",
+            "Quale è header?|<header>|<top>|<head>|0|header semantico.",
+            "Quale è footer?|<footer>|<bottom>|<end>|0|footer semantico.",
+
+            // +5 nuove L3
+            "Quale è nav?|<nav>|<menu>|<link>|0|nav navigazione.",
+            "Quale è section?|<section>|<div>|<part>|0|section sezione.",
+            "Quale è article?|<article>|<post>|<blog>|0|article contenuto.",
+            "Quale è main?|<main>|<body>|<content>|0|main principale.",
+            "Quale è aside?|<aside>|<side>|<extra>|0|aside laterale."
+        ],
+
+        L4: [
+            "Cos'è DOCTYPE?|Dichiara HTML|Tag visivo|Script|0|DOCTYPE standard.",
+            "Cos'è accessibilità?|Usabile per tutti|Solo disabili|Solo SEO|0|Accessibilità inclusiva.",
+            "Cos'è SEO?|Ottimizzazione motori|Grafica|JS|0|SEO migliora ranking.",
+            "Cos'è responsive?|Adattabile|Veloce|Statico|0|Responsive si adatta.",
+            "Cos'è meta viewport?|Controllo layout|Titolo|Script|0|Viewport gestisce scala.",
+
+            // +5 nuove L4
+            "Cos'è ARIA?|Attributi accessibilità|CSS|JS|0|ARIA aiuta screen reader.",
+            "Cos'è lazy loading?|Carica dopo|Carica tutto|Cache|0|Lazy carica tardi.",
+            "Cos'è semantic HTML?|Tag significativi|Solo div|CSS|0|Semantica chiara.",
+            "Cos'è web standard?|Regole W3C|Framework|Browser|0|Standard comuni.",
+            "Cos'è validazione HTML?|Controllo errori|Design|SEO|0|Validazione verifica."
+        ]
+    }
+};
+
+const challenges5 = {
+    ...challenges5,
     HTML: [
-        { task: "Crea un div", logic: "<div>", output: "OK", userStatus: null },
-        { task: "Crea un paragrafo", logic: "<p>", output: "OK", userStatus: null },
-        { task: "Crea un link ad esempio.com", logic: "<a href=", output: "OK", userStatus: null },
-        { task: "Crea un elenco non ordinato", logic: "<ul>", output: "OK", userStatus: null }
+        { task: "Titolo e paragrafo", logic: "<h1>Titolo</h1><p>Testo</p>", output: "Titolo + Testo", userStatus: null },
+        { task: "Crea link", logic: "<a href='https://example.com'>Link</a>", output: "Link cliccabile", userStatus: null },
+        { task: "Immagine", logic: "<img src='img.png'>", output: "Immagine visibile", userStatus: null },
+        { task: "Lista", logic: "<ul><li>A</li><li>B</li></ul>", output: "Lista A B", userStatus: null },
+        { task: "Form base", logic: "<form><input type='text'></form>", output: "Form input", userStatus: null }
     ]
 };
