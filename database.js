@@ -84,12 +84,7 @@ const domandaRepo = {
             "Come definisci __slots__?|__slots__=['x']|slots()|@slots|0|Riduce memoria.",
             "Come usi typing?|from typing import List|type(list)|hint()|0|typing fornisce hint."
         ]
-    }
-};
-
-
-const domandaRepo = {
-    ...domandaRepo,
+    },
     JavaScript: {
         L1: [
             "Come stampi Ciao?|console.log('Ciao')|print('Ciao')|echo 'Ciao'|0|console.log stampa in console.",
@@ -150,12 +145,7 @@ const domandaRepo = {
             "Come usa nullish?|a ?? b|a || b|null(a,b)|0|?? gestisce null.",
             "Come congeli oggetto?|Object.freeze(o)|freeze(o)|lock(o)|0|freeze blocca."
         ]
-    }
-};
-
-
-const domandaRepo = {
-    ...domandaRepo,
+    },
     Java: {
         L1: [
             "Come stampi Ciao?|System.out.println(\"Ciao\");|print(\"Ciao\")|echo Ciao|0|println stampa testo.",
@@ -216,12 +206,7 @@ const domandaRepo = {
             "Come mappi stream?|map(x->x*2)|transform(x)|each(x)|0|map trasforma.",
             "Come raccogli?|collect()|gather()|toList()|0|collect raccoglie."
         ]
-    }
-};
-
-
-const domandaRepo = {
-    ...domandaRepo,
+    },
     MySQL: {
         L1: [
             "Come selezioni tutti i dati da una tabella?|SELECT * FROM tabella;|GET * FROM tabella;|FETCH tabella;|0|SELECT * legge tutti i dati.",
@@ -282,12 +267,7 @@ const domandaRepo = {
             "Come usi CASE?|CASE WHEN THEN END|IF ELSE|SWITCH|0|CASE multiplo.",
             "Come blocchi tabella?|LOCK TABLES|FREEZE|MUTEX|0|LOCK blocca."
         ]
-    }
-};
-
-
-const domandaRepo = {
-    ...domandaRepo,
+    },
     HTML: {
         L1: [
             "Cos'è HTML?|Un linguaggio di markup|Un linguaggio di programmazione|Un database|0|HTML struttura pagine.",
