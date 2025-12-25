@@ -381,11 +381,17 @@ async function registerUser() {
 
     try {
         // Controllo se il PIN esiste già su Firebase
-        const check = await db.collection("utenti").doc(pin).get();
-        if (check.exists) {
-            alert("Questo PIN è già registrato da un altro utente.");
-            return;
-        }
+        // --- MODIFICA QUESTO CONTROLLO ---
+const check = await db.collection("utenti").doc(pin).get();
+if (check.exists) {
+    const existingData = check.data();
+    // Se l'utente esiste ed è ATTIVO, allora il PIN è occupato
+    if (!existingData.deleted) {
+        alert("Questo PIN è già registrato da un altro utente.");
+        return;
+    }
+    // Se invece è deleted:true, il codice proseguirà e sovrascriverà il PIN con il nuovo utente
+}
 
         const snapshot = await db.collection("utenti").get();
         const nextId = snapshot.size + 1; 
