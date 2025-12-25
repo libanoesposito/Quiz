@@ -76,6 +76,7 @@ window.onload = () => {
 
 
 
+
 function initTheme() {
     const saved = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', saved);
@@ -287,6 +288,7 @@ function setGuest() {
 }
 
 function showHome() {
+    localStorage.setItem('currentSection', 'home');
     updateNav(false);
     document.getElementById('app-title').innerText = "PERCORSI";
     let html = `<div class="lang-grid">`;
@@ -322,6 +324,9 @@ function showHome() {
 }
 
 function showLevels(lang) {
+    localStorage.setItem('currentSection', 'levels');
+    localStorage.setItem('currentLang', lang);
+
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = lang;
 
@@ -748,6 +753,8 @@ function next() {
 }
 
 function logout() {
+    localStorage.removeItem('currentSection'); 
+    localStorage.removeItem('currentLang');
     // 1. Rimuove il PIN dalla memoria per evitare il login automatico al refresh
     localStorage.removeItem('sessionPin');
     
@@ -809,6 +816,7 @@ function toggleSecurity(el) {
 }
 
 function renderProfile() {
+    localStorage.setItem('currentSection', 'profile');
     if (!state.currentPin || !dbUsers[state.currentPin]) return;
 
     ensureUserId();
@@ -1075,6 +1083,7 @@ function toggleCard(el) {
 }
 
 function renderRipasso() {
+    localStorage.setItem('currentSection', 'ripasso');
     if (state.mode !== 'user') return;
     const u = dbUsers[state.currentPin];
     if (!u) return;
@@ -1289,6 +1298,7 @@ function showGuestLocked() {
    ========================= */
 
 function renderAdminPanel() {
+    localStorage.setItem('currentSection', 'admin');
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = "ADMIN";
 
