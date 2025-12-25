@@ -1591,18 +1591,18 @@ async function renderAdminPanel() {
     <div class="review-card" style="margin-bottom:20px; border-left: 4px solid #ff3b30; display:flex; justify-content:space-between; align-items:center; padding: 12px 18px">
         <div>
             <strong style="color:#ff3b30; font-size:14px; display:block">Database Cloud</strong>
-            <span style="font-size:11px; color:#666">Manutenzione globale</span>
+            <span style="font-size:11px; color:currentColor; opacity:0.6">Manutenzione globale</span>
         </div>
 
-        <div style="display:flex; gap:20px">
+        <div style="display:flex; gap:20px; color:currentColor">
             <div style="text-align:center; cursor:pointer" onclick="adminResetAll('STATS')" title="Azzera punti">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><polyline points="21 3 21 8 16 8"/></svg>
-                <div style="font-size:8px; font-weight:800; color:#666; margin-top:3px">RESET</div>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.8"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><polyline points="21 3 21 8 16 8"/></svg>
+                <div style="font-size:8px; font-weight:800; margin-top:3px; opacity:0.8">RESET</div>
             </div>
 
             <div style="text-align:center; cursor:pointer" onclick="alert('Usa l icona 🧼 accanto all utente')" title="Reset mirato">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg>
-                <div style="font-size:8px; font-weight:800; color:#666; margin-top:3px">MIRATO</div>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg>
+                <div style="font-size:8px; font-weight:800; margin-top:3px; opacity:0.8">MIRATO</div>
             </div>
 
             <div style="text-align:center; cursor:pointer" onclick="adminResetAll('FULL')" title="Elimina tutto">
@@ -1621,22 +1621,35 @@ async function renderAdminPanel() {
         } else {
             attivi.forEach(u => {
                 const statsText = u.stats.total ? `${u.stats.correct}/${u.stats.total} corrette · ${u.stats.perc}%` : "Nessun progresso";
-                html += `
-                    <div class="review-card is-ok">
-                        <div style="display:flex; justify-content:space-between; align-items:center">
-                            <div>
-                                <strong>${u.name}</strong>
-                                <div style="font-size:12px; opacity:0.6">ID ${u.id} - PIN ${u.pin}</div>
-                            </div>
-                            <div style="display:flex; gap:20px; align-items:center; color:#0066cc">
-                            <span style="cursor:pointer; font-size:16px" title="Storico" onclick="showUserHistory(${u.id})">ⓘ</span>
-                            <span style="cursor:pointer; font-size:18px; font-weight:300" title="Aggiorna" onclick="recalcUser(${u.id})">↻</span>
-                            <span style="cursor:pointer; font-size:16px" title="Reset Mirato" onclick="adminResetSingleUser(${u.id})">⊘</span>
-                            <span style="cursor:pointer; color:#ff3b30; font-size:18px; font-weight:300" title="Elimina" onclick="adminDeleteUser(${u.id})">✕</span>
-                            </div>
-                        </div>
-                        <div style="margin-top:8px; font-size:13px">${statsText}</div>
-                    </div>`;
+                // Sostituisci il div delle icone dentro il ciclo attivi.forEach
+html += `
+    <div class="review-card is-ok">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+            <div>
+                <strong style="color:currentColor">${u.name}</strong>
+                <div style="font-size:12px; color:currentColor; opacity:0.6">ID ${u.id} - PIN ${u.pin}</div>
+            </div>
+            
+            <div style="display:flex; gap:16px; align-items:center; color:currentColor">
+                <span style="cursor:pointer" title="Storico" onclick="showUserHistory(${u.id})">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.7"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                </span>
+
+                <span style="cursor:pointer" title="Aggiorna" onclick="recalcUser(${u.id})">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.7"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                </span>
+
+                <span style="cursor:pointer" title="Reset Mirato" onclick="adminResetSingleUser(${u.id})">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.7"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg>
+                </span>
+
+                <span style="cursor:pointer; color:#ff3b30" title="Elimina" onclick="adminDeleteUser(${u.id})">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </span>
+            </div>
+        </div>
+        <div style="margin-top:8px; font-size:13px; color:currentColor; opacity:0.8">${statsText}</div>
+    </div>`;
             });
         }
 
