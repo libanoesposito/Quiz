@@ -485,7 +485,6 @@ function checkL5(lang, index) {
         consoleRes.innerText = sfida.output + "\n\n>> Processo terminato con successo (0)";
         consoleRes.style.color = "#34c759";
         fb.innerHTML = `<b style="color:#34c759">✓ Esatto!</b>`;
-            if (cleanUser.includes(cleanLogic)) {
         // AGGIUNGI QUESTO BLOCCO PER IL SALVATAGGIO PARZIALE
         if (state.mode === 'user') {
             const storageKey = `${lang}_5`;
