@@ -1626,7 +1626,7 @@ html += `
         <div style="display:flex; justify-content:space-between; align-items:center">
             <div>
                 <strong style="color:currentColor">${u.name}</strong>
-                <div style="font-size:12px; color:currentColor; opacity:0.6">ID ${u.id} - PIN ${u.pin}</div>
+                <div style="font-size:12px; color:currentColor; opacity:0.6">ID ${u.id}</div>
             </div>
             
             <div style="display:flex; gap:16px; align-items:center; color:currentColor">
