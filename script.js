@@ -395,7 +395,10 @@ async function registerUser() {
         closeModal();
         
         // Inserisce automaticamente il pin per comodità
-        document.getElementById('pin-input').value = pin;
+        // Verso la fine di registerUser
+        const finalPinInput = document.getElementById('pin-input');
+        if (finalPinInput) finalPinInput.value = pin;
+
 
     } catch (error) {
         console.error("Errore registrazione:", error);
@@ -404,9 +407,13 @@ async function registerUser() {
 }
 
 async function validatePin(type) {
-    const pinField = document.getElementById('pin-field');
-    const pin = pinField ? pinField.value : "";
+    // Usiamo l'ID corretto che hai definito in uiPin
+    const pinField = document.getElementById('reg-pin'); 
+    const pin = pinField ? pinField.value.trim() : "";
     const errorEl = document.getElementById('pin-error');
+    
+    // ... resto della funzione uguale
+
     
     if (errorEl) errorEl.style.display = "none";
 
