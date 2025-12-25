@@ -366,34 +366,42 @@ function checkL5(lang) {
     const userCode = input.value.trim();
     if (!userCode) return;
 
-    // Imposta la lingua corretta per Prism
-    const pLang = lang.toLowerCase() === 'python' ? 'python' : 'javascript';
+    // 1. Assicuriamoci che la classe sia corretta per Prism
+    let pLang = lang.toLowerCase();
+    if (pLang === 'javascript') pLang = 'js'; // Prism a volte preferisce 'js'
+    
     codeDest.className = `language-${pLang}`;
     
-    // Mostra il terminale e colora il codice inserito
+    // 2. Mostra il terminale
     terminal.style.display = "block";
+    
+    // 3. Inserisce il testo e FORZA la colorazione
     codeDest.textContent = input.value;
-    Prism.highlightElement(codeDest);
+    
+    // Questo è il comando magico che trasforma il testo in colori
+    if (window.Prism) {
+        Prism.highlightElement(codeDest);
+    }
 
-    // Controllo logico (Flessibile)
+    // --- Logica di controllo ---
     const isCorrect = userCode.includes("1") && userCode.includes("10") && (userCode.includes("for") || userCode.includes("while"));
 
     if (isCorrect) {
         consoleRes.innerText = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n\n[Success]: Test passato correttamente.";
-        consoleRes.style.color = "#fff";
-        fb.innerHTML = `<span style="color:#34c759; font-weight:bold">✓ Ottimo! Livello completato.</span>`;
+        consoleRes.style.color = "#34c759";
+        fb.innerHTML = `<span style="color:#34c759; font-weight:bold">✓ Esame Superato! Progressi salvati.</span>`;
         
-        // Salva i progressi
         if (state.mode === 'user') {
             state.progress[lang] = 5;
             saveMasterDB();
         }
     } else {
-        consoleRes.innerText = "Error: Output non valido.\nIl ciclo non sembra generare i numeri richiesti.";
+        consoleRes.innerText = "Error: Output non valido.";
         consoleRes.style.color = "#ff3b30";
-        fb.innerHTML = `<span style="color:#ff3b30; font-weight:bold">✗ Riprova, controlla la logica.</span>`;
+        fb.innerHTML = `<span style="color:#ff3b30; font-weight:bold">✗ Riprova.</span>`;
     }
 }
+
 
 
 
