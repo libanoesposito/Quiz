@@ -428,6 +428,21 @@ input:focus, textarea:focus, select:focus, button:focus {
     }
 }
 
+/* Questa regola si attiva SOLO su schermi piccoli (meno di 600px) */
+@media (max-width: 600px) {
+    .glass-card {
+        /* Sovrascrive il calc(100% - 40px) solo su mobile */
+        width: 100% !important; 
+        
+        /* Riduce leggermente il padding per non spingere fuori il contenuto */
+        padding: 20px !important; 
+        
+        /* Elimina i margini laterali che potrebbero farla sbordare */
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+}
+
 
 /* Colori Prism per VS Code Dark+ */
 .token.keyword { color: #569cd6 !important; }
