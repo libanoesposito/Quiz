@@ -387,8 +387,11 @@ async function registerUser() {
             return;
         }
 
+        const snapshot = await db.collection("utenti").get();
+        const nextId = snapshot.size + 1; 
+
         const newUser = {
-            userId: Date.now(),
+            userId: nextId, // Ora sarà 1, 2, 3...
             name: name,
             pin: pin,
             progress: {},
