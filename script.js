@@ -355,95 +355,58 @@ function handleTab(e, el) {
     }
 }
 
-
-function checkL5(lang) {
-    const input = document.getElementById('editing');
-    const terminal = document.getElementById('terminal-output');
-    const consoleRes = document.getElementById('console-res');
-    const codeDest = document.getElementById('code-dest');
-    const fb = document.getElementById('fb');
-    
-    const userCode = input.value.trim();
-    if (!userCode) return;
-
-    // 1. Assicuriamoci che la classe sia corretta per Prism
-    let pLang = lang.toLowerCase();
-    if (pLang === 'javascript') pLang = 'js'; // Prism a volte preferisce 'js'
-    
-    codeDest.className = `language-${pLang}`;
-    
-    // 2. Mostra il terminale
-    terminal.style.display = "block";
-    
-    // 3. Inserisce il testo e FORZA la colorazione
-    codeDest.textContent = input.value;
-    
-    // Questo è il comando magico che trasforma il testo in colori
-    if (window.Prism) {
-        Prism.highlightElement(codeDest);
-    }
-
-    // --- Logica di controllo ---
-    const isCorrect = userCode.includes("1") && userCode.includes("10") && (userCode.includes("for") || userCode.includes("while"));
-
-    if (isCorrect) {
-        consoleRes.innerText = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n\n[Success]: Test passato correttamente.";
-        consoleRes.style.color = "#34c759";
-        fb.innerHTML = `<span style="color:#34c759; font-weight:bold">✓ Esame Superato! Progressi salvati.</span>`;
-        
-        if (state.mode === 'user') {
-            state.progress[lang] = 5;
-            saveMasterDB();
-        }
-    } else {
-        consoleRes.innerText = "Error: Output non valido.";
-        consoleRes.style.color = "#ff3b30";
-        fb.innerHTML = `<span style="color:#ff3b30; font-weight:bold">✗ Riprova.</span>`;
-    }
-}
-
-
-
-
-
 function renderL5(lang) {
     updateNav(true, `showLevels('${lang}')`);
     const container = document.getElementById('content-area');
     
-    // 1. RECUPERO SFIDA DAL DATABASE
-    // Assicurati che in database.js esista domandaRepo[lang].L5
-    const sfida = (domandaRepo[lang] && domandaRepo[lang].L5) ? domandaRepo[lang].L5[0] : null;
-
-    if (!sfida) {
-        container.innerHTML = "<p style='padding:20px; color:white'>Errore: Nessuna sfida L5 trovata per questo linguaggio.</p>";
+    // Recupera una sfida casuale dal tuo oggetto challenges5
+    const sfideDisponibili = challenges5[lang];
+    if (!sfideDisponibili) {
+        container.innerHTML = "<p style='color:white'>Sfide non trovate per questo linguaggio.</p>";
         return;
     }
+    
+    // Prende la prima sfida (o potresti usare Math.random per variarle)
+    const sfida = sfideDisponibili[0]; 
 
     container.innerHTML = `
         <div class="glass-card" style="box-shadow: none !important; background: rgba(120, 120, 128, 0.08) !important; border-radius: 20px; padding: 20px;">
-            <h2 style="font-size:18px; margin-bottom:10px">ESAMINATORE: ${lang.toUpperCase()}</h2>
-            <p id="sfida-desc" style="font-size:14px; margin-bottom:15px; opacity:0.8"><b>Sfida:</b> ${sfida.q}</p>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
+                <h2 style="font-size:18px; margin:0">ESAMINATORE: ${lang.toUpperCase()}</h2>
+                <span style="background:var(--accent); color:white; padding:4px 10px; border-radius:10px; font-size:12px; font-weight:bold">LIVELLO 5</span>
+            </div>
             
-            <div style="background:#1e1e1e; border-radius:12px; border:1px solid #333; padding:10px;">
+            <p style="font-size:15px; margin-bottom:20px; color:#fff; line-height:1.4">
+                <b>Obiettivo:</b> ${sfida.task}
+            </p>
+            
+            <div style="background:#1e1e1e; border-radius:12px; border:1px solid #333; padding:12px; position:relative">
                 <textarea id="editing" spellcheck="false" 
                     onkeydown="if(event.key==='Tab'){event.preventDefault();this.setRangeText('    ',this.selectionStart,this.selectionEnd,'end')}"
-                    style="width:100%; height:150px; background:transparent; color:#d4d4d4; border:none; font-family:'Consolas', monospace; font-size:14px; line-height:1.5; outline:none; resize:none;"
-                    placeholder="Scrivi il tuo codice qui..."></textarea>
+                    style="width:100%; height:180px; background:transparent; color:#d4d4d4; border:none; font-family:'Fira Code', 'Consolas', monospace; font-size:14px; line-height:1.6; outline:none; resize:none;"
+                    placeholder="Scrivi qui il codice..."></textarea>
             </div>
 
-            <button class="btn-apple" onclick="checkL5('${lang}')" style="margin-top:15px; background:var(--accent); color:white; width:100%; font-weight:600">Esegui e Verifica</button>
+            <button class="btn-apple" onclick="checkL5('${lang}', 0)" style="margin-top:20px; background:var(--accent); color:white; width:100%; font-weight:bold; height:50px; font-size:16px">Esegui e Verifica</button>
             
-            <div id="terminal-output" style="display:none; margin-top:20px; background:#000; border-radius:10px; padding:15px; border:1px solid #444;">
-                <div style="color:#34c759; font-size:11px; margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:5px; font-family:sans-serif;">OUTPUT TERMINALE</div>
-                <pre id="highlighted-result" style="margin:0 0 15px 0; padding:0; background:transparent; font-size:13px;"><code id="code-dest"></code></pre>
-                <pre id="console-res" style="color:#fff; margin:0; font-size:13px; font-family:monospace; white-space:pre-wrap; border-top:1px solid #222; padding-top:10px;"></pre>
+            <div id="terminal-output" style="display:none; margin-top:25px; background:#000; border-radius:12px; padding:15px; border:1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5)">
+                <div style="display:flex; gap:5px; margin-bottom:12px">
+                    <div style="width:10px; height:10px; border-radius:50%; background:#ff5f56"></div>
+                    <div style="width:10px; height:10px; border-radius:50%; background:#ffbd2e"></div>
+                    <div style="width:10px; height:10px; border-radius:50%; background:#27c93f"></div>
+                    <span style="margin-left:10px; color:#666; font-size:10px; font-family:sans-serif; text-transform:uppercase">Bash — Output</span>
+                </div>
+                
+                <pre id="highlighted-result" style="margin:0 0 15px 0; background:transparent;"><code id="code-dest" style="font-family:monospace; font-size:13px"></code></pre>
+                <pre id="console-res" style="color:#fff; margin:0; font-size:14px; font-family:'Consolas', monospace; white-space:pre-wrap; border-top:1px solid #222; padding-top:12px;"></pre>
             </div>
             <div id="fb" style="margin-top:15px; text-align:center"></div>
         </div>
     `;
 }
 
-function checkL5(lang) {
+
+function checkL5(lang, index) {
     const input = document.getElementById('editing');
     const userCode = input.value.trim();
     const terminal = document.getElementById('terminal-output');
@@ -451,39 +414,46 @@ function checkL5(lang) {
     const codeDest = document.getElementById('code-dest');
     const fb = document.getElementById('fb');
 
-    // 1. Recuperiamo i dati corretti dal Database
-    const sfida = domandaRepo[lang].L5[0];
-    const soluzioneCorretta = sfida.solution.trim();
-    const outputAtteso = sfida.expected;
+    if (!userCode) return;
 
-    // 2. Setup Prism
+    // Recupera i dati dal tuo oggetto challenges5
+    const sfida = challenges5[lang][index];
+    
+    // Mostra il terminale e colora il codice
+    terminal.style.display = "block";
+    codeDest.textContent = input.value;
+    
+    // Impostiamo il linguaggio per Prism (JS/CSS/HTML/Python/Java)
     let pLang = lang.toLowerCase();
     if (pLang === 'javascript') pLang = 'js';
     codeDest.className = `language-${pLang}`;
-    terminal.style.display = "block";
-    codeDest.textContent = input.value;
     if (window.Prism) Prism.highlightElement(codeDest);
 
-    // 3. CONFRONTO RIGOROSO
-    // Puliamo entrambi i codici da spazi extra per evitare errori stupidi
+    // LOGICA DI CONTROLLO: Verifica se il codice dell'utente contiene la logica richiesta
+    // Rimuoviamo gli spazi per un confronto più permissivo
     const cleanUser = userCode.replace(/\s+/g, '');
-    const cleanSol = soluzioneCorretta.replace(/\s+/g, '');
+    const cleanLogic = sfida.logic.replace(/\s+/g, '');
+    
+    // Controllo: Il codice utente deve contenere la logica chiave definita nel DB
+    const isCorrect = cleanUser.includes(cleanLogic);
 
-    if (cleanUser === cleanSol) {
-        consoleRes.innerText = outputAtteso + "\n\n[Success]: Test passato correttamente.";
+    if (isCorrect) {
+        consoleRes.innerText = sfida.output + "\n\n>> Processo terminato con successo (0)";
         consoleRes.style.color = "#34c759";
-        fb.innerHTML = `<span style="color:#34c759; font-weight:bold">✓ Esame Superato! Progressi salvati.</span>`;
+        fb.innerHTML = `<div style="color:#34c759; background:rgba(52,199,89,0.1); padding:10px; border-radius:10px; font-weight:bold">✓ Complimenti! Hai superato l'Esame Finale.</div>`;
         
+        // SALVATAGGIO PROGRESSI
         if (state.mode === 'user') {
             state.progress[lang] = 5;
             saveMasterDB();
         }
     } else {
-        consoleRes.innerText = "Error: Output non valido.\nIl codice inserito non corrisponde alla soluzione attesa.";
+        consoleRes.innerText = "Traceback (most recent call last):\n  Error: LogicMismatch\n  L'output non corrisponde alle aspettative dell'esaminatore.";
         consoleRes.style.color = "#ff3b30";
-        fb.innerHTML = `<span style="color:#ff3b30; font-weight:bold">✗ Errore. Controlla la sintassi o la logica.</span>`;
+        fb.innerHTML = `<div style="color:#ff3b30; background:rgba(255,59,48,0.1); padding:10px; border-radius:10px; font-weight:bold">✗ Il codice non è corretto. Riprova.</div>`;
     }
 }
+
 
 
 function handleInput(el, lang) {
