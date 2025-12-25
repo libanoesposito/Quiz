@@ -1586,11 +1586,12 @@ async function renderAdminPanel() {
         </div>`;
 
     try {
-    // 1. Scarica gli utenti ATTIVI
-      snapAttivi.forEach(doc => {
+       const snapAttivi = await db.collection("utenti").get();
+        // 1. Scarica gli utenti ATTIVI
+       snapAttivi.forEach(doc => {
           dbUsers[doc.id] = doc.data(); 
     });
-    const snapAttivi = await db.collection("utenti").get();
+   
     const attivi = snapAttivi.docs.map(doc => ({
         ...doc.data(),
         id: doc.data().userId // assicura la corrispondenza con ${u.id}
@@ -2097,53 +2098,13 @@ async function adminPermanentDelete(docId) {
     );
 }
 
-async function adminResetAll(mode) {
-    const title = mode === 'FULL' ? "TABULA RASA" : "RESET STATISTICHE";
-    const msg = mode === 'FULL' 
-        ? "Tutti gli utenti verranno spostati nella lista 'ELIMINATI'. I loro dati rimarranno consultabili dall'admin, ma non potranno più accedere." 
-        : "I PIN rimarranno validi, ma tutti i progressi verranno azzerati.";
-
-    openModal(title, msg, async () => {
-        try {
-            const utentiSnapshot = await db.collection("utenti").get();
-            const batch = db.batch();
-
-            utentiSnapshot.docs.forEach(doc => {
-                if (mode === 'FULL') {
-                    // Non cancelliamo, ma mettiamo il flag deleted
-                    batch.update(doc.ref, { deleted: true });
-                } else {
-                    // Solo reset punti
-                    batch.update(doc.ref, {
-                        progress: {},
-                        history: {},
-                        activeProgress: {},
-                        ripasso: { wrong: [], notStudied: [] }
-                    });
-                }
-            });
-
-            // La classifica viene sempre svuotata
-            const classifSnapshot = await db.collection("classifica").get();
-            classifSnapshot.docs.forEach(doc => batch.delete(doc.ref));
-
-            await batch.commit();
-            localStorage.clear(); 
-            renderAdminPanel(); 
-
-        } catch (e) {
-            console.error("Errore Reset:", e);
-            alert("Errore durante la comunicazione con Firebase.");
-        }
-    });
-}
 
 // SVUOTA TUTTO IL CESTINO
 async function adminClearTrash() {
     if (!confirm("Vuoi eliminare DEFINITIVAMENTE tutti gli utenti nella lista eliminati?")) return;
     
     try {
-        const snapshot = await db.collection("utenti").where("deleted", "==", true).get();
+        const snapshot = await db.collection("eliminati").get();
         const batch = db.batch();
         snapshot.docs.forEach(doc => batch.delete(doc.ref));
         await batch.commit();
