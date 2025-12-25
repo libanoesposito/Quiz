@@ -13,6 +13,8 @@ let state = {
 
 
 let session = null;
+let globalClassifica = []; // Conterrà i dati presi da Firebase
+
 const ADMIN_PIN = "3473";
 const TESTER_PIN = "1111"; 
 
