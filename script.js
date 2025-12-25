@@ -1587,31 +1587,25 @@ async function renderAdminPanel() {
         let html = `<div style="width:100%">`;
 
         // 1. NUOVO BLOCCO MANUTENZIONE A 3 TASTI
-                // 1. BLOCCO MANUTENZIONE - Look Professionale
         html += `
-            <div class="review-card" style="margin-bottom:25px; border-left: 4px solid #ff3b30; background: rgba(255,255,255,0.5); backdrop-filter: blur(10px);">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
-                    <span style="font-size:11px; font-weight:800; color:#ff3b30; text-transform:uppercase; letter-spacing:0.5px">Manutenzione Database</span>
-                    <span style="font-size:10px; color:#8e8e93; font-weight:600">CLOUD SYNC ACTIVE</span>
-                </div>
-                
-                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px">
+            <div class="review-card" style="margin-bottom:20px; border-left: 4px solid #ff3b30">
+                <strong style="color:#ff3b30; display:block; margin-bottom:10px">Manutenzione Database Cloud</strong>
+                <div style="display:flex; justify-content:space-around; align-items:center; background: rgba(0,0,0,0.05); padding:10px; border-radius:8px">
                     
-                    <div class="admin-btn-action" onclick="adminResetAll('FULL')" style="background:#fff2f2; color:#ff3b30; padding:12px 5px; border-radius:12px; text-align:center; cursor:pointer; transition:0.2s">
-                        <div style="font-size:18px; margin-bottom:4px">⚠️</div>
-                        <div style="font-size:9px; font-weight:700; text-transform:uppercase">Full Reset</div>
+                    <div style="text-align:center; cursor:pointer" onclick="adminResetAll('FULL')" title="Elimina tutto">
+                        <div style="font-size:22px">💀</div>
+                        <div style="font-size:10px; font-weight:700">TABULA RASA</div>
                     </div>
 
-                    <div class="admin-btn-action" onclick="adminResetAll('STATS')" style="background:#f2f2f7; color:#007aff; padding:12px 5px; border-radius:12px; text-align:center; cursor:pointer; transition:0.2s">
-                        <div style="font-size:18px; margin-bottom:4px">📊</div>
-                        <div style="font-size:9px; font-weight:700; text-transform:uppercase">Reset Punti</div>
+                    <div style="text-align:center; cursor:pointer" onclick="adminResetAll('STATS')" title="Azzera punti a tutti">
+                        <div style="font-size:22px">🧹</div>
+                        <div style="font-size:10px; font-weight:700">RESET PUNTI</div>
                     </div>
 
-                    <div class="admin-btn-action" style="background:#f2f2f7; color:#555; padding:12px 5px; border-radius:12px; text-align:center; opacity:0.6">
-                        <div style="font-size:18px; margin-bottom:4px">🎯</div>
-                        <div style="font-size:9px; font-weight:700; text-transform:uppercase">Targeted</div>
+                    <div style="text-align:center; cursor:pointer" onclick="alert('Usa l icona 🧼 accanto all utente per il reset mirato')">
+                        <div style="font-size:22px">🎯</div>
+                        <div style="font-size:10px; font-weight:700">MIRATO</div>
                     </div>
-
                 </div>
             </div>`;
 
@@ -1624,26 +1618,22 @@ async function renderAdminPanel() {
         } else {
             attivi.forEach(u => {
                 const statsText = u.stats.total ? `${u.stats.correct}/${u.stats.total} corrette · ${u.stats.perc}%` : "Nessun progresso";
-                                // Sostituisci il contenuto del div delle icone con questo:
                 html += `
-                    <div class="review-card is-ok" style="border-left: 4px solid #34c759">
+                    <div class="review-card is-ok">
                         <div style="display:flex; justify-content:space-between; align-items:center">
                             <div>
-                                <strong style="font-size:16px; color:#1c1c1e">${u.name}</strong>
-                                <div style="font-size:11px; color:#8e8e93; margin-top:2px; font-family:monospace">PIN: ${u.pin} • ID: ${u.id}</div>
+                                <strong>${u.name}</strong>
+                                <div style="font-size:12px; opacity:0.6">ID ${u.id} - PIN ${u.pin}</div>
                             </div>
-                            <div style="display:flex; gap:8px">
-                                <div onclick="showUserHistory(${u.id})" style="width:32px; height:32px; background:#e5f1ff; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px">⏳</div>
-                                <div onclick="recalcUser(${u.id})" style="width:32px; height:32px; background:#f2f2f7; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px">🔄</div>
-                                <div onclick="adminResetSingleUser(${u.id})" style="width:32px; height:32px; background:#f2f2f7; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px">🧼</div>
-                                <div onclick="adminDeleteUser(${u.id})" style="width:32px; height:32px; background:#fff2f2; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px">🗑️</div>
+                            <div style="display:flex; gap:18px; font-size:18px">
+                                <span style="cursor:pointer" title="Storico" onclick="showUserHistory(${u.id})">⏳</span>
+                                <span style="cursor:pointer" title="Aggiorna" onclick="recalcUser(${u.id})">🔄</span>
+                                <span style="cursor:pointer" title="Reset Mirato" onclick="adminResetSingleUser(${u.id})">🧼</span>
+                                <span style="cursor:pointer; color:#ff3b30" title="Elimina" onclick="adminDeleteUser(${u.id})">🗑</span>
                             </div>
                         </div>
-                        <div style="margin-top:12px; padding-top:8px; border-top:1px solid rgba(0,0,0,0.03); font-size:12px; font-weight:600; color:#48484a">
-                            ${u.stats.perc}% <span style="font-weight:400; color:#8e8e93; margin-left:5px">(${u.stats.correct}/${u.stats.total} corrette)</span>
-                        </div>
+                        <div style="margin-top:8px; font-size:13px">${statsText}</div>
                     </div>`;
-
             });
         }
 
