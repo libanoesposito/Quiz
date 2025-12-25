@@ -1655,32 +1655,26 @@ html += `
         // Sezione Eliminati - Testo visibile e allineamento
 if (eliminati.length > 0) {
     html += `
-        <div class="glass-card" style="
-            margin-top:30px; 
-            width:100%; 
-            max-width:none; 
-            padding:15px; 
-            border-radius:15px; 
-            border:1px solid rgba(255,59,48,0.2);
-            box-sizing: border-box;
-            display: block; /* Sovrascrive il flex della glass-card per evitare stretch strani */
-        ">
-            <div onclick="const el = document.getElementById('deleted-list'); el.style.display = el.style.display === 'none' ? 'block' : 'none'" 
-                 style="cursor:pointer; display:flex; justify-content:center; align-items:center; width:100%">
-                <strong style="color:#ff3b30; font-size:12px; letter-spacing:1px; text-transform:uppercase">Utenti Eliminati (${eliminati.length})</strong>
+        <div class="glass-card" style="margin-top:30px; width:100%; max-width:none; padding:15px; border-radius:15px; border:1px solid rgba(255,59,48,0.2); box-sizing: border-box; display: block;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+                <strong style="color:#ff3b30; font-size:11px; letter-spacing:1px; cursor:pointer" onclick="const el = document.getElementById('deleted-list'); el.style.display = el.style.display === 'none' ? 'block' : 'none'">
+                    UTENTI ELIMINATI (${eliminati.length}) ▾
+                </strong>
+                <span style="color:#ff3b30; font-size:10px; font-weight:700; cursor:pointer; text-decoration:underline" onclick="adminClearTrash()">SVUOTA TUTTO</span>
             </div>
             
-            <div id="deleted-list" style="display:none; margin-top:15px">`;
+            <div id="deleted-list" style="display:none">`;
     
     eliminati.forEach(u => {
         html += `
             <div style="padding:12px 0; border-top:1px solid rgba(120,120,128,0.1); display:flex; justify-content:space-between; align-items:center">
-                <div style="display:flex; flex-direction:column">
-                    <span style="font-weight:600; color: inherit; opacity: 0.9; font-size:15px">${u.name}</span>
-                    <div style="font-size:11px; color: inherit; opacity:0.5">ID ${u.id}</div>
+                <div>
+                    <span style="font-weight:600; color: inherit; opacity: 0.9; font-size:14px">${u.name}</span>
+                    <div style="font-size:10px; opacity:0.5">ID ${u.userId}</div>
                 </div>
-                <div style="cursor:pointer; color:#0a84ff; font-weight:600; font-size:12px; text-transform:uppercase" onclick="showUserHistory(${u.id})">
-                    Vedi Storico
+                <div style="display:flex; gap:15px; align-items:center">
+                    <div style="cursor:pointer; color:#0a84ff; font-weight:600; font-size:11px" onclick="showUserHistory(${u.userId})">STORICO</div>
+                    <div style="cursor:pointer; color:#ff3b30; font-size:14px" title="Elimina per sempre" onclick="adminPermanentDelete(${u.userId})">✕</div>
                 </div>
             </div>`;
     });
@@ -1969,43 +1963,36 @@ function findUserById(id) {
 async function adminResetAll(mode) {
     const title = mode === 'FULL' ? "TABULA RASA" : "RESET STATISTICHE";
     const msg = mode === 'FULL' 
-        ? "OPERAZIONE NUCLEARE: Eliminerai tutti gli UTENTI, i loro PIN e ogni progresso da Firebase. Dovranno registrarsi di nuovo." 
-        : "AZZERAMENTO PUNTI: I PIN rimarranno validi, ma tutti i progressi e la classifica verranno portati a zero.";
+        ? "Tutti gli utenti verranno spostati nella lista 'ELIMINATI'. I loro dati rimarranno consultabili dall'admin, ma non potranno più accedere." 
+        : "I PIN rimarranno validi, ma tutti i progressi verranno azzerati.";
 
     openModal(title, msg, async () => {
         try {
             const utentiSnapshot = await db.collection("utenti").get();
             const batch = db.batch();
 
-            if (mode === 'FULL') {
-                // ELIMINAZIONE TOTALE
-                utentiSnapshot.docs.forEach(doc => batch.delete(doc.ref));
-                const classifSnapshot = await db.collection("classifica").get();
-                classifSnapshot.docs.forEach(doc => batch.delete(doc.ref));
-                dbUsers = {};
-            } else {
-                // SOLO STATISTICHE
-                utentiSnapshot.docs.forEach(doc => {
+            utentiSnapshot.docs.forEach(doc => {
+                if (mode === 'FULL') {
+                    // Non cancelliamo, ma mettiamo il flag deleted
+                    batch.update(doc.ref, { deleted: true });
+                } else {
+                    // Solo reset punti
                     batch.update(doc.ref, {
                         progress: {},
                         history: {},
                         activeProgress: {},
                         ripasso: { wrong: [], notStudied: [] }
                     });
-                });
-                const classifSnapshot = await db.collection("classifica").get();
-                classifSnapshot.docs.forEach(doc => batch.delete(doc.ref));
-                
-                // Aggiorna dbUsers locale
-                Object.keys(dbUsers).forEach(pin => {
-                    dbUsers[pin].progress = {};
-                    dbUsers[pin].history = {};
-                });
-            }
+                }
+            });
+
+            // La classifica viene sempre svuotata
+            const classifSnapshot = await db.collection("classifica").get();
+            classifSnapshot.docs.forEach(doc => batch.delete(doc.ref));
 
             await batch.commit();
-            localStorage.clear(); // Pulizia locale per sicurezza
-            window.location.reload(); // Ricarica per riflettere i cambiamenti
+            localStorage.clear(); 
+            window.location.reload(); 
 
         } catch (e) {
             console.error("Errore Reset:", e);
@@ -2014,6 +2001,83 @@ async function adminResetAll(mode) {
     });
 }
 
+// CANCELLAZIONE DEFINITIVA SINGOLA (Dal cestino)
+async function adminPermanentDelete(userId) {
+    const pin = Object.keys(dbUsers).find(key => dbUsers[key].userId == userId);
+    if (!confirm("ATTENZIONE: Questa azione eliminerà definitivamente l'utente e il suo storico dal Cloud. Non potrai più recuperarlo. Procedere?")) return;
+
+    try {
+        await db.collection("utenti").doc(pin).delete();
+        delete dbUsers[pin];
+        saveMasterDB();
+        renderAdminPanel();
+    } catch (e) {
+        alert("Errore durante l'eliminazione definitiva.");
+    }
+}
+
+async function adminResetAll(mode) {
+    const title = mode === 'FULL' ? "TABULA RASA" : "RESET STATISTICHE";
+    const msg = mode === 'FULL' 
+        ? "Tutti gli utenti verranno spostati nella lista 'ELIMINATI'. I loro dati rimarranno consultabili dall'admin, ma non potranno più accedere." 
+        : "I PIN rimarranno validi, ma tutti i progressi verranno azzerati.";
+
+    openModal(title, msg, async () => {
+        try {
+            const utentiSnapshot = await db.collection("utenti").get();
+            const batch = db.batch();
+
+            utentiSnapshot.docs.forEach(doc => {
+                if (mode === 'FULL') {
+                    // Non cancelliamo, ma mettiamo il flag deleted
+                    batch.update(doc.ref, { deleted: true });
+                } else {
+                    // Solo reset punti
+                    batch.update(doc.ref, {
+                        progress: {},
+                        history: {},
+                        activeProgress: {},
+                        ripasso: { wrong: [], notStudied: [] }
+                    });
+                }
+            });
+
+            // La classifica viene sempre svuotata
+            const classifSnapshot = await db.collection("classifica").get();
+            classifSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+
+            await batch.commit();
+            localStorage.clear(); 
+            window.location.reload(); 
+
+        } catch (e) {
+            console.error("Errore Reset:", e);
+            alert("Errore durante la comunicazione con Firebase.");
+        }
+    });
+}
+
+// SVUOTA TUTTO IL CESTINO
+async function adminClearTrash() {
+    if (!confirm("Vuoi eliminare DEFINITIVAMENTE tutti gli utenti nella lista eliminati?")) return;
+    
+    try {
+        const snapshot = await db.collection("utenti").where("deleted", "==", true).get();
+        const batch = db.batch();
+        snapshot.docs.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        
+        // Aggiorna locale
+        Object.keys(dbUsers).forEach(pin => {
+            if (dbUsers[pin].deleted) delete dbUsers[pin];
+        });
+        
+        saveMasterDB();
+        renderAdminPanel();
+    } catch (e) {
+        alert("Errore durante la pulizia del cestino.");
+    }
+}
 
 /* Cambia PIN */
 function userChangePin() {
