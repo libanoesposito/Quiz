@@ -6,6 +6,8 @@ const firebaseConfig = {
   messagingSenderId: "69039384064",
   appId: "1:69039384064:web:deb448021ef5ac66031ae5"
 };
+
+// Inizializzazione Firebase (Assicurati di aver caricato gli script SDK nell'HTML)
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 // Database globale degli utenti (caricato da memoria locale)
