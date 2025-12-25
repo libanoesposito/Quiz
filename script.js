@@ -364,13 +364,11 @@ function isWeakPin(pin) {
 async function registerUser() {
     const nameEl = document.getElementById('reg-name');
     const pinEl = document.getElementById('reg-pin');
-    // Supponendo che il tuo elemento per i messaggi di errore si chiami così:
     const errorMsgEl = document.getElementById('reg-error-msg'); 
     
     const name = nameEl.value.trim();
     const pin = pinEl.value.trim();
 
-    // Pulizia messaggio errore precedente
     if (errorMsgEl) errorMsgEl.textContent = "";
 
     if (name.length < 2 || pin.length < 4) {
@@ -384,20 +382,20 @@ async function registerUser() {
     }
 
     try {
+        // 1. CONTROLLO PIN: Ora basta verificare se esiste il documento.
+        // Se non esiste, il PIN è libero (o perché mai usato o perché archiviato)
         const check = await db.collection("utenti").doc(pin).get();
         
-        // CONTROLLO PIN: Lo accettiamo solo se NON esiste o se è di un utente eliminato
         if (check.exists) {
-            const existingData = check.data();
-            if (!existingData.deleted) {
-                if (errorMsgEl) errorMsgEl.textContent = "Questo PIN è già registrato da un altro utente.";
-                return;
-            }
+            if (errorMsgEl) errorMsgEl.textContent = "Questo PIN è già occupato.";
+            return;
         }
 
-        // GENERAZIONE ID SEQUENZIALE
-        const snapshot = await db.collection("utenti").get();
-        const nextId = snapshot.size + 1; 
+        // 2. GENERAZIONE ID SEQUENZIALE
+        // Calcoliamo l'ID basandoci su quanti utenti totali (attivi + archiviati) sono passati nel sistema
+        const snapshotAttivi = await db.collection("utenti").get();
+        const snapshotEliminati = await db.collection("eliminati").get();
+        const nextId = snapshotAttivi.size + snapshotEliminati.size + 1; 
 
         const newUser = {
             userId: nextId,
@@ -410,19 +408,18 @@ async function registerUser() {
             created: new Date().toISOString()
         };
 
+        // 3. SALVATAGGIO
         await db.collection("utenti").doc(pin).set(newUser);
         
         dbUsers[pin] = newUser;
         localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
 
-        // Ritorna alla logica fluida: chiude e logga senza banner
         closeModal();
         
         const finalPinInput = document.getElementById('pin-input');
         if (finalPinInput) {
             finalPinInput.value = pin;
-            // Qui puoi chiamare la tua funzione di login automatico se prevista
-            // login(); 
+            // Se hai una funzione login() automatica, chiamala qui
         }
 
     } catch (error) {
@@ -1873,33 +1870,42 @@ async function adminDeleteUser(userId) {
 
     openModal(
         "Elimina utente",
-        `L'utente ${u.name} verrà disattivato globalmente. Potrai ancora consultare il suo storico.`,
+        `L'utente ${u.name} verrà spostato nell'archivio. Il suo PIN sarà libero per nuove registrazioni, ma potrai ancora consultare il suo storico.`,
         async () => {
-            // 1. Modifica locale
-            dbUsers[pin] = { 
-                ...u, // Manteniamo tutti i dati per lo storico
-                deleted: true 
-            }; 
-            
-            // 2. MODIFICA SUL CLOUD (Importante!)
             try {
-                // Aggiorniamo il documento specifico su Firebase
-                await db.collection("utenti").doc(pin).update({
-                    deleted: true
+                // 1. CREIAMO UN ID UNICO PER L'ARCHIVIO (PIN + DATA)
+                // Usiamo il timestamp per evitare che eliminazioni diverse dello stesso PIN si sovrascrivano
+                const archiveId = `${pin}_${Date.now()}`;
+
+                // 2. SPOSTAMENTO SUL CLOUD
+                // Copiamo i dati nella nuova collezione "eliminati"
+                await db.collection("eliminati").doc(archiveId).set({
+                    ...u,
+                    archiveId: archiveId, // Ci servirà per il ripristino o eliminazione definitiva
+                    deletedAt: new Date().toISOString()
                 });
+
+                // 3. RIMOZIONE DALLA COLLEZIONE ATTIVA
+                // Ora che i dati sono al sicuro in "eliminati", cancelliamo da "utenti" (PIN LIBERO!)
+                await db.collection("utenti").doc(pin).delete();
                 
-                // Rimuoviamo l'utente anche dalla classifica globale
+                // Rimuoviamo anche dalla classifica
                 await db.collection("classifica").doc(pin).delete();
 
-                console.log(`Utente ${pin} disattivato sul Cloud.`);
+                // 4. AGGIORNAMENTO LOCALE
+                // Rimuoviamo l'utente dall'oggetto dbUsers locale
+                delete dbUsers[pin];
+                
+                console.log(`Utente ${u.name} archiviato correttamente.`);
+
+                // Salvataggio e Refresh
+                saveMasterDB();
+                renderAdminPanel();
+
             } catch (error) {
-                console.error("Errore durante la disattivazione Cloud:", error);
-                alert("Errore di connessione: l'utente è stato eliminato solo localmente.");
+                console.error("Errore durante l'archiviazione:", error);
+                alert("Errore durante la comunicazione con Firebase. Riprova.");
             }
-            
-            // 3. Salvataggio e Refresh
-            saveMasterDB();
-            renderAdminPanel();
         }
     );
 }
@@ -2163,24 +2169,47 @@ async function userResetStats() {
 
 
 /* Elimina account */
-function userDeleteAccount() {
-    openModal("Elimina Account", "Attenzione: l'account verrà rimosso permanentemente. Vuoi procedere?", () => {
+async function userDeleteAccount() {
+    openModal("Elimina Account", "Attenzione: il tuo account verrà rimosso. Potrai registrarti nuovamente con lo stesso PIN, ma i tuoi progressi attuali verranno archiviati.", async () => {
         const pinToDelete = state.currentPin;
-        
-        if (dbUsers[pinToDelete]) {
-            // Elimina definitivamente la chiave dal database
-            delete dbUsers[pinToDelete]; 
-            
-            // Salva il database vuoto
+        const u = dbUsers[pinToDelete];
+
+        if (!u) return;
+
+        try {
+            // 1. CREIAMO L'ID PER L'ARCHIVIO
+            const archiveId = `${pinToDelete}_${Date.now()}`;
+
+            // 2. SPOSTAMENTO SUL CLOUD (ARCHIVIAZIONE)
+            // Copiamo i dati nella collezione "eliminati" prima di cancellarli
+            await db.collection("eliminati").doc(archiveId).set({
+                ...u,
+                archiveId: archiveId,
+                deletedBy: "user", // Segniamo che è stato l'utente a eliminarsi
+                deletedAt: new Date().toISOString()
+            });
+
+            // 3. RIMOZIONE DALLA COLLEZIONE ATTIVA E CLASSIFICA
+            await db.collection("utenti").doc(pinToDelete).delete();
+            await db.collection("classifica").doc(pinToDelete).delete();
+
+            // 4. PULIZIA LOCALE
+            delete dbUsers[pinToDelete];
             localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
-            
-            // Reset dello stato e ritorno al login
+
+            // 5. RESET DELLO STATO
             state.mode = 'guest';
             state.currentPin = null;
             state.currentUser = null;
+
+            console.log("Account archiviato e rimosso con successo.");
             
-            console.log("Account eliminato con successo.");
-            renderLogin();
+            // Ritorno al login (renderLogin o ricarica pagina)
+            window.location.reload(); 
+
+        } catch (error) {
+            console.error("Errore durante l'auto-eliminazione:", error);
+            alert("Impossibile eliminare l'account. Controlla la connessione.");
         }
     });
 }
