@@ -364,40 +364,43 @@ function isWeakPin(pin) {
 async function registerUser() {
     const nameEl = document.getElementById('reg-name');
     const pinEl = document.getElementById('reg-pin');
+    // Supponendo che il tuo elemento per i messaggi di errore si chiami così:
+    const errorMsgEl = document.getElementById('reg-error-msg'); 
+    
     const name = nameEl.value.trim();
     const pin = pinEl.value.trim();
 
+    // Pulizia messaggio errore precedente
+    if (errorMsgEl) errorMsgEl.textContent = "";
+
     if (name.length < 2 || pin.length < 4) {
-        alert("Inserisci un nome di almeno 2 lettere e un PIN di 4 cifre.");
+        if (errorMsgEl) errorMsgEl.textContent = "Inserisci un nome di almeno 2 lettere e un PIN di 4 cifre.";
         return;
     }
 
-    // --- AGGIUNGI QUESTO CONTROLLO QUI ---
     if (isWeakPin(pin)) {
-        alert("PIN troppo semplice! Non usare sequenze (1234) o numeri ripetuti (1111).");
+        if (errorMsgEl) errorMsgEl.textContent = "PIN troppo semplice! Non usare sequenze o numeri ripetuti.";
         return;
     }
-    // -------------------------------------
 
     try {
-        // Controllo se il PIN esiste già su Firebase
-        // --- MODIFICA QUESTO CONTROLLO ---
-const check = await db.collection("utenti").doc(pin).get();
-if (check.exists) {
-    const existingData = check.data();
-    // Se l'utente esiste ed è ATTIVO, allora il PIN è occupato
-    if (!existingData.deleted) {
-        alert("Questo PIN è già registrato da un altro utente.");
-        return;
-    }
-    // Se invece è deleted:true, il codice proseguirà e sovrascriverà il PIN con il nuovo utente
-}
+        const check = await db.collection("utenti").doc(pin).get();
+        
+        // CONTROLLO PIN: Lo accettiamo solo se NON esiste o se è di un utente eliminato
+        if (check.exists) {
+            const existingData = check.data();
+            if (!existingData.deleted) {
+                if (errorMsgEl) errorMsgEl.textContent = "Questo PIN è già registrato da un altro utente.";
+                return;
+            }
+        }
 
+        // GENERAZIONE ID SEQUENZIALE
         const snapshot = await db.collection("utenti").get();
         const nextId = snapshot.size + 1; 
 
         const newUser = {
-            userId: nextId, // Ora sarà 1, 2, 3...
+            userId: nextId,
             name: name,
             pin: pin,
             progress: {},
@@ -412,15 +415,19 @@ if (check.exists) {
         dbUsers[pin] = newUser;
         localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
 
-        alert("Registrazione completata! Ora effettua l'accesso.");
+        // Ritorna alla logica fluida: chiude e logga senza banner
         closeModal();
         
         const finalPinInput = document.getElementById('pin-input');
-        if (finalPinInput) finalPinInput.value = pin;
+        if (finalPinInput) {
+            finalPinInput.value = pin;
+            // Qui puoi chiamare la tua funzione di login automatico se prevista
+            // login(); 
+        }
 
     } catch (error) {
         console.error("Errore registrazione:", error);
-        alert("Impossibile connettersi al database. Assicurati di aver pubblicato le 'Rules' su Firebase.");
+        if (errorMsgEl) errorMsgEl.textContent = "Errore di connessione al database.";
     }
 }
 
