@@ -419,6 +419,16 @@ input:focus, textarea:focus, select:focus, button:focus {
     border-color: var(--border); /* Mantiene il tuo bordo originale senza aloni */
 }
 
+/* Forza il font a 16px per evitare lo zoom su mobile */
+@media screen and (max-width: 768px) {
+    #editing, .code-input, input[type="text"], input[type="password"] {
+        font-size: 16px !important;
+        /* Evita che il browser provi a scalare il testo */
+        touch-action: manipulation; 
+    }
+}
+
+
 /* Colori Prism per VS Code Dark+ */
 .token.keyword { color: #569cd6 !important; }
 .token.string { color: #ce9178 !important; }
