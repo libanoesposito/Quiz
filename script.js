@@ -355,50 +355,45 @@ function handleTab(e, el) {
     }
 }
 
-function renderL5(lang) {
+function renderL5(lang, index = 0) {
     updateNav(true, `showLevels('${lang}')`);
     const container = document.getElementById('content-area');
-    
-    // Recupera una sfida casuale dal tuo oggetto challenges5
-    const sfideDisponibili = challenges5[lang];
-    if (!sfideDisponibili) {
-        container.innerHTML = "<p style='color:white'>Sfide non trovate per questo linguaggio.</p>";
+    const sfide = challenges5[lang];
+
+    if (!sfide || index >= sfide.length) {
+        // Se finisce le sfide, mostra schermata finale
+        container.innerHTML = `
+            <div class="glass-card" style="text-align:center; padding:40px;">
+                <h2 style="color:#34c759">🏆 Esame Completato!</h2>
+                <p>Hai superato tutte le sfide di programmazione per ${lang}.</p>
+                <button class="btn-apple" onclick="showLevels('${lang}')" style="margin-top:20px">Torna ai Livelli</button>
+            </div>`;
         return;
     }
-    
-    // Prende la prima sfida (o potresti usare Math.random per variarle)
-    const sfida = sfideDisponibili[0]; 
+
+    const sfida = sfide[index];
 
     container.innerHTML = `
-        <div class="glass-card" style="box-shadow: none !important; background: rgba(120, 120, 128, 0.08) !important; border-radius: 20px; padding: 20px;">
+        <div class="glass-card" style="padding: 20px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
-                <h2 style="font-size:18px; margin:0">ESAMINATORE: ${lang.toUpperCase()}</h2>
-                <span style="background:var(--accent); color:white; padding:4px 10px; border-radius:10px; font-size:12px; font-weight:bold">LIVELLO 5</span>
+                <h2 style="font-size:18px; margin:0">ESAME ${lang.toUpperCase()} (${index + 1}/${sfide.length})</h2>
             </div>
             
-            <p style="font-size:15px; margin-bottom:20px; color:#fff; line-height:1.4">
-                <b>Obiettivo:</b> ${sfida.task}
-            </p>
+            <p style="font-size:15px; margin-bottom:20px; color:#fff;"><b>Sfida:</b> ${sfida.task}</p>
             
-            <div style="background:#1e1e1e; border-radius:12px; border:1px solid #333; padding:12px; position:relative">
+            <div style="background:#1e1e1e; border-radius:12px; border:1px solid #333; padding:10px;">
                 <textarea id="editing" spellcheck="false" 
                     onkeydown="if(event.key==='Tab'){event.preventDefault();this.setRangeText('    ',this.selectionStart,this.selectionEnd,'end')}"
-                    style="width:100%; height:180px; background:transparent; color:#d4d4d4; border:none; font-family:'Fira Code', 'Consolas', monospace; font-size:14px; line-height:1.6; outline:none; resize:none;"
-                    placeholder="Scrivi qui il codice..."></textarea>
+                    style="width:100%; height:150px; background:transparent; color:#d4d4d4; border:none; font-family:monospace; outline:none; resize:none;"></textarea>
             </div>
 
-            <button class="btn-apple" onclick="checkL5('${lang}', 0)" style="margin-top:20px; background:var(--accent); color:white; width:100%; font-weight:bold; height:50px; font-size:16px">Esegui e Verifica</button>
+            <div id="btn-container" style="margin-top:15px">
+                <button id="verify-btn" class="btn-apple" onclick="checkL5('${lang}', ${index})" style="background:var(--accent); color:white; width:100%">Esegui e Verifica</button>
+            </div>
             
-            <div id="terminal-output" style="display:none; margin-top:25px; background:#000; border-radius:12px; padding:15px; border:1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5)">
-                <div style="display:flex; gap:5px; margin-bottom:12px">
-                    <div style="width:10px; height:10px; border-radius:50%; background:#ff5f56"></div>
-                    <div style="width:10px; height:10px; border-radius:50%; background:#ffbd2e"></div>
-                    <div style="width:10px; height:10px; border-radius:50%; background:#27c93f"></div>
-                    <span style="margin-left:10px; color:#666; font-size:10px; font-family:sans-serif; text-transform:uppercase">Bash — Output</span>
-                </div>
-                
-                <pre id="highlighted-result" style="margin:0 0 15px 0; background:transparent;"><code id="code-dest" style="font-family:monospace; font-size:13px"></code></pre>
-                <pre id="console-res" style="color:#fff; margin:0; font-size:14px; font-family:'Consolas', monospace; white-space:pre-wrap; border-top:1px solid #222; padding-top:12px;"></pre>
+            <div id="terminal-output" style="display:none; margin-top:20px; background:#000; border-radius:10px; padding:15px; border:1px solid #444;">
+                <pre id="code-dest" style="display:none"></pre>
+                <pre id="console-res" style="color:#fff; margin:0; font-size:13px; font-family:monospace; white-space:pre-wrap;"></pre>
             </div>
             <div id="fb" style="margin-top:15px; text-align:center"></div>
         </div>
@@ -406,53 +401,85 @@ function renderL5(lang) {
 }
 
 
+
 function checkL5(lang, index) {
     const input = document.getElementById('editing');
     const userCode = input.value.trim();
     const terminal = document.getElementById('terminal-output');
     const consoleRes = document.getElementById('console-res');
-    const codeDest = document.getElementById('code-dest');
     const fb = document.getElementById('fb');
+    const btnContainer = document.getElementById('btn-container');
 
     if (!userCode) return;
 
-    // Recupera i dati dal tuo oggetto challenges5
     const sfida = challenges5[lang][index];
-    
-    // Mostra il terminale e colora il codice
     terminal.style.display = "block";
-    codeDest.textContent = input.value;
-    
-    // Impostiamo il linguaggio per Prism (JS/CSS/HTML/Python/Java)
-    let pLang = lang.toLowerCase();
-    if (pLang === 'javascript') pLang = 'js';
-    codeDest.className = `language-${pLang}`;
-    if (window.Prism) Prism.highlightElement(codeDest);
 
-    // LOGICA DI CONTROLLO: Verifica se il codice dell'utente contiene la logica richiesta
-    // Rimuoviamo gli spazi per un confronto più permissivo
+    // Pulizia per il confronto
     const cleanUser = userCode.replace(/\s+/g, '');
     const cleanLogic = sfida.logic.replace(/\s+/g, '');
-    
-    // Controllo: Il codice utente deve contenere la logica chiave definita nel DB
-    const isCorrect = cleanUser.includes(cleanLogic);
 
-    if (isCorrect) {
+    if (cleanUser.includes(cleanLogic)) {
+        // --- CASO SUCCESSO ---
         consoleRes.innerText = sfida.output + "\n\n>> Processo terminato con successo (0)";
         consoleRes.style.color = "#34c759";
-        fb.innerHTML = `<div style="color:#34c759; background:rgba(52,199,89,0.1); padding:10px; border-radius:10px; font-weight:bold">✓ Complimenti! Hai superato l'Esame Finale.</div>`;
-        
-        // SALVATAGGIO PROGRESSI
+        fb.innerHTML = `<b style="color:#34c759">✓ Esatto!</b>`;
+
+        // Aggiorna statistiche e progressi
         if (state.mode === 'user') {
-            state.progress[lang] = 5;
+            if (index === challenges5[lang].length - 1) {
+                state.progress[lang] = 5;
+            }
+            const u = dbUsers[state.currentPin];
+            if (u && u.history) {
+                if (!u.history[lang]) u.history[lang] = [];
+                u.history[lang].push({ 
+                    lvl: 5, 
+                    task: sfida.task, 
+                    ok: true, 
+                    date: new Date().toLocaleDateString() 
+                });
+            }
             saveMasterDB();
         }
+
+        // Tasto per andare avanti
+        btnContainer.innerHTML = `
+            <button class="btn-apple" onclick="renderL5('${lang}', ${index + 1})" style="background:#34c759; color:white; width:100%; font-weight:bold">
+                Prossima Sfida (${index + 2}/${challenges5[lang].length}) →
+            </button>`;
+
     } else {
-        consoleRes.innerText = "Traceback (most recent call last):\n  Error: LogicMismatch\n  L'output non corrisponde alle aspettative dell'esaminatore.";
+        // --- CASO ERRORE (Specifico per linguaggio) ---
+        let errorMsg = "";
+        const codeSnippet = userCode.substring(0, 15) + "...";
+
+        switch(lang.toLowerCase()) {
+            case 'python':
+                errorMsg = `Traceback (most recent call last):\n  File "script.py", line 1\n    ${userCode}\nSyntaxError: logic mismatch or missing '${sfida.logic}'`;
+                break;
+            case 'javascript':
+                errorMsg = `Uncaught SyntaxError: Unexpected logic structure\n    at eval (native)\n    at checkL5 (challenge.js:58:12)\n    Dato atteso: ${sfida.logic}`;
+                break;
+            case 'java':
+                errorMsg = `Exception in thread "main" java.lang.RuntimeException: Compilation Error\n    at compiler.JavaCompiler.check(Native Method)\n    at Exam.main(Exam.java:2)`;
+                break;
+            case 'mysql':
+                errorMsg = `ERROR 1064 (42000): You have an error in your SQL syntax;\ncheck the manual for the right syntax near '${codeSnippet}'`;
+                break;
+            case 'html':
+                errorMsg = `[HTML Validator]: Warning - Tag structure mismatch.\nExpected element: <${sfida.logic}>\nStatus: Element not found or improperly closed.`;
+                break;
+            default:
+                errorMsg = "Error: Logic mismatch. The code does not satisfy the requirements.";
+        }
+
+        consoleRes.innerText = errorMsg;
         consoleRes.style.color = "#ff3b30";
-        fb.innerHTML = `<div style="color:#ff3b30; background:rgba(255,59,48,0.1); padding:10px; border-radius:10px; font-weight:bold">✗ Il codice non è corretto. Riprova.</div>`;
+        fb.innerHTML = `<span style="color:#ff3b30; font-weight:bold">✗ Errore nel codice. Controlla il terminale.</span>`;
     }
 }
+
 
 
 
