@@ -38,32 +38,42 @@ if (!dbUsers[TESTER_PIN]) {
 
 window.onload = () => {
     initTheme();
-    
-    // Controlla se c'è una sessione attiva
     const savedPin = localStorage.getItem('sessionPin');
     
     if (savedPin && dbUsers[savedPin] && !dbUsers[savedPin].deleted) {
-        // Ripristina lo stato dell'utente
         state.currentPin = savedPin;
         state.currentUser = dbUsers[savedPin].name;
         
-        // Imposta la modalità (Admin o User)
         if (savedPin === ADMIN_PIN) {
             state.mode = 'admin';
         } else {
             state.mode = 'user';
-            // Carica i dati salvati nel DB per quell'utente
             state.progress = dbUsers[savedPin].progress || {};
             state.history = dbUsers[savedPin].history || {};
             state.ripasso = dbUsers[savedPin].ripasso || { wrong: [], notStudied: [] };
             state.activeProgress = dbUsers[savedPin].activeProgress || {};
         }
         
-        showHome(); // Vai direttamente ai percorsi
+        // --- LOGICA DI RIPRISTINO POSIZIONE ---
+        const lastSection = localStorage.getItem('currentSection');
+        const lastLang = localStorage.getItem('currentLang');
+
+        if (lastSection === 'profile') {
+            renderProfile();
+        } else if (lastSection === 'ripasso') {
+            renderRipasso();
+        } else if (lastSection === 'levels' && lastLang) {
+            showLevels(lastLang);
+        } else if (lastSection === 'admin') {
+            renderAdminPanel();
+        } else {
+            showHome();
+        }
     } else {
-        renderLogin(); // Nessuna sessione? Allora vai al Login
+        renderLogin();
     }
 };
+
 
 
 function initTheme() {
