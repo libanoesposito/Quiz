@@ -176,25 +176,28 @@ function validatePin(type) {
         return;
     }
 
-    // 1. ACCESSO ADMIN
+        // 1. ACCESSO ADMIN
     if (pin === ADMIN_PIN) {
         state.mode = 'admin';
         state.currentUser = "Creatore";
         state.currentPin = pin; 
+        localStorage.setItem('sessionPin', pin); // AGGIUNGI QUESTA
         showHome();
         return;
     }
 
-    // 2. ACCESSO TESTER (Novità)
+    // 2. ACCESSO TESTER
     if (pin === TESTER_PIN) {
         state.currentPin = pin;
         state.currentUser = testerUser.name;
         state.mode = 'user';
         state.progress = testerUser.progress;
         state.history = testerUser.history;
+        localStorage.setItem('sessionPin', pin); // AGGIUNGI QUESTA
         showHome();
         return;
     }
+
 
     // ... resto del codice per register e login normale ...
 
