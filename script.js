@@ -6,8 +6,11 @@ let state = {
     currentPin: null, 
     currentUser: null, 
     progress: {},    
-    history: {}
+    history: {},
+    ripasso: { wrong: [], notStudied: [] }, // Aggiungi questa
+    activeProgress: {}                      // Aggiungi questa
 };
+
 
 let session = null;
 const ADMIN_PIN = "3473";
@@ -1000,20 +1003,6 @@ window.toggleGeneralContent = function(id, card) {
     content.style.display = isHidden ? 'flex' : 'none';
     if (isHidden && card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
-
-window.addEventListener('load', () => {
-    const savedPin = localStorage.getItem('sessionPin');
-    if (savedPin && dbUsers && dbUsers[savedPin] && !dbUsers[savedPin].deleted) {
-        state.currentPin = savedPin;
-        state.currentUser = dbUsers[savedPin].name;
-        state.mode = (savedPin === "0000") ? 'admin' : 'user'; 
-        state.progress = dbUsers[savedPin].progress || {};
-        state.history = dbUsers[savedPin].history || {};
-        showHome();
-    } else {
-        renderLogin();
-    }
-});
 
    
 function toggleHistory(el) {
