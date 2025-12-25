@@ -1860,18 +1860,29 @@ function recalcUser(userId) {
     );
 }
 
-async function adminRestoreUser(userId) {
-    const pin = Object.keys(dbUsers).find(key => dbUsers[key].userId == userId);
-    try {
-        await db.collection("utenti").doc(pin).update({
-            deleted: false
-        });
-        dbUsers[pin].deleted = false;
-        saveMasterDB();
-        renderAdminPanel();
-    } catch (e) {
-        alert("Errore durante il ripristino.");
-    }
+async function adminRestoreUser(userId, docId) {
+    // Rimuoviamo il controllo su dbUsers perché l'utente è solo nel Cloud (eliminati)
+    openModal("Ripristina Utente", "Vuoi riportare questo utente tra quelli attivi?", async () => {
+        try {
+            // 1. Prendi i dati dal cestino Cloud
+            const snap = await db.collection("eliminati").doc(docId).get();
+            const userData = snap.data();
+
+            // 2. Ricostruisci il PIN (è la prima parte del docId)
+            const pin = docId.split('_')[0];
+
+            // 3. Sposta su utenti attivi nel Cloud
+            await db.collection("utenti").doc(pin).set({ ...userData, deleted: false });
+            
+            // 4. Cancella dal cestino Cloud
+            await db.collection("eliminati").doc(docId).delete();
+
+            // 5. Aggiorna la pagina per ricaricare i dati nuovi
+            window.location.reload();
+        } catch (e) {
+            alert("Errore durante il ripristino");
+        }
+    });
 }
 
 async function adminDeleteUser(userId) {
