@@ -393,9 +393,11 @@ async function registerUser() {
 
         // 2. GENERAZIONE ID SEQUENZIALE
         // Calcoliamo l'ID basandoci su quanti utenti totali (attivi + archiviati) sono passati nel sistema
-        const snapshotAttivi = await db.collection("utenti").get();
-        const snapshotEliminati = await db.collection("eliminati").get();
-        const nextId = snapshotAttivi.size + snapshotEliminati.size + 1; 
+        const snapAttivi = await db.collection("utenti").get();
+        const snapEliminati = await db.collection("eliminati").get();
+        const countAttivi = snapAttivi ? snapAttivi.size : 0;
+        const countEliminati = snapEliminati ? snapEliminati.size : 0;
+        const nextId = countAttivi + countEliminati + 1; 
 
         const newUser = {
             userId: nextId,
@@ -1627,7 +1629,8 @@ html += `
             html += `<div style="text-align:center; padding:20px; color:#666">Nessun utente nel cloud</div>`;
         } else {
             attivi.forEach(u => {
-                const statsText = u.stats.total ? `${u.stats.correct}/${u.stats.total} corrette · ${u.stats.perc}%` : "Nessun progresso";
+                const stats = u.stats || { total: 0, correct: 0, perc: 0 };
+const statsText = stats && stats.total ? `${stats.correct}/${stats.total} corrette · ${stats.perc}%` : "Nessun progresso";
                 // Sostituisci il div delle icone dentro il ciclo attivi.forEach
 html += `
     <div class="review-card is-ok">
