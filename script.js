@@ -410,10 +410,19 @@ function renderL5(lang) {
     updateNav(true, `showLevels('${lang}')`);
     const container = document.getElementById('content-area');
     
+    // 1. RECUPERO SFIDA DAL DATABASE
+    // Assicurati che in database.js esista domandaRepo[lang].L5
+    const sfida = (domandaRepo[lang] && domandaRepo[lang].L5) ? domandaRepo[lang].L5[0] : null;
+
+    if (!sfida) {
+        container.innerHTML = "<p style='padding:20px; color:white'>Errore: Nessuna sfida L5 trovata per questo linguaggio.</p>";
+        return;
+    }
+
     container.innerHTML = `
         <div class="glass-card" style="box-shadow: none !important; background: rgba(120, 120, 128, 0.08) !important; border-radius: 20px; padding: 20px;">
             <h2 style="font-size:18px; margin-bottom:10px">ESAMINATORE: ${lang.toUpperCase()}</h2>
-            <p style="font-size:14px; margin-bottom:15px; opacity:0.8"><b>Sfida:</b> Crea un ciclo che stampi i numeri da 1 a 10.</p>
+            <p id="sfida-desc" style="font-size:14px; margin-bottom:15px; opacity:0.8"><b>Sfida:</b> ${sfida.q}</p>
             
             <div style="background:#1e1e1e; border-radius:12px; border:1px solid #333; padding:10px;">
                 <textarea id="editing" spellcheck="false" 
@@ -426,15 +435,56 @@ function renderL5(lang) {
             
             <div id="terminal-output" style="display:none; margin-top:20px; background:#000; border-radius:10px; padding:15px; border:1px solid #444;">
                 <div style="color:#34c759; font-size:11px; margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:5px; font-family:sans-serif;">OUTPUT TERMINALE</div>
-                
-                <pre id="highlighted-result" style="margin:0 0 15px 0; padding:0; background:transparent; font-size:13px;"><code id="code-dest" class="language-javascript"></code></pre>
-                
+                <pre id="highlighted-result" style="margin:0 0 15px 0; padding:0; background:transparent; font-size:13px;"><code id="code-dest"></code></pre>
                 <pre id="console-res" style="color:#fff; margin:0; font-size:13px; font-family:monospace; white-space:pre-wrap; border-top:1px solid #222; padding-top:10px;"></pre>
             </div>
             <div id="fb" style="margin-top:15px; text-align:center"></div>
         </div>
     `;
 }
+
+function checkL5(lang) {
+    const input = document.getElementById('editing');
+    const userCode = input.value.trim();
+    const terminal = document.getElementById('terminal-output');
+    const consoleRes = document.getElementById('console-res');
+    const codeDest = document.getElementById('code-dest');
+    const fb = document.getElementById('fb');
+
+    // 1. Recuperiamo i dati corretti dal Database
+    const sfida = domandaRepo[lang].L5[0];
+    const soluzioneCorretta = sfida.solution.trim();
+    const outputAtteso = sfida.expected;
+
+    // 2. Setup Prism
+    let pLang = lang.toLowerCase();
+    if (pLang === 'javascript') pLang = 'js';
+    codeDest.className = `language-${pLang}`;
+    terminal.style.display = "block";
+    codeDest.textContent = input.value;
+    if (window.Prism) Prism.highlightElement(codeDest);
+
+    // 3. CONFRONTO RIGOROSO
+    // Puliamo entrambi i codici da spazi extra per evitare errori stupidi
+    const cleanUser = userCode.replace(/\s+/g, '');
+    const cleanSol = soluzioneCorretta.replace(/\s+/g, '');
+
+    if (cleanUser === cleanSol) {
+        consoleRes.innerText = outputAtteso + "\n\n[Success]: Test passato correttamente.";
+        consoleRes.style.color = "#34c759";
+        fb.innerHTML = `<span style="color:#34c759; font-weight:bold">✓ Esame Superato! Progressi salvati.</span>`;
+        
+        if (state.mode === 'user') {
+            state.progress[lang] = 5;
+            saveMasterDB();
+        }
+    } else {
+        consoleRes.innerText = "Error: Output non valido.\nIl codice inserito non corrisponde alla soluzione attesa.";
+        consoleRes.style.color = "#ff3b30";
+        fb.innerHTML = `<span style="color:#ff3b30; font-weight:bold">✗ Errore. Controlla la sintassi o la logica.</span>`;
+    }
+}
+
 
 function handleInput(el, lang) {
     // Salviamo la posizione del cursore (Selection)
