@@ -11,6 +11,15 @@ let state = {
 
 let session = null;
 const ADMIN_PIN = "3473";
+const TESTER_PIN = "1111"; // Il PIN del tuo utente tutto sbloccato
+
+// Definiamo l'oggetto tester con tutti i progressi al livello 5
+const testerUser = {
+    name: "Tester Pro",
+    progress: { "Python": 5, "JavaScript": 5, "Java": 5, "MySQL": 5, "HTML": 5 },
+    history: {},
+    isTester: true
+};
 
 window.onload = () => {
     initTheme();
@@ -127,7 +136,7 @@ function validatePin(type) {
         return;
     }
 
-    // Accesso Admin
+    // 1. ACCESSO ADMIN
     if (pin === ADMIN_PIN) {
         state.mode = 'admin';
         state.currentUser = "Creatore";
@@ -135,6 +144,20 @@ function validatePin(type) {
         showHome();
         return;
     }
+
+    // 2. ACCESSO TESTER (Novità)
+    if (pin === TESTER_PIN) {
+        state.currentPin = pin;
+        state.currentUser = testerUser.name;
+        state.mode = 'user';
+        state.progress = testerUser.progress;
+        state.history = testerUser.history;
+        showHome();
+        return;
+    }
+
+    // ... resto del codice per register e login normale ...
+
 
     if (type === 'register') {
         const nameInput = document.getElementById('name-field');
