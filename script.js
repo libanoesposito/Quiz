@@ -1862,39 +1862,62 @@ function recalcUser(userId) {
 }
 
 async function adminRestoreUser(userId, docId) {
-    // Rimuoviamo il controllo su dbUsers perché l'utente è solo nel Cloud (eliminati)
-    openModal("Ripristina Utente", "Vuoi riportare questo utente tra quelli attivi?", async () => {
+    const pinOriginale = docId.split('_')[0];
+    
+    openModal("Ripristina", "Riattivare l'utente?", async () => {
         try {
-            // 1. Prendi i dati dal cestino Cloud
             const snap = await db.collection("eliminati").doc(docId).get();
-            const userData = snap.data();
+            const data = snap.data();
 
-            // 2. Ricostruisci il PIN (è la prima parte del docId)
-            const pin = docId.split('_')[0];
-
-            // 3. Sposta su utenti attivi nel Cloud
-            await db.collection("utenti").doc(pin).set({ ...userData, deleted: false });
-            
-            // 4. Cancella dal cestino Cloud
+            // 1. Ripristina su Firebase
+            await db.collection("utenti").doc(pinOriginale).set({ ...data, deleted: false });
             await db.collection("eliminati").doc(docId).delete();
 
-            // 5. Aggiorna la pagina per ricaricare i dati nuovi
-            window.location.reload();
+            // 2. MODIFICA CHIRURGICA: Riaggiorna l'oggetto locale dbUsers
+            // Senza questa riga, la prossima eliminazione dirà "Utente non trovato"
+            dbUsers[pinOriginale] = { ...data, deleted: false, userId: userId }; 
+            
+            // 3. Salva la memoria locale e aggiorna solo il pannello (senza ricaricare pagina)
+            saveMasterDB();
+            renderAdminPanel(); 
         } catch (e) {
-            alert("Errore durante il ripristino");
+            console.error(e);
+            alert("Errore ripristino");
         }
     });
 }
 
 async function adminDeleteUser(userId) {
-    // Troviamo il PIN corrispondente all'ID
     const pin = Object.keys(dbUsers).find(key => dbUsers[key].userId == userId);
-    const u = dbUsers[pin];
-    
-    if (!u) {
-        alert("Utente non trovato");
-        return;
-    }
+    if (!pin) return;
+
+    openModal("Elimina Utente", "Spostare l'utente nel cestino?", async () => {
+        try {
+            const u = dbUsers[pin];
+            const archiveId = `${pin}_${Date.now()}`;
+
+            // Sposta nel cestino
+            await db.collection("eliminati").doc(archiveId).set({
+                ...u,
+                docId: archiveId,
+                deletedAt: new Date().toISOString()
+            });
+
+            // Rimuovi da attivi
+            await db.collection("utenti").doc(pin).delete();
+            await db.collection("classifica").doc(pin).delete();
+
+            // 3. MODIFICA CHIRURGICA: Rimuovi dal database locale
+            delete dbUsers[pin];
+            saveMasterDB();
+
+            // 4. NON USARE window.location.reload()
+            renderAdminPanel(); 
+        } catch (e) {
+            alert("Errore durante l'eliminazione");
+        }
+    });
+}
 
     openModal(
         "Elimina utente",
@@ -2058,7 +2081,7 @@ async function adminResetAll(mode) {
 
             await batch.commit();
             localStorage.clear(); 
-            window.location.reload(); 
+            renderAdminPanel(); 
 
         } catch (e) {
             console.error("Errore Reset:", e);
@@ -2119,7 +2142,7 @@ async function adminResetAll(mode) {
 
             await batch.commit();
             localStorage.clear(); 
-            window.location.reload(); 
+            renderAdminPanel(); 
 
         } catch (e) {
             console.error("Errore Reset:", e);
