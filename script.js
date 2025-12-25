@@ -8,14 +8,17 @@ window.alert = function(message) {
     const existing = document.getElementById('apple-alert-overlay');
     if (existing) existing.remove();
 
-    const overlay = document.createElement('div');
-    overlay.id = 'apple-alert-overlay';
-    overlay.style = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-        display: flex; align-items: center; justify-content: center; z-index: 1000000;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica;
-    `;
+            const overlay = document.createElement('div');
+        overlay.id = 'apple-alert-overlay';
+        overlay.style = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3); 
+            backdrop-filter: blur(8px); 
+            -webkit-backdrop-filter: blur(8px); /* Forza la sfocatura su iOS e Browser Mobile */
+            display: flex; align-items: center; justify-content: center; z-index: 1000000;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica;
+        `;
+
 
     // Rileviamo se siamo in Dark Mode per adattare il popup
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
