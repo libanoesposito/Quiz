@@ -401,7 +401,15 @@ function handleTab(e, el) {
     }
 }
 
-function renderL5(lang, index = 0) {
+function renderL5(lang, index = null) {
+    // Se non specifichiamo l'indice, proviamo a caricarlo dal DB
+    if (index === null && state.mode === 'user') {
+        const storageKey = `${lang}_5`;
+        index = dbUsers[state.currentPin]?.activeProgress?.[storageKey] || 0;
+    } else if (index === null) {
+        index = 0; // Per Guest/Admin se non c'è indice parte da 0
+    }
+    
     updateNav(true, `showLevels('${lang}')`);
     const container = document.getElementById('content-area');
     const sfide = challenges5[lang];
@@ -418,12 +426,19 @@ function renderL5(lang, index = 0) {
     }
 
     const sfida = sfide[index];
+    const percentL5 = (index / sfide.length) * 100;
 
     container.innerHTML = `
         <div class="glass-card" style="padding: 20px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
-                <h2 style="font-size:18px; margin:0">ESAME ${lang.toUpperCase()} (${index + 1}/${sfide.length})</h2>
-            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+    <h2 style="font-size:18px; margin:0">ESAME ${lang.toUpperCase()}</h2>
+    <span style="font-size:12px; opacity:0.7">${index}/${sfide.length}</span>
+</div>
+
+<div style="width:100%; height:6px; background:rgba(255,255,255,0.1); border-radius:10px; margin-bottom:20px; overflow:hidden">
+    <div style="width:${percentL5}%; height:100%; background:#34c759; transition:width 0.3s ease"></div>
+</div>
+
             
             <p style="font-size:15px; margin-bottom:20px; color:#fff;"><b>Sfida:</b> ${sfida.task}</p>
             
@@ -470,7 +485,24 @@ function checkL5(lang, index) {
         consoleRes.innerText = sfida.output + "\n\n>> Processo terminato con successo (0)";
         consoleRes.style.color = "#34c759";
         fb.innerHTML = `<b style="color:#34c759">✓ Esatto!</b>`;
-
+            if (cleanUser.includes(cleanLogic)) {
+        // AGGIUNGI QUESTO BLOCCO PER IL SALVATAGGIO PARZIALE
+        if (state.mode === 'user') {
+            const storageKey = `${lang}_5`;
+            if (!dbUsers[state.currentPin].activeProgress) {
+                dbUsers[state.currentPin].activeProgress = {};
+            }
+            // Salviamo che l'utente deve riprendere dalla sfida successiva
+            dbUsers[state.currentPin].activeProgress[storageKey] = index + 1;
+            
+            // Se è l'ultima sfida, allora abbiamo completato il livello 5
+            if (index === challenges5[lang].length - 1) {
+                state.progress[lang] = 5;
+            }
+            
+            saveMasterDB(); 
+        }
+        // ... resto del codice (tasto per andare avanti) ...
         // Aggiorna statistiche e progressi
         if (state.mode === 'user') {
             if (index === challenges5[lang].length - 1) {
