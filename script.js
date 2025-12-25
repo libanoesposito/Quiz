@@ -1695,18 +1695,18 @@ if (eliminati.length > 0) {
                 </div>
                 
                 <div style="display:flex; gap:18px; align-items:center">
-                    <span style="cursor:pointer; color:#34c759" onclick="adminRestoreUser(${u.id}, '${u.docId}')">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
-                    </span>
+                <span style="cursor:pointer; color:#34c759" onclick="adminRestoreUser(${u.id}, '${u.docId}')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+                </span>
 
-                    <span style="cursor:pointer; color:#0a84ff" onclick="showUserHistory(${u.id})">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </span>
+                <span style="cursor:pointer; color:#0a84ff" onclick="showUserHistory(${u.id})">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                </span>
 
-                    <span style="cursor:pointer; color:#ff3b30" onclick="adminPermanentDelete('${u.docId}')">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                    </span>
-                </div>
+                <span style="cursor:pointer; color:#ff3b30" onclick="adminPermanentDelete('${u.docId}')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </span>
+</div>
             </div>`;
     });
     html += `</div></div>`;
@@ -2056,18 +2056,23 @@ async function adminResetAll(mode) {
 }
 
 // CANCELLAZIONE DEFINITIVA SINGOLA (Dal cestino)
-async function adminPermanentDelete(userId) {
-    const pin = Object.keys(dbUsers).find(key => dbUsers[key].userId == userId);
-    if (!confirm("ATTENZIONE: Questa azione eliminerà definitivamente l'utente e il suo storico dal Cloud. Non potrai più recuperarlo. Procedere?")) return;
-
-    try {
-        await db.collection("utenti").doc(pin).delete();
-        delete dbUsers[pin];
-        saveMasterDB();
-        renderAdminPanel();
-    } catch (e) {
-        alert("Errore durante l'eliminazione definitiva.");
-    }
+async function adminPermanentDelete(docId) {
+    openModal(
+        "Eliminazione Definitiva", 
+        "Questa azione rimuoverà l'utente dal Cloud per sempre. Non potrai più recuperare lo storico. Procedere?", 
+        async () => {
+            try {
+                // Rimuove direttamente il documento dalla collezione 'eliminati'
+                await db.collection("eliminati").doc(docId).delete();
+                
+                // Refresh immediato del pannello
+                renderAdminPanel();
+            } catch (e) {
+                console.error("Errore eliminazione:", e);
+                alert("Errore durante l'eliminazione definitiva.");
+            }
+        }
+    );
 }
 
 async function adminResetAll(mode) {
