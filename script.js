@@ -246,18 +246,32 @@ function renderLogin() {
 function uiPin(type) {
     updateNav(true, "renderLogin()");
     let title = type === 'login' ? 'Bentornato' : 'Crea Profilo';
+    
+    // Campo nome: lo mostriamo solo se stiamo registrando
+    // NOTA: ID cambiato in "reg-name" per farlo leggere a registerUser()
     let nameField = type === 'register' ? 
-        `<input type="text" id="name-field" class="btn-apple" placeholder="Il tuo Nome" style="text-align:center; margin-bottom:10px">` : '';
+        `<input type="text" id="reg-name" class="btn-apple" placeholder="Il tuo Nome" style="text-align:center; margin-bottom:10px">` : '';
+
+    // Decidiamo quale funzione chiamare al clic
+    let action = type === 'register' ? 'registerUser()' : "validatePin('login')";
 
     document.getElementById('content-area').innerHTML = `
         <div style="display:flex; flex-direction:column; align-items:center; width:100%">
             <h3 style="margin-bottom:20px">${title}</h3>
             <div id="pin-error" style="color:#ff3b30; font-size:13px; margin-bottom:10px; display:none; padding:0 20px"></div>
+            
             ${nameField}
-            <input type="password" id="pin-field" class="btn-apple" style="text-align:center; font-size:24px; letter-spacing:8px" maxlength="4" inputmode="numeric" placeholder="PIN">
-            <button class="btn-apple btn-primary" style="margin-top:20px" onclick="validatePin('${type}')">Conferma</button>
+            
+            <input type="password" id="reg-pin" class="btn-apple" 
+                   style="text-align:center; font-size:24px; letter-spacing:8px" 
+                   maxlength="4" inputmode="numeric" placeholder="PIN">
+            
+            <button class="btn-apple btn-primary" style="margin-top:20px" onclick="${action}">
+                Conferma
+            </button>
         </div>`;
 }
+
 
 function isWeakPin(pin) {
     // tutti uguali
