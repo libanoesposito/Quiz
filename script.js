@@ -1588,26 +1588,26 @@ async function renderAdminPanel() {
 
         // 1. NUOVO BLOCCO MANUTENZIONE A 3 TASTI
         html += `
-    <div class="review-card" style="margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; background:#fbfbfd; border:1px solid #d2d2d7; border-radius:12px; padding:16px 20px">
+    <div class="review-card" style="margin-bottom:20px; border-left: 4px solid #ff3b30; display:flex; justify-content:space-between; align-items:center; padding: 12px 18px">
         <div>
-            <strong style="color:#1d1d1f; font-size:15px; letter-spacing:-0.01em">Manutenzione Database</strong>
-            <span style="display:block; font-size:12px; color:#86868b">Gestione globale del sistema</span>
+            <strong style="color:#ff3b30; font-size:14px; display:block">Database Cloud</strong>
+            <span style="font-size:11px; color:#666">Manutenzione globale</span>
         </div>
-        
-        <div style="display:flex; gap:20px; align-items:center">
-            <div style="text-align:center; cursor:pointer; color:#0066cc" onclick="adminResetAll('STATS')" title="Azzera punti a tutti">
-                <div style="font-size:18px; font-weight:300">↺</div>
-                <div style="font-size:9px; font-weight:600; text-transform:uppercase; margin-top:2px">Reset</div>
+
+        <div style="display:flex; gap:20px">
+            <div style="text-align:center; cursor:pointer" onclick="adminResetAll('STATS')" title="Azzera punti">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><polyline points="21 3 21 8 16 8"/></svg>
+                <div style="font-size:8px; font-weight:800; color:#666; margin-top:3px">RESET</div>
             </div>
 
-            <div style="text-align:center; cursor:pointer; color:#1d1d1f" onclick="alert('Usa l icona 🧼 accanto all utente per il reset mirato')" title="Reset mirato">
-                <div style="font-size:18px; font-weight:300">⊙</div>
-                <div style="font-size:9px; font-weight:600; text-transform:uppercase; margin-top:2px">Mirato</div>
+            <div style="text-align:center; cursor:pointer" onclick="alert('Usa l icona 🧼 accanto all utente')" title="Reset mirato">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg>
+                <div style="font-size:8px; font-weight:800; color:#666; margin-top:3px">MIRATO</div>
             </div>
 
-            <div style="text-align:center; cursor:pointer; color:#ff3b30" onclick="adminResetAll('FULL')" title="Elimina tutto">
-                <div style="font-size:18px; font-weight:300">⊗</div>
-                <div style="font-size:9px; font-weight:600; text-transform:uppercase; margin-top:2px">Pulisci</div>
+            <div style="text-align:center; cursor:pointer" onclick="adminResetAll('FULL')" title="Elimina tutto">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <div style="font-size:8px; font-weight:800; color:#ff3b30; margin-top:3px">PULISCI</div>
             </div>
         </div>
     </div>`;
@@ -1640,8 +1640,8 @@ async function renderAdminPanel() {
             });
         }
 
-        // Sezione Eliminati (Resto del codice uguale...)
-        if (eliminati.length > 0) {
+        // Sezione Eliminati - Testo visibile e allineamento
+if (eliminati.length > 0) {
     html += `
         <div class="glass-card" style="
             margin-top:30px; 
@@ -1649,24 +1649,26 @@ async function renderAdminPanel() {
             max-width:none; 
             padding:15px; 
             border-radius:15px; 
-            border:1px solid rgba(255,59,48,0.3);
+            border:1px solid rgba(255,59,48,0.2);
             box-sizing: border-box;
+            display: block; /* Sovrascrive il flex della glass-card per evitare stretch strani */
         ">
             <div onclick="const el = document.getElementById('deleted-list'); el.style.display = el.style.display === 'none' ? 'block' : 'none'" 
-                 style="cursor:pointer; display:flex; justify-content:center; align-items:center">
-                <strong style="color:#ff3b30; font-size:12px; letter-spacing:1px">UTENTI ELIMINATI (${eliminati.length})</strong>
+                 style="cursor:pointer; display:flex; justify-content:center; align-items:center; width:100%">
+                <strong style="color:#ff3b30; font-size:12px; letter-spacing:1px; text-transform:uppercase">Utenti Eliminati (${eliminati.length})</strong>
             </div>
+            
             <div id="deleted-list" style="display:none; margin-top:15px">`;
     
     eliminati.forEach(u => {
         html += `
-            <div style="padding:10px 0; border-bottom:1px solid rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center">
-                <div>
-                    <span style="font-weight:600; color:#1d1d1f">${u.name}</span>
-                    <div style="font-size:11px; opacity:0.5">ID ${u.id}</div>
+            <div style="padding:12px 0; border-top:1px solid rgba(120,120,128,0.1); display:flex; justify-content:space-between; align-items:center">
+                <div style="display:flex; flex-direction:column">
+                    <span style="font-weight:600; color: inherit; opacity: 0.9; font-size:15px">${u.name}</span>
+                    <div style="font-size:11px; color: inherit; opacity:0.5">ID ${u.id}</div>
                 </div>
-                <div style="cursor:pointer; color:#0a84ff; font-weight:600; font-size:12px" onclick="showUserHistory(${u.id})">
-                    VEDI STORICO
+                <div style="cursor:pointer; color:#0a84ff; font-weight:600; font-size:12px; text-transform:uppercase" onclick="showUserHistory(${u.id})">
+                    Vedi Storico
                 </div>
             </div>`;
     });
