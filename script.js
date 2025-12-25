@@ -1633,15 +1633,26 @@ async function renderAdminPanel() {
             html += `<div style="text-align:center; padding:20px; color:#666">Nessun utente nel cloud</div>`;
         } else {
             attivi.forEach(u => {
-                const stats = u.stats || { total: 0, correct: 0, perc: 0 };
-const statsText = stats && stats.total ? `${stats.correct}/${stats.total} corrette · ${stats.perc}%` : "Nessun progresso";
-                // Sostituisci il div delle icone dentro il ciclo attivi.forEach
-html += `
+    const stats = u.stats || { total: 0, correct: 0, perc: 0 };
+    const statsText = stats && stats.total ? `${stats.correct}/${stats.total} corrette · ${stats.perc}%` : "Nessun progresso";
+    
+    // Mostra un avviso se il PIN è temporaneo (da adminRestoreUser)
+    const isTemp = u.needsPinChange ? `<span style="color:#ff9500; font-size:10px; font-weight:bold; margin-left:5px">⚠️ TEMP</span>` : '';
+
+    html += `
     <div class="review-card is-ok">
         <div style="display:flex; justify-content:space-between; align-items:center">
             <div>
-                <strong style="color:currentColor">${u.name}</strong>
-                <div style="font-size:12px; color:currentColor; opacity:0.6">ID ${u.id}</div>
+                <strong style="color:currentColor">${u.name}</strong> ${isTemp}
+                <div style="font-size:12px; color:currentColor; opacity:0.6; display:flex; align-items:center; gap:8px; margin-top:2px">
+                    ID ${u.id} • PIN: 
+                    <span id="pin-text-${u.id}" style="font-family:monospace; letter-spacing:1px; filter:blur(4px); transition: filter 0.2s">${u.pin}</span>
+                    <span style="cursor:pointer; opacity:0.8; display:flex" onclick="togglePinVisibility('${u.id}')">
+                        <svg id="pin-icon-${u.id}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </span>
+                </div>
             </div>
             
             <div style="display:flex; gap:16px; align-items:center; color:currentColor">
@@ -1664,7 +1675,7 @@ html += `
         </div>
         <div style="margin-top:8px; font-size:13px; color:currentColor; opacity:0.8">${statsText}</div>
     </div>`;
-            });
+});
         }
 
         // Sezione Eliminati - Testo visibile e allineamento
@@ -1725,6 +1736,22 @@ if (eliminati.length > 0) {
     }
 }
 
+// Lìocchio in admin
+function togglePinVisibility(userId) {
+    const text = document.getElementById(`pin-text-${userId}`);
+    const icon = document.getElementById(`pin-icon-${userId}`);
+    
+    // Se è sfocato, togliamo il blur, altrimenti lo rimettiamo
+    if (text.style.filter === 'blur(4px)' || text.style.filter === '') {
+        text.style.filter = 'none';
+        // Icona occhio sbarrato
+        icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+    } else {
+        text.style.filter = 'blur(4px)';
+        // Icona occhio normale
+        icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    }
+}
 
 
 function showUserHistory(userId) {
