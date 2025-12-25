@@ -335,7 +335,7 @@ function showLevels(lang) {
 
     for (let i = 1; i <= 5; i++) {
 
-        let label = (i === 5) ? "ESAMINATI" : "Livello " + i;
+        let label = (i === 5) ? "PROVA A TESTARTI" : "Livello " + i;
         let isLocked = false;
 
         // LOGICA UTENTE
