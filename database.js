@@ -87,15 +87,7 @@ const domandaRepo = {
     }
 };
 
-const challenges5 = {
-    Python: [
-        { task: "Conta da 1 a 3", logic: "for i in range(1,4): print(i)", output: "1\n2\n3", userStatus: null },
-        { task: "Stampa numeri pari fino a 6", logic: "for i in range(2,7,2): print(i)", output: "2\n4\n6", userStatus: null },
-        { task: "Somma numeri da 1 a 5", logic: "sum(range(1,6))", output: "15", userStatus: null },
-        { task: "Crea una lista di quadrati 1-5", logic: "[i*i for i in range(1,6)]", output: "[1, 4, 9, 16, 25]", userStatus: null },
-        { task: "Stampa 'Ciao' 3 volte usando ciclo", logic: "for i in range(3): print('Ciao')", output: "Ciao\nCiao\nCiao", userStatus: null }
-    ]
-};
+
 const domandaRepo = {
     ...domandaRepo,
     JavaScript: {
@@ -161,16 +153,7 @@ const domandaRepo = {
     }
 };
 
-const challenges5 = {
-    ...challenges5,
-    JavaScript: [
-        { task: "Stampa 1 a 3", logic: "for(let i=1;i<=3;i++){console.log(i)}", output: "1\n2\n3", userStatus: null },
-        { task: "Somma 1 a 5", logic: "let s=0;for(let i=1;i<=5;i++){s+=i}", output: "15", userStatus: null },
-        { task: "Array quadrati", logic: "[1,2,3,4,5].map(x=>x*x)", output: "[1,4,9,16,25]", userStatus: null },
-        { task: "Pari fino 6", logic: "for(let i=2;i<=6;i+=2){console.log(i)}", output: "2\n4\n6", userStatus: null },
-        { task: "Stampa Ciao 3 volte", logic: "for(let i=0;i<3;i++){console.log('Ciao')}", output: "Ciao\nCiao\nCiao", userStatus: null }
-    ]
-};
+
 const domandaRepo = {
     ...domandaRepo,
     Java: {
@@ -236,16 +219,7 @@ const domandaRepo = {
     }
 };
 
-const challenges5 = {
-    ...challenges5,
-    Java: [
-        { task: "Stampa 1 a 3", logic: "for(int i=1;i<=3;i++){System.out.println(i);}", output: "1\n2\n3", userStatus: null },
-        { task: "Somma 1 a 5", logic: "int s=0;for(int i=1;i<=5;i++){s+=i;}", output: "15", userStatus: null },
-        { task: "Pari fino 6", logic: "for(int i=2;i<=6;i+=2){System.out.println(i);}", output: "2\n4\n6", userStatus: null },
-        { task: "Stampa Ciao 3 volte", logic: "for(int i=0;i<3;i++){System.out.println(\"Ciao\");}", output: "Ciao\nCiao\nCiao", userStatus: null },
-        { task: "Array quadrati", logic: "int[] a={1,2,3,4,5};for(int x:a){System.out.println(x*x);}", output: "1\n4\n9\n16\n25", userStatus: null }
-    ]
-};
+
 const domandaRepo = {
     ...domandaRepo,
     MySQL: {
@@ -311,16 +285,7 @@ const domandaRepo = {
     }
 };
 
-const challenges5 = {
-    ...challenges5,
-    MySQL: [
-        { task: "Seleziona tutti utenti", logic: "SELECT * FROM utenti;", output: "tutti i record", userStatus: null },
-        { task: "Conta utenti", logic: "SELECT COUNT(*) FROM utenti;", output: "numero utenti", userStatus: null },
-        { task: "Utenti ordinati per nome", logic: "SELECT * FROM utenti ORDER BY nome;", output: "utenti ordinati", userStatus: null },
-        { task: "Limita a 5 risultati", logic: "SELECT * FROM utenti LIMIT 5;", output: "5 record", userStatus: null },
-        { task: "Utenti unici", logic: "SELECT DISTINCT nome FROM utenti;", output: "nomi unici", userStatus: null }
-    ]
-};
+
 const domandaRepo = {
     ...domandaRepo,
     HTML: {
@@ -387,12 +352,66 @@ const domandaRepo = {
 };
 
 const challenges5 = {
-    ...challenges5,
+    Python: [
+        { task: "Conta da 1 a 3", logic: "for i in range(1, 4)", output: "1\n2\n3", userStatus: null },
+        { task: "Stampa numeri pari fino a 6", logic: "for i in range(2,7,2)", output: "2\n4\n6", userStatus: null },
+        { task: "Somma numeri da 1 a 5", logic: "sum(range(1,6))", output: "15", userStatus: null },
+        { task: "Crea una lista di quadrati 1-5", logic: "[i*i for i in range(1,6)]", output: "[1, 4, 9, 16, 25]", userStatus: null },
+        { task: "Stampa 'Ciao' 3 volte usando ciclo", logic: "for i in range(3): print('Ciao')", output: "Ciao\nCiao\nCiao", userStatus: null },
+        // Nuove 5
+        { task: "Stampa numeri da 5 a 1", logic: "for i in range(5,0,-1)", output: "5\n4\n3\n2\n1", userStatus: null },
+        { task: "Crea lista con valori doppi di 1-5", logic: "[i*2 for i in range(1,6)]", output: "[2, 4, 6, 8, 10]", userStatus: null },
+        { task: "Conta caratteri in 'Python'", logic: "len('Python')", output: "6", userStatus: null },
+        { task: "Somma elementi lista [1,2,3,4]", logic: "sum([1,2,3,4])", output: "10", userStatus: null },
+        { task: "Crea dizionario da lista [1,2,3]", logic: "{i:i*i for i in [1,2,3]}", output: "{1: 1, 2: 4, 3: 9}", userStatus: null }
+    ],
+    JavaScript: [
+        { task: "Conta da 1 a 5", logic: "for(let i=1;i<=5;i++)", output: "1\n2\n3\n4\n5", userStatus: null },
+        { task: "Ciclo su array [1,2,3]", logic: "for(let x of [1,2,3])", output: "1\n2\n3", userStatus: null },
+        { task: "Somma numeri da 1 a 5", logic: "let sum=0;for(let i=1;i<=5;i++)", output: "15", userStatus: null },
+        { task: "Stampa solo numeri pari 1-10", logic: "if(i%2===0)", output: "2\n4\n6\n8\n10", userStatus: null },
+        { task: "Crea array di quadrati 1-5", logic: "[1,2,3,4,5].map(x=>x*x)", output: "[1,4,9,16,25]", userStatus: null },
+        // Nuove 5
+        { task: "Conta da 10 a 1", logic: "for(let i=10;i>=1;i--)", output: "10\n9\n8\n7\n6\n5\n4\n3\n2\n1", userStatus: null },
+        { task: "Somma elementi array [5,10,15]", logic: "[5,10,15].reduce((a,b)=>a+b,0)", output: "30", userStatus: null },
+        { task: "Stampa 'JS' 4 volte", logic: "for(let i=0;i<4;i++) console.log('JS')", output: "JS\nJS\nJS\nJS", userStatus: null },
+        { task: "Crea array con valori doppi [1,2,3]", logic: "[1,2,3].map(x=>x*2)", output: "[2,4,6]", userStatus: null },
+        { task: "Filtra numeri pari da [1,2,3,4,5]", logic: "[1,2,3,4,5].filter(x=>x%2===0)", output: "[2,4]", userStatus: null }
+    ],
+    Java: [
+        { task: "Main che stampa 'Ciao'", logic: "System.out.println(\"Ciao\")", output: "Ciao", userStatus: null },
+        { task: "Conta da 1 a 3", logic: "for(int i=1;i<=3;i++)", output: "1\n2\n3", userStatus: null },
+        { task: "Somma numeri 1-5", logic: "int sum=0;for(int i=1;i<=5;i++)", output: "15", userStatus: null },
+        { task: "Stampa numeri pari 1-6", logic: "if(i%2==0)", output: "2\n4\n6", userStatus: null },
+        // Nuove 5
+        { task: "Conta da 5 a 1", logic: "for(int i=5;i>=1;i--)", output: "5\n4\n3\n2\n1", userStatus: null },
+        { task: "Crea array di quadrati [1-5]", logic: "int[] squares = {1,4,9,16,25};", output: "[1,4,9,16,25]", userStatus: null },
+        { task: "Somma array [1,2,3,4]", logic: "int sum=0;for(int i: new int[]{1,2,3,4}) sum+=i;", output: "10", userStatus: null },
+        { task: "Stampa 'Hello' 3 volte", logic: "for(int i=0;i<3;i++) System.out.println(\"Hello\");", output: "Hello\nHello\nHello", userStatus: null },
+        { task: "Conta numeri dispari 1-5", logic: "if(i%2!=0)", output: "1\n3\n5", userStatus: null }
+    ],
+    MySQL: [
+        { task: "Seleziona tutti da tabella utenti", logic: "SELECT * FROM utenti", output: "OK", userStatus: null },
+        { task: "Conta record tabella prodotti", logic: "SELECT COUNT(*) FROM prodotti", output: "OK", userStatus: null },
+        { task: "Seleziona nome e prezzo da prodotti", logic: "SELECT nome, prezzo FROM prodotti", output: "OK", userStatus: null },
+        { task: "Seleziona prodotti con prezzo > 100", logic: "SELECT * FROM prodotti WHERE prezzo>100", output: "OK", userStatus: null },
+        // Nuove 5
+        { task: "Seleziona utenti con età > 18", logic: "SELECT * FROM utenti WHERE eta>18", output: "OK", userStatus: null },
+        { task: "Seleziona nomi distinct", logic: "SELECT DISTINCT nome FROM utenti", output: "OK", userStatus: null },
+        { task: "Ordina utenti per nome", logic: "SELECT * FROM utenti ORDER BY nome", output: "OK", userStatus: null },
+        { task: "Seleziona primi 3 prodotti", logic: "SELECT * FROM prodotti LIMIT 3", output: "OK", userStatus: null },
+        { task: "Seleziona prodotti prezzo tra 50 e 100", logic: "SELECT * FROM prodotti WHERE prezzo BETWEEN 50 AND 100", output: "OK", userStatus: null }
+    ],
     HTML: [
-        { task: "Titolo e paragrafo", logic: "<h1>Titolo</h1><p>Testo</p>", output: "Titolo + Testo", userStatus: null },
-        { task: "Crea link", logic: "<a href='https://example.com'>Link</a>", output: "Link cliccabile", userStatus: null },
-        { task: "Immagine", logic: "<img src='img.png'>", output: "Immagine visibile", userStatus: null },
-        { task: "Lista", logic: "<ul><li>A</li><li>B</li></ul>", output: "Lista A B", userStatus: null },
-        { task: "Form base", logic: "<form><input type='text'></form>", output: "Form input", userStatus: null }
+        { task: "Crea un div", logic: "<div>", output: "OK", userStatus: null },
+        { task: "Crea un paragrafo", logic: "<p>", output: "OK", userStatus: null },
+        { task: "Crea un link", logic: "<a href=''>", output: "OK", userStatus: null },
+        { task: "Crea un'immagine", logic: "<img src=''>", output: "OK", userStatus: null },
+        // Nuove 5
+        { task: "Crea una lista non ordinata", logic: "<ul>", output: "OK", userStatus: null },
+        { task: "Crea lista ordinata", logic: "<ol>", output: "OK", userStatus: null },
+        { task: "Crea un header h1", logic: "<h1>", output: "OK", userStatus: null },
+        { task: "Crea un bottone", logic: "<button>", output: "OK", userStatus: null },
+        { task: "Crea un input text", logic: "<input type='text'>", output: "OK", userStatus: null }
     ]
 };
