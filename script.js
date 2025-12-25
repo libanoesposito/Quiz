@@ -1678,15 +1678,20 @@ if (eliminati.length > 0) {
                     <span style="font-weight:600; color: inherit; opacity: 0.9; font-size:14px">${u.name}</span>
                     <div style="font-size:10px; opacity:0.5">ID ${u.userId}</div>
                 </div>
-                <div style="display:flex; gap:15px; align-items:center">
+                <div style="display:flex; gap:18px; align-items:center">
+                    <div style="cursor:pointer; color:#34c759; font-weight:600; font-size:11px; display:flex; align-items:center; gap:4px" title="Ripristina utente" onclick="adminRestoreUser(${u.userId})">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+                        ATTIVA
+                    </div>
+                    
                     <div style="cursor:pointer; color:#0a84ff; font-weight:600; font-size:11px" onclick="showUserHistory(${u.userId})">STORICO</div>
+                    
                     <div style="cursor:pointer; color:#ff3b30; font-size:14px" title="Elimina per sempre" onclick="adminPermanentDelete(${u.userId})">✕</div>
                 </div>
             </div>`;
     });
     html += `</div></div>`;
 }
-
         html += `</div>`;
         document.getElementById('content-area').innerHTML = html;
 
@@ -1833,6 +1838,20 @@ function recalcUser(userId) {
             renderAdminPanel();
         }
     );
+}
+
+async function adminRestoreUser(userId) {
+    const pin = Object.keys(dbUsers).find(key => dbUsers[key].userId == userId);
+    try {
+        await db.collection("utenti").doc(pin).update({
+            deleted: false
+        });
+        dbUsers[pin].deleted = false;
+        saveMasterDB();
+        renderAdminPanel();
+    } catch (e) {
+        alert("Errore durante il ripristino.");
+    }
 }
 
 async function adminDeleteUser(userId) {
