@@ -1,55 +1,53 @@
 // Database globale degli utenti (caricato da memoria locale)
-let dbUsers = JSON.parse(localStorage.getItem('quiz_master_db')) || {};
-/* ============================================================
-   SISTEMA ALERT APPLE STYLE (SOVRASCRIVE IL SISTEMA NATIVO)
+let dbUsers = JSON.parse(localStorage.getItem('/* ============================================================
+   TRUE APPLE ALERT SYSTEM (Glassmorphism Edition)
    ============================================================ */
-(function() {
-    const originalAlert = window.alert;
+window.alert = function(message) {
+    const existing = document.getElementById('apple-alert-overlay');
+    if (existing) existing.remove();
 
-    window.alert = function(message) {
-        // Rimuovi alert precedenti
-        const existing = document.getElementById('apple-alert-overlay');
-        if (existing) existing.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'apple-alert-overlay';
+    overlay.style = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        display: flex; align-items: center; justify-content: center; z-index: 1000000;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica;
+    `;
 
-        const overlay = document.createElement('div');
-        overlay.id = 'apple-alert-overlay';
-        overlay.style = `
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            display: flex; align-items: center; justify-content: center; z-index: 1000000;
-        `;
+    // Rileviamo se siamo in Dark Mode per adattare il popup
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const bgColor = isDark ? 'rgba(30, 30, 30, 0.85)' : 'rgba(255, 255, 255, 0.85)';
+    const textColor = isDark ? '#ffffff' : '#000000';
+    const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
 
-        // Determina se è un messaggio di errore o successo per l'icona
-        const isError = message.toLowerCase().includes('errato') || message.toLowerCase().includes('errore') || message.toLowerCase().includes('no');
-        const icon = isError ? '⚠️' : 'ℹ️';
-
-        overlay.innerHTML = `
-            <div style="background: var(--bg-card, #fff); width: 270px; border-radius: 14px; 
-                        box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; 
-                        animation: applePop 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
-                        border: 1px solid var(--border);">
-                <div style="padding: 20px; text-align: center;">
-                    <div style="font-size: 30px; margin-bottom: 10px;">${icon}</div>
-                    <div style="font-size: 17px; font-weight: 600; color: var(--text); line-height: 1.3;">${message}</div>
+    overlay.innerHTML = `
+        <div style="background: ${bgColor}; width: 270px; border-radius: 18px; 
+                    box-shadow: 0 15px 35px rgba(0,0,0,0.3); overflow: hidden; 
+                    border: 1px solid ${borderColor}; animation: appleBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+            <div style="padding: 24px 20px; text-align: center;">
+                <div style="font-size: 17px; font-weight: 600; color: ${textColor}; line-height: 1.3;">
+                    ${message}
                 </div>
-                <button onclick="document.getElementById('apple-alert-overlay').remove()" 
-                        style="width: 100%; padding: 12px; border: none; background: transparent;
-                               border-top: 1px solid var(--border); color: #0a84ff; 
-                               font-size: 17px; font-weight: 600; cursor: pointer;">
-                    OK
-                </button>
             </div>
-            <style>
-                @keyframes applePop {
-                    from { opacity: 0; transform: scale(1.1); }
-                    to { opacity: 1; transform: scale(1); }
-                }
-            </style>
-        `;
-        document.body.appendChild(overlay);
-        console.log("Alert intercettato:", message);
-    };
-})();
+            <button onclick="document.getElementById('apple-alert-overlay').remove()" 
+                    style="width: 100%; padding: 14px; border: none; background: transparent;
+                           border-top: 1px solid ${borderColor}; color: #007aff; 
+                           font-size: 17px; font-weight: 600; cursor: pointer;
+                           -webkit-tap-highlight-color: transparent;">
+                OK
+            </button>
+        </div>
+        <style>
+            @keyframes appleBounce {
+                0% { opacity: 0; transform: scale(1.2); }
+                100% { opacity: 1; transform: scale(1); }
+            }
+        </style>
+    `;
+    document.body.appendChild(overlay);
+};
+
 
 
 let state = {
