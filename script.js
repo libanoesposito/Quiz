@@ -1587,27 +1587,23 @@ async function renderAdminPanel() {
         let html = `<div style="width:100%">`;
 
         // 1. NUOVO BLOCCO MANUTENZIONE A 3 TASTI
-        html += `
-    <div class="review-card" style="margin-bottom:20px; border-left: 4px solid #ff3b30; display:flex; justify-content:space-between; align-items:center; padding: 12px 18px">
+// BLOCCO MANUTENZIONE INTEGRATO (SENZA CARD E SENZA TASTO MIRATO)
+html += `
+    <div style="margin-bottom:32px; padding: 0 4px; display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid rgba(120,120,128,0.12); padding-bottom: 24px;">
         <div>
-            <strong style="color:#ff3b30; font-size:14px; display:block">Database Cloud</strong>
-            <span style="font-size:11px; color:currentColor; opacity:0.6">Manutenzione globale</span>
+            <strong style="color:#ff3b30; font-size:16px; letter-spacing:-0.01em; display:block">Manutenzione Database</strong>
+            <span style="font-size:12px; color:currentColor; opacity:0.5">Azioni distruttive globali</span>
         </div>
 
-        <div style="display:flex; gap:20px; color:currentColor">
-            <div style="text-align:center; cursor:pointer" onclick="adminResetAll('STATS')" title="Azzera punti">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.8"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><polyline points="21 3 21 8 16 8"/></svg>
-                <div style="font-size:8px; font-weight:800; margin-top:3px; opacity:0.8">RESET</div>
+        <div style="display:flex; gap:28px; color:currentColor">
+            <div style="text-align:center; cursor:pointer" onclick="adminResetAll('STATS')" title="Azzera punti a tutti gli utenti">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.8"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><polyline points="21 3 21 8 16 8"/></svg>
+                <div style="font-size:9px; font-weight:800; margin-top:5px; opacity:0.6; letter-spacing:0.5px">RESET PUNTI</div>
             </div>
 
-            <div style="text-align:center; cursor:pointer" onclick="alert('Usa l icona 🧼 accanto all utente')" title="Reset mirato">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg>
-                <div style="font-size:8px; font-weight:800; margin-top:3px; opacity:0.8">MIRATO</div>
-            </div>
-
-            <div style="text-align:center; cursor:pointer" onclick="adminResetAll('FULL')" title="Elimina tutto">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                <div style="font-size:8px; font-weight:800; color:#ff3b30; margin-top:3px">PULISCI</div>
+            <div style="text-align:center; cursor:pointer" onclick="adminResetAll('FULL')" title="Elimina tutto il database">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                <div style="font-size:9px; font-weight:800; color:#ff3b30; margin-top:5px; letter-spacing:0.5px">TABULA RASA</div>
             </div>
         </div>
     </div>`;
