@@ -274,6 +274,55 @@ function isWeakPin(pin) {
     return false;
 }
 
+async function registerUser() {
+    const nameEl = document.getElementById('reg-name');
+    const pinEl = document.getElementById('reg-pin');
+    const name = nameEl.value.trim();
+    const pin = pinEl.value.trim();
+
+    if (name.length < 2 || pin.length < 4) {
+        alert("Inserisci un nome di almeno 2 lettere e un PIN di 4 cifre.");
+        return;
+    }
+
+    try {
+        // Controllo se il PIN esiste già su Firebase prima di procedere
+        const check = await db.collection("utenti").doc(pin).get();
+        if (check.exists) {
+            alert("Questo PIN è già registrato da un altro utente.");
+            return;
+        }
+
+        const newUser = {
+            userId: Date.now(),
+            name: name,
+            pin: pin,
+            progress: {},
+            history: {},
+            activeProgress: {},
+            ripasso: { wrong: [], notStudied: [] },
+            created: new Date().toISOString()
+        };
+
+        // Salva su Cloud
+        await db.collection("utenti").doc(pin).set(newUser);
+        
+        // Aggiorna database locale
+        dbUsers[pin] = newUser;
+        localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
+
+        alert("Registrazione completata! Ora effettua l'accesso.");
+        closeModal();
+        
+        // Inserisce automaticamente il pin per comodità
+        document.getElementById('pin-input').value = pin;
+
+    } catch (error) {
+        console.error("Errore registrazione:", error);
+        alert("Impossibile connettersi al database. Assicurati di aver pubblicato le 'Rules' su Firebase.");
+    }
+}
+
 async function validatePin(type) {
     const pinField = document.getElementById('pin-field');
     const pin = pinField ? pinField.value : "";
