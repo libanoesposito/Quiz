@@ -1,5 +1,56 @@
 // Database globale degli utenti (caricato da memoria locale)
 let dbUsers = JSON.parse(localStorage.getItem('quiz_master_db')) || {};
+/* ============================================================
+   SISTEMA ALERT APPLE STYLE (SOVRASCRIVE IL SISTEMA NATIVO)
+   ============================================================ */
+(function() {
+    const originalAlert = window.alert;
+
+    window.alert = function(message) {
+        // Rimuovi alert precedenti
+        const existing = document.getElementById('apple-alert-overlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'apple-alert-overlay';
+        overlay.style = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center; z-index: 1000000;
+        `;
+
+        // Determina se è un messaggio di errore o successo per l'icona
+        const isError = message.toLowerCase().includes('errato') || message.toLowerCase().includes('errore') || message.toLowerCase().includes('no');
+        const icon = isError ? '⚠️' : 'ℹ️';
+
+        overlay.innerHTML = `
+            <div style="background: var(--bg-card, #fff); width: 270px; border-radius: 14px; 
+                        box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; 
+                        animation: applePop 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+                        border: 1px solid var(--border);">
+                <div style="padding: 20px; text-align: center;">
+                    <div style="font-size: 30px; margin-bottom: 10px;">${icon}</div>
+                    <div style="font-size: 17px; font-weight: 600; color: var(--text); line-height: 1.3;">${message}</div>
+                </div>
+                <button onclick="document.getElementById('apple-alert-overlay').remove()" 
+                        style="width: 100%; padding: 12px; border: none; background: transparent;
+                               border-top: 1px solid var(--border); color: #0a84ff; 
+                               font-size: 17px; font-weight: 600; cursor: pointer;">
+                    OK
+                </button>
+            </div>
+            <style>
+                @keyframes applePop {
+                    from { opacity: 0; transform: scale(1.1); }
+                    to { opacity: 1; transform: scale(1); }
+                }
+            </style>
+        `;
+        document.body.appendChild(overlay);
+        console.log("Alert intercettato:", message);
+    };
+})();
+
 
 let state = {
     mode: null,      
