@@ -35,8 +35,33 @@ if (!dbUsers[TESTER_PIN]) {
 
 window.onload = () => {
     initTheme();
-    renderLogin();
+    
+    // Controlla se c'è una sessione attiva
+    const savedPin = localStorage.getItem('sessionPin');
+    
+    if (savedPin && dbUsers[savedPin] && !dbUsers[savedPin].deleted) {
+        // Ripristina lo stato dell'utente
+        state.currentPin = savedPin;
+        state.currentUser = dbUsers[savedPin].name;
+        
+        // Imposta la modalità (Admin o User)
+        if (savedPin === ADMIN_PIN) {
+            state.mode = 'admin';
+        } else {
+            state.mode = 'user';
+            // Carica i dati salvati nel DB per quell'utente
+            state.progress = dbUsers[savedPin].progress || {};
+            state.history = dbUsers[savedPin].history || {};
+            state.ripasso = dbUsers[savedPin].ripasso || { wrong: [], notStudied: [] };
+            state.activeProgress = dbUsers[savedPin].activeProgress || {};
+        }
+        
+        showHome(); // Vai direttamente ai percorsi
+    } else {
+        renderLogin(); // Nessuna sessione? Allora vai al Login
+    }
 };
+
 
 function initTheme() {
     const saved = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -707,8 +732,17 @@ function next() {
 }
 
 function logout() {
+    // 1. Rimuove il PIN dalla memoria per evitare il login automatico al refresh
     localStorage.removeItem('sessionPin');
-    state.mode = null; state.currentPin = null; session = null; renderLogin();
+    
+    // 2. Reset totale dello stato dell'app
+    state.mode = null; 
+    state.currentPin = null; 
+    state.currentUser = null; // Aggiungi questa riga
+    session = null; 
+    
+    // 3. Torna alla schermata di login
+    renderLogin();
 }
 
 /* =========================
