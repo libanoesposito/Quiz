@@ -38,45 +38,79 @@ if (!dbUsers[TESTER_PIN]) {
 }
 
 
-window.onload = () => {
+window.onload = async () => {
     initTheme();
     const savedPin = localStorage.getItem('sessionPin');
     
-    if (savedPin && dbUsers[savedPin] && !dbUsers[savedPin].deleted) {
-        state.currentPin = savedPin;
-        state.currentUser = dbUsers[savedPin].name;
-        
-        if (savedPin === ADMIN_PIN) {
-            state.mode = 'admin';
-        } else {
-            state.mode = 'user';
-            state.progress = dbUsers[savedPin].progress || {};
-            state.history = dbUsers[savedPin].history || {};
-            state.ripasso = dbUsers[savedPin].ripasso || { wrong: [], notStudied: [] };
-            state.activeProgress = dbUsers[savedPin].activeProgress || {};
-        }
-        
-        // --- LOGICA DI RIPRISTINO POSIZIONE ---
-        const lastSection = localStorage.getItem('currentSection');
-        const lastLang = localStorage.getItem('currentLang');
-
-        if (lastSection === 'profile') {
-            renderProfile();
-        } else if (lastSection === 'ripasso') {
-            renderRipasso();
-        } else if (lastSection === 'levels' && lastLang) {
-            showLevels(lastLang);
-        } else if (lastSection === 'admin') {
-            renderAdminPanel();
-        } else {
-            showHome();
-        }
-    } else {
+    // Se non c'è un PIN salvato, vai subito al login
+    if (!savedPin) {
         renderLogin();
+        return;
+    }
+
+    try {
+        // 1. CHIAMATA AL CLOUD: Cerchiamo l'utente su Firebase
+        const doc = await db.collection("utenti").doc(savedPin).get();
+
+        if (doc.exists) {
+            const cloudUser = doc.data();
+
+            // Se l'account è segnato come eliminato nel cloud, fermati
+            if (cloudUser.deleted) {
+                localStorage.removeItem('sessionPin');
+                renderLogin();
+                return;
+            }
+
+            // 2. SINCRONIZZAZIONE: Aggiorniamo dbUsers locale con i dati freschi dal cloud
+            dbUsers[savedPin] = cloudUser;
+            
+            state.currentPin = savedPin;
+            state.currentUser = cloudUser.name;
+            
+            if (savedPin === ADMIN_PIN) {
+                state.mode = 'admin';
+            } else {
+                state.mode = 'user';
+                state.progress = cloudUser.progress || {};
+                state.history = cloudUser.history || {};
+                state.ripasso = cloudUser.ripasso || { wrong: [], notStudied: [] };
+                state.activeProgress = cloudUser.activeProgress || {};
+            }
+            
+            // 3. RIPRISTINO POSIZIONE (tua logica originale)
+            const lastSection = localStorage.getItem('currentSection');
+            const lastLang = localStorage.getItem('currentLang');
+
+            if (lastSection === 'profile') {
+                renderProfile();
+            } else if (lastSection === 'ripasso') {
+                renderRipasso();
+            } else if (lastSection === 'levels' && lastLang) {
+                showLevels(lastLang);
+            } else if (lastSection === 'admin') {
+                renderAdminPanel();
+            } else if (lastSection === 'classifica') {
+                renderGlobalClassifica();
+            } else {
+                showHome();
+            }
+        } else {
+            // Se il PIN è nel localStorage ma non esiste su Firebase (es. database resettato)
+            localStorage.removeItem('sessionPin');
+            renderLogin();
+        }
+    } catch (error) {
+        console.error("Errore critico durante il caricamento cloud:", error);
+        // In caso di errore di rete, proviamo comunque a caricare dai dati locali come backup
+        if (dbUsers[savedPin]) {
+            state.currentPin = savedPin;
+            showHome();
+        } else {
+            renderLogin();
+        }
     }
 };
-
-
 
 
 function initTheme() {
@@ -121,16 +155,56 @@ function updateNav(showBack, backTarget) {
     r.innerHTML = state.mode ? `<span class="logout-link" onclick="logout()">Esci</span>` : "";
 }
 
-function saveMasterDB() {
+async function saveMasterDB() {
+    // 1. Prepariamo l'oggetto utente con i dati più recenti
     if (state.mode === 'user' && state.currentPin && dbUsers[state.currentPin]) {
         dbUsers[state.currentPin].progress = state.progress || {};
         dbUsers[state.currentPin].history = state.history || {};
+        dbUsers[state.currentPin].ripasso = state.ripasso || { wrong: [], notStudied: [] };
+        dbUsers[state.currentPin].activeProgress = state.activeProgress || {};
         
-        // --- INVIO DATI A FIREBASE ---
-        syncToFirebase(state.currentPin, dbUsers[state.currentPin]);
+        // --- SALVATAGGIO SU GOOGLE (CLOUDFLARE) ---
+        try {
+            // Usiamo 'set' con 'merge: true' per non sovrascrivere accidentalmente tutto il profilo
+            await db.collection("utenti").doc(state.currentPin).set(dbUsers[state.currentPin], { merge: true });
+            console.log("Sincronizzazione Cloud completata per:", state.currentPin);
+            
+            // Aggiorniamo anche la classifica globale ogni volta che salviamo i progressi
+            await updateGlobalClassificaData();
+        } catch (error) {
+            console.error("Errore durante il salvataggio Cloud:", error);
+        }
     }
+    
+    // 2. Salvataggio locale (Backup immediato sul dispositivo)
     localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
 }
+
+// Funzione di supporto per la classifica (da aggiungere in fondo allo script)
+async function updateGlobalLeaderboard() {
+    if (state.mode !== 'user' || !state.currentPin) return;
+    
+    const u = dbUsers[state.currentPin];
+    let pts = 0;
+    let perfects = 0;
+
+    // Calcolo punti dai progressi salvati
+    Object.values(u.progress || {}).forEach(levelReached => {
+        pts += (levelReached * 100); // Esempio: 100 punti per ogni livello completato
+    });
+
+    try {
+        await db.collection("classifica").doc(state.currentPin).set({
+            name: u.name,
+            points: pts,
+            perfect: perfects,
+            lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+    } catch (e) {
+        console.error("Errore aggiornamento classifica:", e);
+    }
+}
+
 
 // Nuova funzione di supporto (da mettere in fondo al file)
 async function syncToFirebase(pin, userData) {
@@ -200,7 +274,7 @@ function isWeakPin(pin) {
     return false;
 }
 
-function validatePin(type) {
+async function validatePin(type) {
     const pinField = document.getElementById('pin-field');
     const pin = pinField ? pinField.value : "";
     const errorEl = document.getElementById('pin-error');
@@ -208,17 +282,19 @@ function validatePin(type) {
     if (errorEl) errorEl.style.display = "none";
 
     if (pin.length !== 4) {
-        errorEl.innerText = "Il PIN deve essere di 4 cifre";
-        errorEl.style.display = "block";
+        if (errorEl) { errorEl.innerText = "Il PIN deve essere di 4 cifre"; errorEl.style.display = "block"; }
         return;
     }
 
-        // 1. ACCESSO ADMIN
+    // 1. ACCESSO ADMIN (Locale + Cloud Sync)
     if (pin === ADMIN_PIN) {
         state.mode = 'admin';
         state.currentUser = "Creatore";
         state.currentPin = pin; 
-        localStorage.setItem('sessionPin', pin); // AGGIUNGI QUESTA
+        localStorage.setItem('sessionPin', pin);
+        // Proviamo a recuperare dati admin dal cloud se esistono
+        const adminDoc = await db.collection("utenti").doc(pin).get();
+        if (adminDoc.exists) dbUsers[pin] = adminDoc.data();
         showHome();
         return;
     }
@@ -230,14 +306,15 @@ function validatePin(type) {
         state.mode = 'user';
         state.progress = testerUser.progress;
         state.history = testerUser.history;
-        localStorage.setItem('sessionPin', pin); // AGGIUNGI QUESTA
+        localStorage.setItem('sessionPin', pin);
         showHome();
         return;
     }
 
-
-    // ... resto del codice per register e login normale ...
-
+    // --- CONTROLLO CLOUD PRIMA DI PROCEDERE ---
+    // Verifichiamo subito se questo PIN esiste già su Google
+    const userDoc = await db.collection("utenti").doc(pin).get();
+    const cloudUser = userDoc.exists ? userDoc.data() : null;
 
     if (type === 'register') {
         const nameInput = document.getElementById('name-field');
@@ -249,9 +326,9 @@ function validatePin(type) {
             return;
         }
 
-        // Se il PIN esiste già (anche se eliminato), non è disponibile
-        if (dbUsers && dbUsers[pin]) {
-            errorEl.innerText = "PIN non disponibile";
+        // Se il PIN esiste su Google (anche se non è su questo telefono)
+        if (cloudUser) {
+            errorEl.innerText = "PIN non disponibile (già in uso)";
             errorEl.style.display = "block";
             return;
         }
@@ -262,50 +339,52 @@ function validatePin(type) {
             return;
         }
 
+        // Creazione nuovo oggetto utente
         dbUsers[pin] = {
             name: name,
+            userId: Date.now().toString().slice(-4), // ID univoco basato sul tempo
             progress: {},
             history: {},
             activeProgress: {},
             savedQuizzes: {},
-            ripasso: { wrong: [], notStudied: [] }
+            ripasso: { wrong: [], notStudied: [] },
+            createdAt: new Date().toISOString()
         };
+
     } else {
-        // --- MODIFICA CHIRURGICA LOGIN ---
-        if (!dbUsers || !dbUsers[pin]) {
+        // --- LOGIN ---
+        if (!cloudUser) {
             errorEl.innerText = "PIN errato o utente inesistente";
             errorEl.style.display = "block";
             return;
         }
 
-        // Controllo se l'account è stato eliminato dall'admin
-        if (dbUsers[pin].deleted) {
+        if (cloudUser.deleted) {
             errorEl.innerText = "Questo account è stato disattivato";
             errorEl.style.display = "block";
             return;
         }
+
+        // Sincronizziamo il database locale con quello che abbiamo appena scaricato
+        dbUsers[pin] = cloudUser;
     }
 
-    // ... (fine dei controlli di errore nella funzione validatePin) ...
-
-    // Login effettuato con successo
+    // Configurazione Stato Finale
     state.currentPin = pin;
     state.currentUser = dbUsers[pin].name;
     state.mode = 'user';
-    
-    // CARICAMENTO STATO ATTIVO
     state.progress = dbUsers[pin].progress || {};
     state.history = dbUsers[pin].history || {};
-    
-    // AGGIUNGI QUESTE DUE RIGHE: Risolvono il crash di Profilo e Ripasso
     state.ripasso = dbUsers[pin].ripasso || { wrong: [], notStudied: [] };
     state.activeProgress = dbUsers[pin].activeProgress || {};
 
     localStorage.setItem('sessionPin', pin);
 
-    saveMasterDB();
+    // Salvataggio immediato (ora saveMasterDB manderà tutto al Cloud)
+    await saveMasterDB();
     showHome();
 }
+
 
 
 
@@ -1331,93 +1410,114 @@ function showGuestLocked() {
    PANNELLO ADMIN
    ========================= */
 
-function renderAdminPanel() {
+async function renderAdminPanel() {
     localStorage.setItem('currentSection', 'admin');
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = "ADMIN";
+    
+    // 1. MESSAGGIO DI CARICAMENTO (Perché ora scarichiamo dati reali)
+    document.getElementById('content-area').innerHTML = `
+        <div style="text-align:center; padding:50px; opacity:0.6">
+            <div class="spinner" style="margin-bottom:10px">🔄</div>
+            Sincronizzazione database globale...
+        </div>`;
 
-    const users = Object.entries(dbUsers)
-        .filter(([_, u]) => u.userId)
-        .map(([pin, u]) => ({
-            pin,
-            id: u.userId,
-            name: u.name,
-            stats: calcUserStats(u),
-            deleted: u.deleted
-        }))
-        .sort((a, b) => b.stats.perc - a.stats.perc);
+    try {
+        // 2. RECUPERO DATI DA FIREBASE
+        // Prendiamo TUTTI i documenti nella collezione "utenti"
+        const snapshot = await db.collection("utenti").get();
+        
+        // Aggiorniamo il nostro dbUsers locale con tutto quello che c'è sul Cloud
+        snapshot.forEach(doc => {
+            dbUsers[doc.id] = doc.data();
+        });
 
+        // 3. PREPARAZIONE LISTA (Tua logica originale, ora con dati globali)
+        const users = Object.entries(dbUsers)
+            .filter(([_, u]) => u.userId)
+            .map(([pin, u]) => ({
+                pin,
+                id: u.userId,
+                name: u.name,
+                stats: calcUserStats(u),
+                deleted: u.deleted
+            }))
+            .sort((a, b) => b.stats.perc - a.stats.perc);
 
-        // Inserimento Card Globale in alto
         let html = `<div style="width:100%">`;
 
-    // Blocco Manutenzione
-    html += `
-        <div class="review-card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-left: 4px solid #ff3b30">
-            <div>
-                <strong style="color:#ff3b30">Manutenzione Sistema</strong>
-                <div style="font-size:12px; opacity:0.6">Reset totale database</div>
-            </div>
-            <div style="cursor:pointer; font-size:22px; padding:5px" onclick="adminResetAll()">🗑️</div>
-        </div>
-    `;
-
-    // Divisione Utenti
-    const attivi = users.filter(u => !u.deleted);
-    const eliminati = users.filter(u => u.deleted);
-
-    // Rendering Utenti Attivi
-    if (attivi.length === 0) {
-        html += `<div style="text-align:center; padding:20px; color:#666">Nessun utente attivo</div>`;
-    } else {
-        attivi.forEach(u => {
-            const statsText = u.stats.total ? `${u.stats.correct}/${u.stats.total} corrette · ${u.stats.perc}%` : "Nessun progresso";
-            html += `
-                <div class="review-card is-ok">
-                    <div style="display:flex; justify-content:space-between; align-items:center">
-                        <div>
-                            <strong>${u.name}</strong>
-                            <div style="font-size:12px; opacity:0.6">ID ${u.id}</div>
-                        </div>
-                        <div style="display:flex; gap:18px; font-size:18px">
-                            <span style="cursor:pointer" onclick="showUserHistory(${u.id})">⏳</span>
-                            <span style="cursor:pointer" onclick="recalcUser(${u.id})">🔄</span>
-                            <span style="cursor:pointer; color:#ff3b30" onclick="adminDeleteUser(${u.id})">🗑</span>
-                        </div>
-                    </div>
-                    <div style="margin-top:8px; font-size:13px">${statsText}</div>
-                </div>`;
-        });
-    }
-
-    // Sezione Glass Card per Eliminati (Espandibile)
-        if (eliminati.length > 0) {
+        // Blocco Manutenzione (Invariato)
         html += `
-            <div class="glass-card" style="margin-top:30px; border:1px solid rgba(255,59,48,0.2)">
-                <div onclick="const el = document.getElementById('deleted-list'); el.style.display = el.style.display === 'none' ? 'block' : 'none'" 
-                     style="cursor:pointer; display:flex; justify-content:center; align-items:center">
-                    <strong style="color:#ff3b30; font-size:12px; letter-spacing:1px">UTENTI ELIMINATI (${eliminati.length})</strong>
+            <div class="review-card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-left: 4px solid #ff3b30">
+                <div>
+                    <strong style="color:#ff3b30">Manutenzione Sistema</strong>
+                    <div style="font-size:12px; opacity:0.6">Reset totale database</div>
                 </div>
-                <div id="deleted-list" style="display:none; margin-top:15px">`;
-        
-        eliminati.forEach(u => {
-            html += `
-                <div style="padding:12px 0; border-bottom:1px solid rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center">
-                    <div>
-                        <span style="font-weight:600">${u.name}</span>
-                        <div style="font-size:11px; opacity:0.5">ID ${u.id}</div>
-                    </div>
-                    <div style="cursor:pointer; color:#0a84ff; font-weight:600; font-size:13px" onclick="showUserHistory(${u.id})">
-                        VEDI STORICO
-                    </div>
-                </div>`;
-        });
+                <div style="cursor:pointer; font-size:22px; padding:5px" onclick="adminResetAll()">🗑️</div>
+            </div>`;
 
-        html += `</div></div>`;
+        // Divisione Utenti
+        const attivi = users.filter(u => !u.deleted);
+        const eliminati = users.filter(u => u.deleted);
+
+        // Rendering Utenti Attivi
+        if (attivi.length === 0) {
+            html += `<div style="text-align:center; padding:20px; color:#666">Nessun utente nel cloud</div>`;
+        } else {
+            attivi.forEach(u => {
+                const statsText = u.stats.total ? `${u.stats.correct}/${u.stats.total} corrette · ${u.stats.perc}%` : "Nessun progresso";
+                html += `
+                    <div class="review-card is-ok">
+                        <div style="display:flex; justify-content:space-between; align-items:center">
+                            <div>
+                                <strong>${u.name}</strong>
+                                <div style="font-size:12px; opacity:0.6">ID ${u.id} - PIN ${u.pin}</div>
+                            </div>
+                            <div style="display:flex; gap:18px; font-size:18px">
+                                <span style="cursor:pointer" title="Storico" onclick="showUserHistory(${u.id})">⏳</span>
+                                <span style="cursor:pointer" title="Aggiorna" onclick="recalcUser(${u.id})">🔄</span>
+                                <span style="cursor:pointer; color:#ff3b30" title="Elimina" onclick="adminDeleteUser(${u.id})">🗑</span>
+                            </div>
+                        </div>
+                        <div style="margin-top:8px; font-size:13px">${statsText}</div>
+                    </div>`;
+            });
+        }
+
+        // Sezione Eliminati (Invariata)
+        if (eliminati.length > 0) {
+            html += `
+                <div class="glass-card" style="margin-top:30px; border:1px solid rgba(255,59,48,0.2)">
+                    <div onclick="const el = document.getElementById('deleted-list'); el.style.display = el.style.display === 'none' ? 'block' : 'none'" 
+                         style="cursor:pointer; display:flex; justify-content:center; align-items:center">
+                        <strong style="color:#ff3b30; font-size:12px; letter-spacing:1px">UTENTI ELIMINATI (${eliminati.length})</strong>
+                    </div>
+                    <div id="deleted-list" style="display:none; margin-top:15px">`;
+            
+            eliminati.forEach(u => {
+                html += `
+                    <div style="padding:12px 0; border-bottom:1px solid rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center">
+                        <div>
+                            <span style="font-weight:600">${u.name}</span>
+                            <div style="font-size:11px; opacity:0.5">ID ${u.id}</div>
+                        </div>
+                        <div style="cursor:pointer; color:#0a84ff; font-weight:600; font-size:13px" onclick="showUserHistory(${u.id})">
+                            VEDI STORICO
+                        </div>
+                    </div>`;
+            });
+            html += `</div></div>`;
+        }
+
+        html += `</div>`;
+        document.getElementById('content-area').innerHTML = html;
+
+    } catch (error) {
+        console.error("Errore caricamento utenti globali:", error);
+        document.getElementById('content-area').innerHTML = `<div style="color:red; text-align:center">Errore nel caricamento dei dati dal Cloud.</div>`;
     }
-    html += `</div>`;
-    document.getElementById('content-area').innerHTML = html;
 }
+
 
 function showUserHistory(userId) {
     const u = Object.values(dbUsers).find(user => user.userId == userId);
@@ -1556,7 +1656,8 @@ function recalcUser(userId) {
     );
 }
 
-function adminDeleteUser(userId) {
+async function adminDeleteUser(userId) {
+    // Troviamo il PIN corrispondente all'ID
     const pin = Object.keys(dbUsers).find(key => dbUsers[key].userId == userId);
     const u = dbUsers[pin];
     
@@ -1567,21 +1668,37 @@ function adminDeleteUser(userId) {
 
     openModal(
         "Elimina utente",
-        "L’utente verrà spostato nello storico degli eliminati.",
-        () => {
-            // Creiamo l'oggetto "deleted" mantenendo i dati necessari
+        `L'utente ${u.name} verrà disattivato globalmente. Potrai ancora consultare il suo storico.`,
+        async () => {
+            // 1. Modifica locale
             dbUsers[pin] = { 
-                history: u.history || {}, 
-                name: u.name, 
-                userId: u.userId,
+                ...u, // Manteniamo tutti i dati per lo storico
                 deleted: true 
             }; 
             
+            // 2. MODIFICA SUL CLOUD (Importante!)
+            try {
+                // Aggiorniamo il documento specifico su Firebase
+                await db.collection("utenti").doc(pin).update({
+                    deleted: true
+                });
+                
+                // Rimuoviamo l'utente anche dalla classifica globale
+                await db.collection("classifica").doc(pin).delete();
+
+                console.log(`Utente ${pin} disattivato sul Cloud.`);
+            } catch (error) {
+                console.error("Errore durante la disattivazione Cloud:", error);
+                alert("Errore di connessione: l'utente è stato eliminato solo localmente.");
+            }
+            
+            // 3. Salvataggio e Refresh
             saveMasterDB();
             renderAdminPanel();
         }
     );
 }
+
 
 // Mostra i dettagli completi di un utente per l'admin
 function showUserDetails(pin) {
@@ -1670,21 +1787,54 @@ function findUserById(id) {
 }
 
 
-function adminResetAll() {
-    openModal(
-        "Azzeramento totale",
-        "Tutte le statistiche, utenti e progressi saranno eliminati. Operazione irreversibile.",
-        () => {
-            dbUsers = {};              // cancella tutti gli utenti
-            state.currentPin = null;   
-            state.currentUser = null;  
-            state.progress = {};       
-            state.history = {};        
-            saveMasterDB();           
-            renderAdminPanel();        // refresh interfaccia admin
+async function adminResetAll(mode) {
+    const title = mode === 'FULL' ? "TABULA RASA" : "RESET STATISTICHE";
+    const msg = mode === 'FULL' 
+        ? "OPERAZIONE NUCLEARE: Eliminerai tutti gli UTENTI, i loro PIN e ogni progresso da Firebase. Dovranno registrarsi di nuovo." 
+        : "AZZERAMENTO PUNTI: I PIN rimarranno validi, ma tutti i progressi e la classifica verranno portati a zero.";
+
+    openModal(title, msg, async () => {
+        try {
+            const utentiSnapshot = await db.collection("utenti").get();
+            const batch = db.batch();
+
+            if (mode === 'FULL') {
+                // ELIMINAZIONE TOTALE
+                utentiSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+                const classifSnapshot = await db.collection("classifica").get();
+                classifSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+                dbUsers = {};
+            } else {
+                // SOLO STATISTICHE
+                utentiSnapshot.docs.forEach(doc => {
+                    batch.update(doc.ref, {
+                        progress: {},
+                        history: {},
+                        activeProgress: {},
+                        ripasso: { wrong: [], notStudied: [] }
+                    });
+                });
+                const classifSnapshot = await db.collection("classifica").get();
+                classifSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+                
+                // Aggiorna dbUsers locale
+                Object.keys(dbUsers).forEach(pin => {
+                    dbUsers[pin].progress = {};
+                    dbUsers[pin].history = {};
+                });
+            }
+
+            await batch.commit();
+            localStorage.clear(); // Pulizia locale per sicurezza
+            window.location.reload(); // Ricarica per riflettere i cambiamenti
+
+        } catch (e) {
+            console.error("Errore Reset:", e);
+            alert("Errore durante la comunicazione con Firebase.");
         }
-    );
+    });
 }
+
 
 /* Cambia PIN */
 function userChangePin() {
