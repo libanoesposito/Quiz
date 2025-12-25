@@ -1587,6 +1587,9 @@ async function renderAdminPanel() {
 
     try {
     // 1. Scarica gli utenti ATTIVI
+      snapAttivi.forEach(doc => {
+          dbUsers[doc.id] = doc.data(); 
+    });
     const snapAttivi = await db.collection("utenti").get();
     const attivi = snapAttivi.docs.map(doc => ({
         ...doc.data(),
@@ -1603,9 +1606,8 @@ async function renderAdminPanel() {
 
         let html = `<div style="width:100%">`;
 
-        // 1. NUOVO BLOCCO MANUTENZIONE A 3 TASTI
-// BLOCCO MANUTENZIONE INTEGRATO (SENZA CARD E SENZA TASTO MIRATO)
-html += `
+        // BLOCCO MANUTENZIONE
+      html += `
     <div style="margin-bottom:32px; padding: 0 4px; display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid rgba(120,120,128,0.12); padding-bottom: 24px;">
         <div>
             <strong style="color:#ff3b30; font-size:16px; letter-spacing:-0.01em; display:block">Manutenzione Database</strong>
@@ -2029,9 +2031,26 @@ async function adminResetAll(mode) {
             const batch = db.batch();
 
             utentiSnapshot.docs.forEach(doc => {
-                if (mode === 'FULL') {
-                    // Non cancelliamo, ma mettiamo il flag deleted
-                    batch.update(doc.ref, { deleted: true });
+    if (mode === 'FULL') {
+        const userData = doc.data();
+        const pin = doc.id;
+        const archiveId = `${pin}_${Date.now()}`;
+
+        // 1. Crea la copia nel cestino (così renderAdminPanel lo vede)
+        const deletedRef = db.collection("eliminati").doc(archiveId);
+        batch.set(deletedRef, {
+            ...userData,
+            docId: archiveId, // Fondamentale per il ripristino
+            deletedAt: new Date().toISOString(),
+            deletedBy: "admin_full_reset"
+        });
+
+        // 2. Cancella l'originale da utenti e classifica
+        batch.delete(doc.ref);
+        batch.delete(db.collection("classifica").doc(pin));
+        
+        // 3. Pulisce la memoria locale
+        delete dbUsers[pin];
                 } else {
                     // Solo reset punti
                     batch.update(doc.ref, {
@@ -2048,7 +2067,7 @@ async function adminResetAll(mode) {
             classifSnapshot.docs.forEach(doc => batch.delete(doc.ref));
 
             await batch.commit();
-            localStorage.clear(); 
+            saveMasterDB(); 
             renderAdminPanel(); 
 
         } catch (e) {
