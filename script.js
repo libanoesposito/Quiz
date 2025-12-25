@@ -206,18 +206,27 @@ function validatePin(type) {
         }
     }
 
+    // ... (fine dei controlli di errore nella funzione validatePin) ...
+
     // Login effettuato con successo
     state.currentPin = pin;
     state.currentUser = dbUsers[pin].name;
     state.mode = 'user';
+    
+    // CARICAMENTO STATO ATTIVO
     state.progress = dbUsers[pin].progress || {};
     state.history = dbUsers[pin].history || {};
+    
+    // AGGIUNGI QUESTE DUE RIGHE: Risolvono il crash di Profilo e Ripasso
+    state.ripasso = dbUsers[pin].ripasso || { wrong: [], notStudied: [] };
+    state.activeProgress = dbUsers[pin].activeProgress || {};
 
     localStorage.setItem('sessionPin', pin);
 
     saveMasterDB();
     showHome();
 }
+
 
 
 function setGuest() { 
