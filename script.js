@@ -1948,6 +1948,7 @@ function openModal(title, content, onConfirm) {
     document.getElementById('modal-confirm').onclick = () => { onConfirm(); overlay.style.display='none'; };
     document.getElementById('modal-cancel').onclick = () => { overlay.style.display='none'; };
 }
+
 async function renderGlobalClassifica() {
     localStorage.setItem('currentSection', 'classifica');
     updateNav(true, "showHome()");
@@ -1957,6 +1958,7 @@ async function renderGlobalClassifica() {
     container.innerHTML = `<div style="text-align:center; padding:20px">Caricamento classifica...</div>`;
 
     try {
+        // Recupero dei primi 20 per punteggio
         const snapshot = await db.collection("classifica").orderBy("points", "desc").limit(20).get();
         let html = `<div style="width:100%; display:flex; flex-direction:column; gap:10px">`;
         
@@ -1965,22 +1967,27 @@ async function renderGlobalClassifica() {
             const data = doc.data();
             const isMe = doc.id === state.currentPin;
             
-            // Logica premi: Medaglia d'oro se ha livelli perfetti
-            let medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "👤";
+            // Gestione medaglie e numeri di posizione
+            let medal = "";
+            if (rank === 1) medal = "🥇";
+            else if (rank === 2) medal = "🥈";
+            else if (rank === 3) medal = "🥉";
+            else medal = `<span style="opacity:0.5; font-size:14px; width:20px; text-align:center; display:inline-block">${rank}</span>`;
+
             let crown = data.perfect > 0 ? "🏆" : "";
             let specialStyle = isMe ? "border: 2px solid #ff9500;" : "border: 1px solid var(--border);";
 
             html += `
             <div class="review-card" style="${specialStyle} background: var(--bg-card); display:flex; justify-content:space-between; align-items:center">
                 <div style="display:flex; align-items:center; gap:15px">
-                    <span style="font-size:20px">${medal}</span>
+                    <span style="font-size:20px; min-width:30px; text-align:center">${medal}</span>
                     <div>
                         <div style="font-weight:bold">${data.name} ${crown}</div>
-                        <div style="font-size:11px; opacity:0.6">${data.perfect} Livelli Perfetti</div>
+                        <div style="font-size:11px; opacity:0.6">${data.perfect || 0} Livelli Perfetti</div>
                     </div>
                 </div>
                 <div style="text-align:right">
-                    <div style="font-weight:800; color:var(--accent)">${data.points}</div>
+                    <div style="font-weight:800; color:var(--accent)">${data.points || 0}</div>
                     <div style="font-size:9px; opacity:0.5">PUNTI</div>
                 </div>
             </div>`;
@@ -1990,9 +1997,11 @@ async function renderGlobalClassifica() {
         html += `</div>`;
         container.innerHTML = html;
     } catch (e) {
-        container.innerHTML = `<div style="color:red">Errore nel caricamento della classifica globale.</div>`;
+        console.error("Errore classifica:", e);
+        container.innerHTML = `<div style="color:red; text-align:center; padding:20px">Errore nel caricamento della classifica globale.</div>`;
     }
 }
+
 
 async function adminResetSingleUser(userId) {
     const pin = Object.keys(dbUsers).find(key => dbUsers[key].userId == userId);
