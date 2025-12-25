@@ -333,70 +333,76 @@ function renderL5(lang) {
     updateNav(true, `showLevels('${lang}')`);
     const container = document.getElementById('content-area');
     
-    // Recuperiamo la sfida (assicurati di avere L5 in domandaRepo)
-    const sfide = domandaRepo[lang]?.L5 || [
-        { q: "Crea un ciclo che stampi i numeri da 1 a 10", solution: "for i in range(1, 11):\n    print(i)", expected: "1\n2\n3\n4\n5\n6\n7\n8\n9\n10" }
-    ];
-    const sfida = sfide[0]; 
-
     container.innerHTML = `
         <div class="glass-card" style="box-shadow: none !important; background: rgba(120, 120, 128, 0.08) !important; border-radius: 20px; padding: 20px;">
-            <h2 style="font-size:18px; margin-bottom:10px;">ESAMINATORE: ${lang.toUpperCase()}</h2>
-            <p style="font-size:14px; margin-bottom:20px; opacity:0.9"><b>Sfida:</b> ${sfida.q}</p>
-            
-            <div class="vscode-container" style="position:relative; background:#1e1e1e; border-radius:12px; padding:15px; overflow:hidden; border:1px solid #333;">
-                <pre id="highlighting" aria-hidden="true" style="margin:0; font-family:monospace; font-size:14px; line-height:1.5; white-space:pre-wrap; word-wrap:break-word; color:#d4d4d4; position:absolute; pointer-events:none;"></pre>
-                <textarea id="code-editor" spellcheck="false" 
-                    oninput="updateCodeHighlight(this.value)"
-                    style="width:100%; height:150px; background:transparent; color:transparent; caret-color:white; border:none; font-family:monospace; font-size:14px; line-height:1.5; outline:none; resize:none; position:relative; z-index:1; white-space:pre-wrap; word-wrap:break-word; margin:0; display:block;"
-                    placeholder="Scrivi qui il codice..."></textarea>
-            </div>
-
-            <button class="btn-apple" onclick="checkL5('${lang}')" style="margin-top:15px; background:var(--accent); color:white; width:100%">Esegui e Verifica</button>
-            
-            <div id="terminal-output" style="display:none; margin-top:20px; background:#000; border-radius:10px; padding:15px; font-family:monospace; font-size:13px; border:1px solid #333;">
-                <div style="color:#34c759; margin-bottom:5px;">> Terminale:</div>
-                <pre id="console-res" style="color:#fff; margin:0; white-space:pre-wrap;"></pre>
-            </div>
-            
-            <div id="fb" style="margin-top:10px"></div>
-        </div>
-    `;
-}
-
-function renderL5(lang) {
-    updateNav(true, `showLevels('${lang}')`);
-    const container = document.getElementById('content-area');
-    
-    container.innerHTML = `
-        <div class="glass-card" style="box-shadow: none !important; background: rgba(120, 120, 128, 0.08) !important; border-radius: 20px; padding: 20px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
-                <h2 style="font-size:18px; margin:0">ESAMINATORE: ${lang.toUpperCase()}</h2>
-                <div style="display:flex; gap:5px">
-                    <div style="width:10px; height:10px; border-radius:50%; background:#ff5f56"></div>
-                    <div style="width:10px; height:10px; border-radius:50%; background:#ffbd2e"></div>
-                    <div style="width:10px; height:10px; border-radius:50%; background:#27c93f"></div>
-                </div>
-            </div>
-            
+            <h2 style="font-size:18px; margin-bottom:10px">ESAMINATORE: ${lang.toUpperCase()}</h2>
             <p style="font-size:14px; margin-bottom:15px; opacity:0.8"><b>Sfida:</b> Crea un ciclo che stampi i numeri da 1 a 10</p>
             
-            <div style="position:relative; background:#1e1e1e; border-radius:8px; padding:15px; border:1px solid #333; min-height:150px">
-                <div id="code-editor" 
-                     contenteditable="true" 
-                     spellcheck="false"
-                     oninput="handleCodeInput(this)"
-                     style="width:100%; min-height:120px; color:#d4d4d4; font-family:'Courier New', monospace; font-size:14px; line-height:1.5; outline:none; white-space:pre; overflow-wrap:normal; overflow-x:auto;"></div>
+            <div id="editor-container" style="position:relative; background:#1e1e1e; border-radius:8px; height:150px; border:1px solid #333; overflow:hidden;">
+                <div id="code-highlight" style="position:absolute; top:0; left:0; width:100%; height:100%; padding:15px; box-sizing:border-box; white-space:pre-wrap; word-wrap:break-word; font-family:'Consolas', 'Monaco', monospace; font-size:14px; line-height:1.5; color:#d4d4d4; z-index:1; pointer-events:none;"></div>
+                
+                <textarea id="code-input" spellcheck="false"
+                    oninput="syncEditor(this.value)"
+                    onscroll="syncScroll(this)"
+                    style="position:absolute; top:0; left:0; width:100%; height:100%; padding:15px; box-sizing:border-box; background:transparent; color:transparent; caret-color:#aeafad; border:none; font-family:'Consolas', 'Monaco', monospace; font-size:14px; line-height:1.5; outline:none; resize:none; z-index:2; white-space:pre-wrap; word-wrap:break-word;"></textarea>
             </div>
 
             <button class="btn-apple" onclick="checkL5('${lang}')" style="margin-top:15px; background:var(--accent); color:white; width:100%">Esegui e Verifica</button>
             
             <div id="terminal-output" style="display:none; margin-top:20px; background:#000; border-radius:8px; padding:15px; font-family:monospace; border:1px solid #333;">
-                <div style="color:#34c759; font-size:12px; margin-bottom:5px;">● TERMINALE</div>
+                <div style="color:#34c759; font-size:11px; margin-bottom:5px;">● TERMINALE</div>
                 <pre id="console-res" style="color:#fff; margin:0; font-size:13px; white-space:pre-wrap;"></pre>
             </div>
+            <div id="fb" style="margin-top:10px;"></div>
         </div>
     `;
+}
+
+function syncEditor(text) {
+    const highlightElement = document.getElementById('code-highlight');
+    
+    // Logica colori VS Code
+    let code = text
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") // Protezione HTML
+        .replace(/\b(for|in|if|while|def|return|class|import)\b/g, '<span style="color:#569cd6">$1</span>') // Keyword Blu
+        .replace(/\b(range|print|len|input)\b/g, '<span style="color:#dcdcaa">$1</span>') // Funzioni Gialle
+        .replace(/(\d+)/g, '<span style="color:#b5cea8">$1</span>') // Numeri Verde-Acqua
+        .replace(/:/g, '<span style="color:#ffd700">:</span>') // Due punti Oro
+        .replace(/\((.*?)\)/g, '(<span style="color:#9cdcfe">$1</span>)'); // Variabili dentro parentesi Azzurro
+
+    // Aggiungiamo uno spazio finale per gestire correttamente l'andata a capo
+    highlightElement.innerHTML = code + (text.endsWith("\n") ? "\n " : "");
+}
+
+// Mantiene i due layer allineati durante lo scroll
+function syncScroll(el) {
+    const highlightElement = document.getElementById('code-highlight');
+    highlightElement.scrollTop = el.scrollTop;
+}
+
+function checkL5(lang) {
+    const input = document.getElementById('code-input').value.trim();
+    const terminal = document.getElementById('terminal-output');
+    const consoleRes = document.getElementById('console-res');
+    const fb = document.getElementById('fb');
+
+    // Esempio per Python/JS (puoi personalizzare la soluzione attesa)
+    const validSolutions = [
+        "for i in range(1, 11):\n    print(i)",
+        "for i in range(1,11):print(i)"
+    ];
+
+    terminal.style.display = "block";
+    
+    if (validSolutions.some(s => input.replace(/\s+/g, '') === s.replace(/\s+/g, ''))) {
+        consoleRes.innerText = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10";
+        consoleRes.style.color = "#fff";
+        fb.innerHTML = `<span style="color:#34c759">✓ Eseguito con successo!</span>`;
+    } else {
+        consoleRes.innerText = "SyntaxError: invalid syntax at line 1";
+        consoleRes.style.color = "#ff3b30";
+        fb.innerHTML = `<span style="color:#ff3b30">✗ Errore: verifica la sintassi.</span>`;
+    }
 }
 
 
