@@ -122,16 +122,40 @@ function updateNav(showBack, backTarget) {
 }
 
 function saveMasterDB() {
-    // Salviamo i progressi solo se siamo in modalità utente e il pin esiste nel database
     if (state.mode === 'user' && state.currentPin && dbUsers[state.currentPin]) {
         dbUsers[state.currentPin].progress = state.progress || {};
         dbUsers[state.currentPin].history = state.history || {};
+        
+        // --- INVIO DATI A FIREBASE ---
+        syncToFirebase(state.currentPin, dbUsers[state.currentPin]);
     }
-    
-    // Salvataggio fisico sul browser
     localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
-    console.log("DB salvato correttamente.");
 }
+
+// Nuova funzione di supporto (da mettere in fondo al file)
+async function syncToFirebase(pin, userData) {
+    if (!db || pin === "1111") return; // Non sincronizzare il tester
+    
+    // Calcoliamo i punti per la classifica
+    let pts = 0;
+    let perfetti = 0;
+    Object.values(userData.history || {}).forEach(lang => {
+        const correctInLang = lang.filter(h => h.ok).length;
+        pts += (correctInLang * 10);
+        // Se un livello ha 15 corrette, è perfetto
+        if (correctInLang % 15 === 0 && correctInLang > 0) perfetti++;
+    });
+
+    try {
+        await db.collection("classifica").doc(pin).set({
+            name: userData.name,
+            points: pts,
+            perfect: perfetti,
+            lastUpdate: new Date().getTime()
+        }, { merge: true });
+    } catch (e) { console.error("Errore cloud:", e); }
+}
+
 
 function renderLogin() {
     state.mode = null;
@@ -315,6 +339,14 @@ function showHome() {
             <div style="font-weight:700">IL MIO PROFILO</div>
         </div>`;
     }
+    // Sotto il tasto IL MIO PROFILO
+
+    html += `
+    <div class="lang-item" onclick="renderGlobalClassifica()" style="background: #ff9500; color: white;">
+        <img src="https://cdn-icons-png.flaticon.com/512/2817/2817958.png" width="35" style="filter: brightness(0) invert(1)">
+        <div style="font-weight:700; margin-top:10px">CLASSIFICA</div>
+    </div>`;
+
 
 
             if(state.mode === 'admin') {
@@ -1738,6 +1770,51 @@ function openModal(title, content, onConfirm) {
 
     document.getElementById('modal-confirm').onclick = () => { onConfirm(); overlay.style.display='none'; };
     document.getElementById('modal-cancel').onclick = () => { overlay.style.display='none'; };
+}
+async function renderGlobalClassifica() {
+    localStorage.setItem('currentSection', 'classifica');
+    updateNav(true, "showHome()");
+    document.getElementById('app-title').innerText = "TOP PLAYERS";
+    
+    const container = document.getElementById('content-area');
+    container.innerHTML = `<div style="text-align:center; padding:20px">Caricamento classifica...</div>`;
+
+    try {
+        const snapshot = await db.collection("classifica").orderBy("points", "desc").limit(20).get();
+        let html = `<div style="width:100%; display:flex; flex-direction:column; gap:10px">`;
+        
+        let rank = 1;
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const isMe = doc.id === state.currentPin;
+            
+            // Logica premi: Medaglia d'oro se ha livelli perfetti
+            let medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "👤";
+            let crown = data.perfect > 0 ? "🏆" : "";
+            let specialStyle = isMe ? "border: 2px solid #ff9500;" : "border: 1px solid var(--border);";
+
+            html += `
+            <div class="review-card" style="${specialStyle} background: var(--bg-card); display:flex; justify-content:space-between; align-items:center">
+                <div style="display:flex; align-items:center; gap:15px">
+                    <span style="font-size:20px">${medal}</span>
+                    <div>
+                        <div style="font-weight:bold">${data.name} ${crown}</div>
+                        <div style="font-size:11px; opacity:0.6">${data.perfect} Livelli Perfetti</div>
+                    </div>
+                </div>
+                <div style="text-align:right">
+                    <div style="font-weight:800; color:var(--accent)">${data.points}</div>
+                    <div style="font-size:9px; opacity:0.5">PUNTI</div>
+                </div>
+            </div>`;
+            rank++;
+        });
+
+        html += `</div>`;
+        container.innerHTML = html;
+    } catch (e) {
+        container.innerHTML = `<div style="color:red">Errore nel caricamento della classifica globale.</div>`;
+    }
 }
 
 
