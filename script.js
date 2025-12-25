@@ -2166,6 +2166,13 @@ async function adminResetSingleUser(userId) {
     );
 }
 
+function closeModal() {
+    const modal = document.getElementById('universal-modal');
+    const logoutModal = document.getElementById('logout-modal');
+    
+    if (modal) modal.style.display = 'none';
+    if (logoutModal) logoutModal.style.display = 'none';
+}
 
 // Inserisci qui le tue funzioni renderProfile, adminReset, adminDelete, userChangePin che hai nel file
 // (Mantenile come sono, sono corrette nel tuo originale)
