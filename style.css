@@ -429,19 +429,32 @@ input:focus, textarea:focus, select:focus, button:focus {
 }
 
 /* Questa regola si attiva SOLO su schermi piccoli (meno di 600px) */
-@media (max-width: 600px) {
+@media screen and (max-width: 600px) {
+    /* 1. Sistemiamo la card */
     .glass-card {
-        /* Sovrascrive il calc(100% - 40px) solo su mobile */
-        width: 100% !important; 
-        
-        /* Riduce leggermente il padding per non spingere fuori il contenuto */
-        padding: 20px !important; 
-        
-        /* Elimina i margini laterali che potrebbero farla sbordare */
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important; /* Fondamentale */
+        padding: 16px !important; /* Padding ridotto per mobile */
         margin-left: 0 !important;
         margin-right: 0 !important;
     }
+
+    /* 2. Sistemiamo il contenitore che la ospita */
+    #content-area {
+        width: 100% !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 3. Impediamo agli elementi interni di spingere i bordi */
+    textarea, pre, .code-input, .code-highlight {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
 }
+
 
 
 /* Colori Prism per VS Code Dark+ */
