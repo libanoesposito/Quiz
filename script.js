@@ -11,15 +11,27 @@ let state = {
 
 let session = null;
 const ADMIN_PIN = "3473";
-const TESTER_PIN = "1111"; // Il PIN del tuo utente tutto sbloccato
+const TESTER_PIN = "1111"; 
 
-// Definiamo l'oggetto tester con tutti i progressi al livello 5
+// Definiamo l'oggetto tester COMPLETO (così non crasha il profilo)
 const testerUser = {
     name: "Tester Pro",
-    progress: { "Python": 5, "JavaScript": 5, "Java": 5, "MySQL": 5, "HTML": 5 },
-    history: {},
-    isTester: true
+    progress: {},      // Vuoto per testare da zero
+    history: {},       // Necessario per il profilo
+    activeProgress: {}, // Necessario per il profilo
+    ripasso: {         // Necessario per la pagina Ripasso
+        wrong: [], 
+        notStudied: [] 
+    },
+    isTester: true     // Il nostro "marchio" per sbloccare i livelli
 };
+
+// Ora lo iniettiamo nel database se non esiste
+if (!dbUsers[TESTER_PIN]) {
+    dbUsers[TESTER_PIN] = testerUser;
+    localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
+}
+
 
 window.onload = () => {
     initTheme();
