@@ -343,7 +343,7 @@ function startStep(lang, lvl) {
     updateNav(true, "showLevels('" + lang + "')");
 
     // Controllo livello 5 utente
-    if(lvl === 5 && state.mode === 'user' && (state.progress[lang] || 0) < 3) return;
+    if(lvl === 5 && state.mode === 'user' && (state.progress[lang] || 0) < 3 && state.currentPin !== "1111") return;
     if(lvl === 5) { renderL5(lang); return; }
     
     const key = "L" + lvl;
