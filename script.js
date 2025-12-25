@@ -1643,23 +1643,30 @@ async function renderAdminPanel() {
         // Sezione Eliminati (Resto del codice uguale...)
         if (eliminati.length > 0) {
     html += `
-        <div class="review-card" style="margin-top:32px; border:1px dashed #d2d2d7; background:rgba(0,0,0,0.02)">
+        <div class="glass-card" style="
+            margin-top:30px; 
+            width:100%; 
+            max-width:none; 
+            padding:15px; 
+            border-radius:15px; 
+            border:1px solid rgba(255,59,48,0.3);
+            box-sizing: border-box;
+        ">
             <div onclick="const el = document.getElementById('deleted-list'); el.style.display = el.style.display === 'none' ? 'block' : 'none'" 
-                 style="cursor:pointer; display:flex; justify-content:space-between; align-items:center">
-                <strong style="color:#86868b; font-size:12px; letter-spacing:0.5px; text-transform:uppercase">Utenti Eliminati (${eliminati.length})</strong>
-                <span style="color:#0066cc; font-size:12px">Mostra</span>
+                 style="cursor:pointer; display:flex; justify-content:center; align-items:center">
+                <strong style="color:#ff3b30; font-size:12px; letter-spacing:1px">UTENTI ELIMINATI (${eliminati.length})</strong>
             </div>
             <div id="deleted-list" style="display:none; margin-top:15px">`;
     
     eliminati.forEach(u => {
         html += `
-            <div style="padding:10px 0; border-top:1px solid rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center">
+            <div style="padding:10px 0; border-bottom:1px solid rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center">
                 <div>
-                    <span style="font-weight:500; font-size:14px; color:#1d1d1f">${u.name}</span>
-                    <div style="font-size:11px; color:#86868b">ID ${u.id}</div>
+                    <span style="font-weight:600; color:#1d1d1f">${u.name}</span>
+                    <div style="font-size:11px; opacity:0.5">ID ${u.id}</div>
                 </div>
-                <div style="cursor:pointer; color:#0066cc; font-weight:400; font-size:13px" onclick="showUserHistory(${u.id})">
-                    Dettagli
+                <div style="cursor:pointer; color:#0a84ff; font-weight:600; font-size:12px" onclick="showUserHistory(${u.id})">
+                    VEDI STORICO
                 </div>
             </div>`;
     });
