@@ -1865,27 +1865,45 @@ function recalcUser(userId) {
 }
 
 async function adminRestoreUser(userId, docId) {
-    const pinOriginale = docId.split('_')[0];
+    let pinDaUsare = docId.split('_')[0];
     
-    openModal("Ripristina", "Riattivare l'utente?", async () => {
+    openModal("Ripristina Utente", "Riattivare l'utente? Se il PIN è occupato, ne verrà generato uno temporaneo.", async () => {
         try {
+            // 1. Controlla se il PIN è occupato
+            const check = await db.collection("utenti").doc(pinDaUsare).get();
+            let isTemporary = false;
+
+            if (check.exists) {
+                // PIN occupato! Generiamo un PIN casuale di 4 cifre che non esiste
+                isTemporary = true;
+                pinDaUsare = Math.floor(1000 + Math.random() * 9000).toString();
+                alert(`Il PIN originale era occupato. L'utente è stato ripristinato con il PIN TEMPORANEO: ${pinDaUsare}`);
+            }
+
             const snap = await db.collection("eliminati").doc(docId).get();
             const data = snap.data();
 
-            // 1. Ripristina su Firebase
-            await db.collection("utenti").doc(pinOriginale).set({ ...data, deleted: false });
+            // 2. Prepariamo i dati aggiornati
+            const restoredData = { 
+                ...data, 
+                deleted: false, 
+                userId: userId, 
+                pin: pinDaUsare, // Aggiorniamo il PIN nel documento
+                needsPinChange: isTemporary // Flag per l'utente (opzionale)
+            };
+
+            // 3. Ripristina su Firebase e cancella dal cestino
+            await db.collection("utenti").doc(pinDaUsare).set(restoredData);
             await db.collection("eliminati").doc(docId).delete();
 
-            // 2. MODIFICA CHIRURGICA: Riaggiorna l'oggetto locale dbUsers
-            // Senza questa riga, la prossima eliminazione dirà "Utente non trovato"
-            dbUsers[pinOriginale] = { ...data, deleted: false, userId: userId }; 
+            // 4. Aggiorna locale
+            dbUsers[pinDaUsare] = restoredData;
             
-            // 3. Salva la memoria locale e aggiorna solo il pannello (senza ricaricare pagina)
             saveMasterDB();
             renderAdminPanel(); 
         } catch (e) {
             console.error(e);
-            alert("Errore ripristino");
+            alert("Errore durante il ripristino premium.");
         }
     });
 }
