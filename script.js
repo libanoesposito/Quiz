@@ -414,30 +414,54 @@ function checkL5(lang) {
 function renderL5(lang) {
     updateNav(true, `showLevels('${lang}')`);
     const container = document.getElementById('content-area');
-    const pLang = lang.toLowerCase() === 'python' ? 'python' : (lang.toLowerCase() === 'java' ? 'java' : 'javascript');
+    const pLang = lang.toLowerCase() === 'python' ? 'python' : 'javascript';
 
     container.innerHTML = `
         <div class="glass-card" style="box-shadow: none !important; background: rgba(120, 120, 128, 0.08) !important; border-radius: 20px; padding: 20px;">
             <h2 style="font-size:18px; margin-bottom:10px">ESAMINATORE: ${lang.toUpperCase()}</h2>
             <p style="font-size:14px; margin-bottom:15px; opacity:0.8"><b>Sfida:</b> Crea un ciclo che stampi i numeri da 1 a 10.</p>
             
-            <div id="editor-wrapper" style="position:relative; background:#1e1e1e; border-radius:12px; height:200px; border:1px solid #333; overflow:hidden;">
-                <pre id="highlighting" aria-hidden="true" style="position:absolute; top:0; left:0; width:100%; height:100%; margin:0; padding:15px; box-sizing:border-box; font-family:'Fira Code', 'Consolas', monospace; font-size:14px; line-height:1.5; pointer-events:none; z-index:1; background:transparent; overflow:hidden;"><code id="highlighting-content" class="language-${pLang}"></code></pre>
-                
-                <textarea id="editing" spellcheck="false" 
-                    oninput="updateEditor(this.value)" 
-                    onscroll="syncScroll(this)"
-                    onkeydown="handleTab(event, this)"
-                    style="position:absolute; top:0; left:0; width:100%; height:100%; margin:0; padding:15px; box-sizing:border-box; background:transparent; color:transparent; caret-color:white; border:none; font-family:'Fira Code', 'Consolas', monospace; font-size:14px; line-height:1.5; outline:none; resize:none; z-index:2; white-space:pre; overflow:auto;"></textarea>
+            <div style="background:#1e1e1e; border-radius:12px; border:1px solid #333; padding:15px; min-height:150px;">
+                <pre style="margin:0; background:transparent;"><code id="editor" 
+                    contenteditable="true" 
+                    spellcheck="false"
+                    oninput="handleInput(this, '${pLang}')"
+                    onkeydown="handleSpecialKeys(event)"
+                    class="language-${pLang}"
+                    style="width:100%; display:block; outline:none; color:#d4d4d4; font-family:'Consolas', monospace; font-size:14px; line-height:1.5; white-space:pre-wrap;"></code></pre>
             </div>
 
             <button class="btn-apple" onclick="checkL5('${lang}')" style="margin-top:15px; background:var(--accent); color:white; width:100%; font-weight:600">Esegui e Verifica</button>
             <div id="terminal-output" style="display:none; margin-top:20px; background:#000; border-radius:10px; padding:15px; border:1px solid #444;">
-                <div style="color:#34c759; font-size:11px; margin-bottom:5px; font-family:sans-serif;">TERMINALE</div>
                 <pre id="console-res" style="color:#fff; margin:0; font-size:13px; font-family:monospace; white-space:pre-wrap;"></pre>
             </div>
         </div>
     `;
+}
+
+function handleInput(el, lang) {
+    // Salviamo la posizione del cursore (Selection)
+    const selection = window.getSelection();
+    const range = selection.getRangeAt(0);
+    const offset = range.startOffset;
+
+    // Applichiamo Prism al testo
+    Prism.highlightElement(el);
+
+    // Ripristiniamo il cursore (Logica per riposizionamento preciso)
+    // Nota: contenteditable perde il focus se non resettiamo correttamente il range
+    const newRange = document.createRange();
+    newRange.setStart(el.childNodes[0] || el, offset);
+    newRange.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
+}
+
+function handleSpecialKeys(e) {
+    if (e.key === "Tab") {
+        e.preventDefault();
+        document.execCommand("insertText", false, "    ");
+    }
 }
 
 
