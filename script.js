@@ -1583,19 +1583,20 @@ async function renderAdminPanel() {
         </div>`;
 
     try {
-        const snapshot = await db.collection("utenti").get();
-        snapshot.forEach(doc => { dbUsers[doc.id] = doc.data(); });
+    // 1. Scarica gli utenti ATTIVI
+    const snapAttivi = await db.collection("utenti").get();
+    const attivi = snapAttivi.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.data().userId // assicura la corrispondenza con ${u.id}
+    }));
 
-        const users = Object.entries(dbUsers)
-            .filter(([_, u]) => u.userId)
-            .map(([pin, u]) => ({
-                pin,
-                id: u.userId,
-                name: u.name,
-                stats: calcUserStats(u),
-                deleted: u.deleted
-            }))
-            .sort((a, b) => b.stats.perc - a.stats.perc);
+    // 2. Scarica gli utenti ELIMINATI dall'archivio
+    const snapEliminati = await db.collection("eliminati").get();
+    const eliminati = snapEliminati.docs.map(doc => ({
+        ...doc.data(),
+        docId: doc.id, // ID del documento utile per il ripristino
+        id: doc.data().userId
+    }));
 
         let html = `<div style="width:100%">`;
 
