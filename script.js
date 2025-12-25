@@ -1415,7 +1415,6 @@ async function renderAdminPanel() {
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = "ADMIN";
     
-    // 1. MESSAGGIO DI CARICAMENTO (Perché ora scarichiamo dati reali)
     document.getElementById('content-area').innerHTML = `
         <div style="text-align:center; padding:50px; opacity:0.6">
             <div class="spinner" style="margin-bottom:10px">🔄</div>
@@ -1423,16 +1422,9 @@ async function renderAdminPanel() {
         </div>`;
 
     try {
-        // 2. RECUPERO DATI DA FIREBASE
-        // Prendiamo TUTTI i documenti nella collezione "utenti"
         const snapshot = await db.collection("utenti").get();
-        
-        // Aggiorniamo il nostro dbUsers locale con tutto quello che c'è sul Cloud
-        snapshot.forEach(doc => {
-            dbUsers[doc.id] = doc.data();
-        });
+        snapshot.forEach(doc => { dbUsers[doc.id] = doc.data(); });
 
-        // 3. PREPARAZIONE LISTA (Tua logica originale, ora con dati globali)
         const users = Object.entries(dbUsers)
             .filter(([_, u]) => u.userId)
             .map(([pin, u]) => ({
@@ -1446,21 +1438,33 @@ async function renderAdminPanel() {
 
         let html = `<div style="width:100%">`;
 
-        // Blocco Manutenzione (Invariato)
+        // 1. NUOVO BLOCCO MANUTENZIONE A 3 TASTI
         html += `
-            <div class="review-card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-left: 4px solid #ff3b30">
-                <div>
-                    <strong style="color:#ff3b30">Manutenzione Sistema</strong>
-                    <div style="font-size:12px; opacity:0.6">Reset totale database</div>
+            <div class="review-card" style="margin-bottom:20px; border-left: 4px solid #ff3b30">
+                <strong style="color:#ff3b30; display:block; margin-bottom:10px">Manutenzione Database Cloud</strong>
+                <div style="display:flex; justify-content:space-around; align-items:center; background: rgba(0,0,0,0.05); padding:10px; border-radius:8px">
+                    
+                    <div style="text-align:center; cursor:pointer" onclick="adminResetAll('FULL')" title="Elimina tutto">
+                        <div style="font-size:22px">💀</div>
+                        <div style="font-size:10px; font-weight:700">TABULA RASA</div>
+                    </div>
+
+                    <div style="text-align:center; cursor:pointer" onclick="adminResetAll('STATS')" title="Azzera punti a tutti">
+                        <div style="font-size:22px">🧹</div>
+                        <div style="font-size:10px; font-weight:700">RESET PUNTI</div>
+                    </div>
+
+                    <div style="text-align:center; cursor:pointer" onclick="alert('Usa l icona 🧼 accanto all utente per il reset mirato')">
+                        <div style="font-size:22px">🎯</div>
+                        <div style="font-size:10px; font-weight:700">MIRATO</div>
+                    </div>
                 </div>
-                <div style="cursor:pointer; font-size:22px; padding:5px" onclick="adminResetAll()">🗑️</div>
             </div>`;
 
-        // Divisione Utenti
         const attivi = users.filter(u => !u.deleted);
         const eliminati = users.filter(u => u.deleted);
 
-        // Rendering Utenti Attivi
+        // Rendering Utenti
         if (attivi.length === 0) {
             html += `<div style="text-align:center; padding:20px; color:#666">Nessun utente nel cloud</div>`;
         } else {
@@ -1474,21 +1478,18 @@ async function renderAdminPanel() {
                                 <div style="font-size:12px; opacity:0.6">ID ${u.id} - PIN ${u.pin}</div>
                             </div>
                             <div style="display:flex; gap:18px; font-size:18px">
-    <span style="cursor:pointer" title="Storico" onclick="showUserHistory(${u.id})">⏳</span>
-    <span style="cursor:pointer" title="Aggiorna Statistiche" onclick="recalcUser(${u.id})">🔄</span>
-    
-    <span style="cursor:pointer" title="Azzera Progressi" onclick="adminResetSingleUser(${u.id})">🧼</span>
-    
-    <span style="cursor:pointer; color:#ff3b30" title="Elimina" onclick="adminDeleteUser(${u.id})">🗑</span>
-</div>
-
+                                <span style="cursor:pointer" title="Storico" onclick="showUserHistory(${u.id})">⏳</span>
+                                <span style="cursor:pointer" title="Aggiorna" onclick="recalcUser(${u.id})">🔄</span>
+                                <span style="cursor:pointer" title="Reset Mirato" onclick="adminResetSingleUser(${u.id})">🧼</span>
+                                <span style="cursor:pointer; color:#ff3b30" title="Elimina" onclick="adminDeleteUser(${u.id})">🗑</span>
+                            </div>
                         </div>
                         <div style="margin-top:8px; font-size:13px">${statsText}</div>
                     </div>`;
             });
         }
 
-        // Sezione Eliminati (Invariata)
+        // Sezione Eliminati (Resto del codice uguale...)
         if (eliminati.length > 0) {
             html += `
                 <div class="glass-card" style="margin-top:30px; border:1px solid rgba(255,59,48,0.2)">
@@ -1517,10 +1518,11 @@ async function renderAdminPanel() {
         document.getElementById('content-area').innerHTML = html;
 
     } catch (error) {
-        console.error("Errore caricamento utenti globali:", error);
-        document.getElementById('content-area').innerHTML = `<div style="color:red; text-align:center">Errore nel caricamento dei dati dal Cloud.</div>`;
+        console.error("Errore:", error);
+        document.getElementById('content-area').innerHTML = `<div style="color:red; text-align:center">Errore Cloud.</div>`;
     }
 }
+
 
 
 function showUserHistory(userId) {
@@ -1859,16 +1861,37 @@ function userChangePin() {
 }
 
 /* Azzera statistiche */
-function userResetStats() {
-    openModal("Azzera statistiche", "Vuoi azzerare tutte le tue statistiche?", () => {
+async function userResetStats() {
+    openModal("Azzera statistiche", "Vuoi azzerare tutte le tue statistiche? Questa azione è irreversibile.", async () => {
+        // 1. Pulizia dati nello stato attuale
+        state.progress = {};
+        state.history = {};
+        state.activeProgress = {};
+        state.ripasso = { wrong: [], notStudied: [] };
+
+        // 2. Pulizia nell'oggetto database locale
         const u = dbUsers[state.currentPin];
-        u.progress = {};
-        u.history = {};
-        u.activeProgress = {};
-        saveMasterDB();
+        if (u) {
+            u.progress = {};
+            u.history = {};
+            u.activeProgress = {};
+            u.ripasso = { wrong: [], notStudied: [] };
+        }
+
+        // 3. Sincronizzazione con Google (Firebase)
+        // Usiamo await per essere sicuri che i dati siano cancellati sul server
+        await saveMasterDB(); 
+        
+        // 4. Rimuovi l'utente dalla classifica globale (opzionale, ma consigliato)
+        try {
+            await db.collection("classifica").doc(state.currentPin).delete();
+        } catch(e) { console.log("Errore pulizia classifica"); }
+
+        // 5. Ricarica la pagina del profilo aggiornata
         renderProfile();
     });
 }
+
 
 /* Elimina account */
 function userDeleteAccount() {
@@ -1969,6 +1992,38 @@ async function renderGlobalClassifica() {
     } catch (e) {
         container.innerHTML = `<div style="color:red">Errore nel caricamento della classifica globale.</div>`;
     }
+}
+
+async function adminResetSingleUser(userId) {
+    const pin = Object.keys(dbUsers).find(key => dbUsers[key].userId == userId);
+    const u = dbUsers[pin];
+    if (!u) return;
+
+    openModal(
+        "Reset Singolo Utente",
+        `Vuoi azzerare i progressi di ${u.name}? Il PIN rimarrà lo stesso, ma tornerà al livello 1.`,
+        async () => {
+            try {
+                const updateData = {
+                    progress: {},
+                    history: {},
+                    activeProgress: {},
+                    ripasso: { wrong: [], notStudied: [] }
+                };
+                // Aggiorna Firebase
+                await db.collection("utenti").doc(pin).update(updateData);
+                // Aggiorna Locale
+                dbUsers[pin] = { ...dbUsers[pin], ...updateData };
+                // Rimuovi da classifica
+                await db.collection("classifica").doc(pin).delete();
+                
+                saveMasterDB();
+                renderAdminPanel();
+            } catch (e) {
+                alert("Errore reset mirato.");
+            }
+        }
+    );
 }
 
 
