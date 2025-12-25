@@ -1,3 +1,13 @@
+const firebaseConfig = {
+  apiKey: "AIzaSyDw0pvrsSoMYjs3mQOp5rfpehMe-b5VgcU",
+  authDomain: "quizmaster-d9834.firebaseapp.com",
+  projectId: "quizmaster-d9834",
+  storageBucket: "quizmaster-d9834.firebasestorage.app",
+  messagingSenderId: "69039384064",
+  appId: "1:69039384064:web:deb448021ef5ac66031ae5"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 // Database globale degli utenti (caricato da memoria locale)
 let dbUsers = JSON.parse(localStorage.getItem('quiz_master-db')) || {};
    
