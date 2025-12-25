@@ -417,6 +417,7 @@ async function registerUser() {
         localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
 
         closeModal();
+        showHome();
         
         const finalPinInput = document.getElementById('pin-input');
         if (finalPinInput) {
