@@ -282,7 +282,9 @@ function showLevels(lang) {
 
         // LOGICA UTENTE
         if (state.mode === 'user') {
-            if (i >= 4 && comp < 3) {
+            // Se è l'utente normale E il livello è >= 4 E non ha finito il 3 -> Blocca
+            // MA se il PIN è 1111, non entrare mai in questo IF (quindi resta isLocked = false)
+            if (i >= 4 && comp < 3 && state.currentPin !== "1111") {
                 isLocked = true;
             }
         }
