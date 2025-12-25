@@ -1889,78 +1889,46 @@ async function adminRestoreUser(userId, docId) {
 
 async function adminDeleteUser(userId) {
     const pin = Object.keys(dbUsers).find(key => dbUsers[key].userId == userId);
-    if (!pin) return;
+    if (!pin) {
+        alert("Utente non trovato nel database locale.");
+        return;
+    }
 
-    openModal("Elimina Utente", "Spostare l'utente nel cestino?", async () => {
-        try {
-            const u = dbUsers[pin];
-            const archiveId = `${pin}_${Date.now()}`;
-
-            // Sposta nel cestino
-            await db.collection("eliminati").doc(archiveId).set({
-                ...u,
-                docId: archiveId,
-                deletedAt: new Date().toISOString()
-            });
-
-            // Rimuovi da attivi
-            await db.collection("utenti").doc(pin).delete();
-            await db.collection("classifica").doc(pin).delete();
-
-            // 3. MODIFICA CHIRURGICA: Rimuovi dal database locale
-            delete dbUsers[pin];
-            saveMasterDB();
-
-            // 4. NON USARE window.location.reload()
-            renderAdminPanel(); 
-        } catch (e) {
-            alert("Errore durante l'eliminazione");
-        }
-    });
-}
+    const u = dbUsers[pin];
 
     openModal(
         "Elimina utente",
         `L'utente ${u.name} verrà spostato nell'archivio. Il suo PIN sarà libero per nuove registrazioni, ma potrai ancora consultare il suo storico.`,
         async () => {
             try {
-                // 1. CREIAMO UN ID UNICO PER L'ARCHIVIO (PIN + DATA)
-                // Usiamo il timestamp per evitare che eliminazioni diverse dello stesso PIN si sovrascrivano
                 const archiveId = `${pin}_${Date.now()}`;
 
-                // 2. SPOSTAMENTO SUL CLOUD
-                // Copiamo i dati nella nuova collezione "eliminati"
+                // 1. SPOSTAMENTO SUL CLOUD (ARCHIVIO)
                 await db.collection("eliminati").doc(archiveId).set({
                     ...u,
-                    archiveId: archiveId, // Ci servirà per il ripristino o eliminazione definitiva
+                    archiveId: archiveId,
                     deletedAt: new Date().toISOString()
                 });
 
-                // 3. RIMOZIONE DALLA COLLEZIONE ATTIVA
-                // Ora che i dati sono al sicuro in "eliminati", cancelliamo da "utenti" (PIN LIBERO!)
+                // 2. RIMOZIONE DA ATTIVI E CLASSIFICA
                 await db.collection("utenti").doc(pin).delete();
-                
-                // Rimuoviamo anche dalla classifica
                 await db.collection("classifica").doc(pin).delete();
 
-                // 4. AGGIORNAMENTO LOCALE
-                // Rimuoviamo l'utente dall'oggetto dbUsers locale
+                // 3. AGGIORNAMENTO LOCALE
                 delete dbUsers[pin];
-                
-                console.log(`Utente ${u.name} archiviato correttamente.`);
-
-                // Salvataggio e Refresh
                 saveMasterDB();
+
+                // 4. REFRESH UI
                 renderAdminPanel();
+                console.log(`Utente ${u.name} archiviato correttamente.`);
 
             } catch (error) {
                 console.error("Errore durante l'archiviazione:", error);
-                alert("Errore durante la comunicazione con Firebase. Riprova.");
+                alert("Errore durante la comunicazione con Firebase.");
             }
         }
     );
 }
-
 
 // Mostra i dettagli completi di un utente per l'admin
 function showUserDetails(pin) {
