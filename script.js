@@ -1711,7 +1711,7 @@ if (eliminati.length > 0) {
     });
     html += `</div></div>`;
 }
-}
+
         html += `</div>`;
         document.getElementById('content-area').innerHTML = html;
 
