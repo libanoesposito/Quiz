@@ -461,7 +461,7 @@ function showHome() {
     document.getElementById('app-title').innerText = "PERCORSI";
     let html = `<div class="lang-grid">`;
 
-    // Linguaggi standard
+    // 1. Linguaggi standard
     Object.keys(domandaRepo).forEach(l => {
         const icon = (l === 'HTML') ? 'html5' : l.toLowerCase();
         html += `<div class="lang-item" onclick="showLevels('${l}')">
@@ -470,34 +470,36 @@ function showHome() {
         </div>`;
     });
 
-    // Ripasso e Profilo (Solo Utente)
-            if(state.mode === 'user') {
+    // 2. Sezione Utente (Profilo, Ripasso e Classifica)
+    if(state.mode === 'user') {
         html += `
         <div class="lang-item" onclick="renderRipasso()">
             <img src="https://cdn-icons-png.flaticon.com/512/3389/3389081.png" width="35">
             <div style="margin-top:10px; font-weight:700; font-size:13px">RIPASSO</div>
         </div>
+        
+        <div class="lang-item" onclick="renderGlobalClassifica()" style="background: #ff9500; color: white;">
+            <img src="https://cdn-icons-png.flaticon.com/512/2817/2817958.png" width="35" style="filter: brightness(0) invert(1)">
+            <div style="margin-top:10px; font-weight:700; font-size:13px">CLASSIFICA</div>
+        </div>
+
         <div class="lang-item profile-slot" onclick="renderProfile()" style="background: #0a84ff; color: white;">
-            <div style="font-weight:700">IL MIO PROFILO</div>
+            <div style="font-weight:700; font-size:13px">IL MIO PROFILO</div>
         </div>`;
     }
-    // Sotto il tasto IL MIO PROFILO
 
-    html += `
-    <div class="lang-item" onclick="renderGlobalClassifica()" style="background: #ff9500; color: white;">
-        <img src="https://cdn-icons-png.flaticon.com/512/2817/2817958.png" width="35" style="filter: brightness(0) invert(1)">
-        <div style="font-weight:700; margin-top:10px">CLASSIFICA</div>
-    </div>`;
-
-
-
-            if(state.mode === 'admin') {
-        html += `<div class="lang-item profile-slot" onclick="renderAdminPanel()" style="background: #0a84ff; color: white;"><div style="font-weight:700">PANNELLO ADMIN</div></div>`;
+    // 3. Sezione Admin
+    if(state.mode === 'admin') {
+        html += `
+        <div class="lang-item profile-slot" onclick="renderAdminPanel()" style="background: #32d74b; color: white;">
+            <div style="font-weight:700; font-size:13px">PANNELLO ADMIN</div>
+        </div>`;
     }
 
     html += `</div>`;
     document.getElementById('content-area').innerHTML = html;
 }
+
 
 function showLevels(lang) {
     localStorage.setItem('currentSection', 'levels');
