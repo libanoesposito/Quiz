@@ -1588,26 +1588,29 @@ async function renderAdminPanel() {
 
         // 1. NUOVO BLOCCO MANUTENZIONE A 3 TASTI
         html += `
-            <div class="review-card" style="margin-bottom:20px; border-left: 4px solid #ff3b30">
-                <strong style="color:#ff3b30; display:block; margin-bottom:10px">Manutenzione Database Cloud</strong>
-                <div style="display:flex; justify-content:space-around; align-items:center; background: rgba(0,0,0,0.05); padding:10px; border-radius:8px">
-                    
-                    <div style="text-align:center; cursor:pointer" onclick="adminResetAll('FULL')" title="Elimina tutto">
-                        <div style="font-size:22px">💀</div>
-                        <div style="font-size:10px; font-weight:700">TABULA RASA</div>
-                    </div>
+    <div class="review-card" style="margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; background:#fbfbfd; border:1px solid #d2d2d7; border-radius:12px; padding:16px 20px">
+        <div>
+            <strong style="color:#1d1d1f; font-size:15px; letter-spacing:-0.01em">Manutenzione Database</strong>
+            <span style="display:block; font-size:12px; color:#86868b">Gestione globale del sistema</span>
+        </div>
+        
+        <div style="display:flex; gap:20px; align-items:center">
+            <div style="text-align:center; cursor:pointer; color:#0066cc" onclick="adminResetAll('STATS')" title="Azzera punti a tutti">
+                <div style="font-size:18px; font-weight:300">↺</div>
+                <div style="font-size:9px; font-weight:600; text-transform:uppercase; margin-top:2px">Reset</div>
+            </div>
 
-                    <div style="text-align:center; cursor:pointer" onclick="adminResetAll('STATS')" title="Azzera punti a tutti">
-                        <div style="font-size:22px">🧹</div>
-                        <div style="font-size:10px; font-weight:700">RESET PUNTI</div>
-                    </div>
+            <div style="text-align:center; cursor:pointer; color:#1d1d1f" onclick="alert('Usa l icona 🧼 accanto all utente per il reset mirato')" title="Reset mirato">
+                <div style="font-size:18px; font-weight:300">⊙</div>
+                <div style="font-size:9px; font-weight:600; text-transform:uppercase; margin-top:2px">Mirato</div>
+            </div>
 
-                    <div style="text-align:center; cursor:pointer" onclick="alert('Usa l icona 🧼 accanto all utente per il reset mirato')">
-                        <div style="font-size:22px">🎯</div>
-                        <div style="font-size:10px; font-weight:700">MIRATO</div>
-                    </div>
-                </div>
-            </div>`;
+            <div style="text-align:center; cursor:pointer; color:#ff3b30" onclick="adminResetAll('FULL')" title="Elimina tutto">
+                <div style="font-size:18px; font-weight:300">⊗</div>
+                <div style="font-size:9px; font-weight:600; text-transform:uppercase; margin-top:2px">Pulisci</div>
+            </div>
+        </div>
+    </div>`;
 
         const attivi = users.filter(u => !u.deleted);
         const eliminati = users.filter(u => u.deleted);
@@ -1625,11 +1628,11 @@ async function renderAdminPanel() {
                                 <strong>${u.name}</strong>
                                 <div style="font-size:12px; opacity:0.6">ID ${u.id} - PIN ${u.pin}</div>
                             </div>
-                            <div style="display:flex; gap:18px; font-size:18px">
-                                <span style="cursor:pointer" title="Storico" onclick="showUserHistory(${u.id})">⏳</span>
-                                <span style="cursor:pointer" title="Aggiorna" onclick="recalcUser(${u.id})">🔄</span>
-                                <span style="cursor:pointer" title="Reset Mirato" onclick="adminResetSingleUser(${u.id})">🧼</span>
-                                <span style="cursor:pointer; color:#ff3b30" title="Elimina" onclick="adminDeleteUser(${u.id})">🗑</span>
+                            <div style="display:flex; gap:20px; align-items:center; color:#0066cc">
+                            <span style="cursor:pointer; font-size:16px" title="Storico" onclick="showUserHistory(${u.id})">ⓘ</span>
+                            <span style="cursor:pointer; font-size:18px; font-weight:300" title="Aggiorna" onclick="recalcUser(${u.id})">↻</span>
+                            <span style="cursor:pointer; font-size:16px" title="Reset Mirato" onclick="adminResetSingleUser(${u.id})">⊘</span>
+                            <span style="cursor:pointer; color:#ff3b30; font-size:18px; font-weight:300" title="Elimina" onclick="adminDeleteUser(${u.id})">✕</span>
                             </div>
                         </div>
                         <div style="margin-top:8px; font-size:13px">${statsText}</div>
@@ -1639,28 +1642,29 @@ async function renderAdminPanel() {
 
         // Sezione Eliminati (Resto del codice uguale...)
         if (eliminati.length > 0) {
-            html += `
-                <div class="glass-card" style="margin-top:30px; border:1px solid rgba(255,59,48,0.2)">
-                    <div onclick="const el = document.getElementById('deleted-list'); el.style.display = el.style.display === 'none' ? 'block' : 'none'" 
-                         style="cursor:pointer; display:flex; justify-content:center; align-items:center">
-                        <strong style="color:#ff3b30; font-size:12px; letter-spacing:1px">UTENTI ELIMINATI (${eliminati.length})</strong>
-                    </div>
-                    <div id="deleted-list" style="display:none; margin-top:15px">`;
-            
-            eliminati.forEach(u => {
-                html += `
-                    <div style="padding:12px 0; border-bottom:1px solid rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center">
-                        <div>
-                            <span style="font-weight:600">${u.name}</span>
-                            <div style="font-size:11px; opacity:0.5">ID ${u.id}</div>
-                        </div>
-                        <div style="cursor:pointer; color:#0a84ff; font-weight:600; font-size:13px" onclick="showUserHistory(${u.id})">
-                            VEDI STORICO
-                        </div>
-                    </div>`;
-            });
-            html += `</div></div>`;
-        }
+    html += `
+        <div class="review-card" style="margin-top:32px; border:1px dashed #d2d2d7; background:rgba(0,0,0,0.02)">
+            <div onclick="const el = document.getElementById('deleted-list'); el.style.display = el.style.display === 'none' ? 'block' : 'none'" 
+                 style="cursor:pointer; display:flex; justify-content:space-between; align-items:center">
+                <strong style="color:#86868b; font-size:12px; letter-spacing:0.5px; text-transform:uppercase">Utenti Eliminati (${eliminati.length})</strong>
+                <span style="color:#0066cc; font-size:12px">Mostra</span>
+            </div>
+            <div id="deleted-list" style="display:none; margin-top:15px">`;
+    
+    eliminati.forEach(u => {
+        html += `
+            <div style="padding:10px 0; border-top:1px solid rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center">
+                <div>
+                    <span style="font-weight:500; font-size:14px; color:#1d1d1f">${u.name}</span>
+                    <div style="font-size:11px; color:#86868b">ID ${u.id}</div>
+                </div>
+                <div style="cursor:pointer; color:#0066cc; font-weight:400; font-size:13px" onclick="showUserHistory(${u.id})">
+                    Dettagli
+                </div>
+            </div>`;
+    });
+    html += `</div></div>`;
+}
 
         html += `</div>`;
         document.getElementById('content-area').innerHTML = html;
