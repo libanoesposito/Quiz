@@ -928,7 +928,7 @@ input, select, textarea { font-size: 16px !important; }
                     ${wRed > 0 ? `<div style="width:${wRed}%; background:#ff3b30; height:100%"></div>` : ''}
                     ${wBlue > 0 ? `<div style="width:${wBlue}%; background:#0a84ff; height:100%"></div>` : ''}
                 </div>
-                <div style="font-size:11px; text-align:right; margin-top:2px; opacity:0.8">${percent}% corrette</div>
+                <div style="font-size:11px; text-align:right; margin-top:2px; opacity:0.8">${percent}% progresso</div>
             </div>`;
         }
         progHtml += `</div>`;
