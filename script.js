@@ -1474,10 +1474,14 @@ async function renderAdminPanel() {
                                 <div style="font-size:12px; opacity:0.6">ID ${u.id} - PIN ${u.pin}</div>
                             </div>
                             <div style="display:flex; gap:18px; font-size:18px">
-                                <span style="cursor:pointer" title="Storico" onclick="showUserHistory(${u.id})">⏳</span>
-                                <span style="cursor:pointer" title="Aggiorna" onclick="recalcUser(${u.id})">🔄</span>
-                                <span style="cursor:pointer; color:#ff3b30" title="Elimina" onclick="adminDeleteUser(${u.id})">🗑</span>
-                            </div>
+    <span style="cursor:pointer" title="Storico" onclick="showUserHistory(${u.id})">⏳</span>
+    <span style="cursor:pointer" title="Aggiorna Statistiche" onclick="recalcUser(${u.id})">🔄</span>
+    
+    <span style="cursor:pointer" title="Azzera Progressi" onclick="adminResetSingleUser(${u.id})">🧼</span>
+    
+    <span style="cursor:pointer; color:#ff3b30" title="Elimina" onclick="adminDeleteUser(${u.id})">🗑</span>
+</div>
+
                         </div>
                         <div style="margin-top:8px; font-size:13px">${statsText}</div>
                     </div>`;
