@@ -340,19 +340,26 @@ function uiPin(type) {
 
 
 function isWeakPin(pin) {
-    // tutti uguali
-    if (/^(\d)\1{3}$/.test(pin)) return true;
+    // Convertiamo in stringa per sicurezza
+    const sPin = String(pin);
 
-    // sequenza crescente
+    // 1. ECCEZIONE: Se è il PIN Admin o Tester, NON è debole
+    if (sPin === "3473" || sPin === "1111") return false;
+
+    // 2. TUTTI UGUALI (es: 0000, 1111...)
+    if (/^(\d)\1{3}$/.test(sPin)) return true;
+
+    // 3. SEQUENZA CRESCENTE (es: 1234, 4567...)
     const asc = "0123456789";
-    if (asc.includes(pin)) return true;
+    if (asc.includes(sPin) && sPin.length === 4) return true;
 
-    // sequenza decrescente
+    // 4. SEQUENZA DECRESCENTE (es: 4321, 9876...)
     const desc = "9876543210";
-    if (desc.includes(pin)) return true;
+    if (desc.includes(sPin) && sPin.length === 4) return true;
 
     return false;
 }
+
 
 async function registerUser() {
     const nameEl = document.getElementById('reg-name');
@@ -365,8 +372,15 @@ async function registerUser() {
         return;
     }
 
+    // --- AGGIUNGI QUESTO CONTROLLO QUI ---
+    if (isWeakPin(pin)) {
+        alert("PIN troppo semplice! Non usare sequenze (1234) o numeri ripetuti (1111).");
+        return;
+    }
+    // -------------------------------------
+
     try {
-        // Controllo se il PIN esiste già su Firebase prima di procedere
+        // Controllo se il PIN esiste già su Firebase
         const check = await db.collection("utenti").doc(pin).get();
         if (check.exists) {
             alert("Questo PIN è già registrato da un altro utente.");
@@ -384,27 +398,23 @@ async function registerUser() {
             created: new Date().toISOString()
         };
 
-        // Salva su Cloud
         await db.collection("utenti").doc(pin).set(newUser);
         
-        // Aggiorna database locale
         dbUsers[pin] = newUser;
         localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
 
         alert("Registrazione completata! Ora effettua l'accesso.");
         closeModal();
         
-        // Inserisce automaticamente il pin per comodità
-        // Verso la fine di registerUser
         const finalPinInput = document.getElementById('pin-input');
         if (finalPinInput) finalPinInput.value = pin;
-
 
     } catch (error) {
         console.error("Errore registrazione:", error);
         alert("Impossibile connettersi al database. Assicurati di aver pubblicato le 'Rules' su Firebase.");
     }
 }
+
 
 async function validatePin(type) {
     // Usiamo l'ID corretto che hai definito in uiPin
