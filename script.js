@@ -329,48 +329,113 @@ function startStep(lang, lvl) {
     renderQ();
 }
 
-function checkL5(lang) {
-    const code = document.getElementById('code-editor').innerText.trim();
-    const terminal = document.getElementById('terminal-output');
-    const consoleRes = document.getElementById('console-res');
-    
-    terminal.style.display = "block";
-    
-    // Controllo flessibile (funziona sia per Python che JS)
-    if (code.includes("1, 11") || code.includes("1,11") || code.includes("i <= 10")) {
-        consoleRes.innerText = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10";
-        consoleRes.style.color = "#fff";
-    } else {
-        consoleRes.innerText = "Output: " + code + "\n\n[Sistema]: Risultato non corrispondente alla richiesta.";
-        consoleRes.style.color = "#ff3b30";
+function updateEditor(text) {
+    let resultElement = document.getElementById("highlighting-content");
+    // Protezione per i caratteri HTML e aggiunta spazio finale per il cursore a fine riga
+    resultElement.textContent = text + (text.endsWith("\n") ? " " : "");
+    // Chiamata alla libreria Prism per colorare il testo
+    Prism.highlightElement(resultElement);
+}
+
+function syncScroll(el) {
+    let resultElement = document.getElementById("highlighting");
+    resultElement.scrollTop = el.scrollTop;
+    resultElement.scrollLeft = el.scrollLeft;
+}
+
+function handleTab(e, el) {
+    if (e.key === "Tab") {
+        e.preventDefault();
+        let start = el.selectionStart;
+        let end = el.selectionEnd;
+        // Inserisce 4 spazi invece di cambiare focus
+        el.value = el.value.substring(0, start) + "    " + el.value.substring(end);
+        el.selectionStart = el.selectionEnd = start + 4;
+        updateEditor(el.value);
     }
 }
+
+
+function checkL5(lang) {
+    // 1. Recupera il codice scritto nella textarea dell'editor
+    const input = document.getElementById('editing');
+    const code = input.value.trim();
+    const terminal = document.getElementById('terminal-output');
+    const consoleRes = document.getElementById('console-res');
+    const fb = document.getElementById('fb');
+
+    // Mostra il terminale
+    terminal.style.display = "block";
+
+    // 2. Logica di verifica (Esempio: cerca se l'utente ha usato un ciclo e i numeri corretti)
+    // Rendiamo il controllo flessibile per Python (range) o JS/Java (for classico)
+    const isCorrect = (
+        (code.includes("range(1, 11)") || code.includes("range(1,11)")) || // Python
+        (code.includes("i <= 10") || code.includes("i<11")) // JS / Java
+    );
+
+    if (isCorrect) {
+        // Simula l'output della console
+        consoleRes.innerText = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n\nProcesso terminato con successo.";
+        consoleRes.style.color = "#34c759";
+        fb.innerHTML = `<span style="color:#34c759; font-weight:bold">✓ Esame Superato! Progressi salvati.</span>`;
+
+        // 3. SALVATAGGIO PROGRESSI (Molto importante per l'utente)
+        if (state.mode === 'user') {
+            // Aggiorna lo stato dei progressi
+            state.progress[lang] = 5;
+            
+            // Aggiorna il database globale (dbUsers)
+            const u = dbUsers[state.currentPin];
+            if (u) {
+                if (!u.history) u.history = {};
+                if (!u.history[lang]) u.history[lang] = [];
+                
+                // Aggiungiamo il superamento allo storico
+                u.history[lang].push({
+                    lvl: 5,
+                    ok: true,
+                    date: new Date().toLocaleDateString()
+                });
+            }
+            // Salva fisicamente nel localStorage
+            saveMasterDB();
+        }
+    } else {
+        // Simula un errore di sistema
+        consoleRes.innerText = "Error: LogicMismatch\nL'output non corrisponde a quanto richiesto.\nAssicurati di contare da 1 a 10.";
+        consoleRes.style.color = "#ff3b30";
+        fb.innerHTML = `<span style="color:#ff3b30; font-weight:bold">✗ Errore. Riprova.</span>`;
+    }
+}
+
 
 
 function renderL5(lang) {
     updateNav(true, `showLevels('${lang}')`);
     const container = document.getElementById('content-area');
-    
+    const pLang = lang.toLowerCase() === 'python' ? 'python' : (lang.toLowerCase() === 'java' ? 'java' : 'javascript');
+
     container.innerHTML = `
         <div class="glass-card" style="box-shadow: none !important; background: rgba(120, 120, 128, 0.08) !important; border-radius: 20px; padding: 20px;">
             <h2 style="font-size:18px; margin-bottom:10px">ESAMINATORE: ${lang.toUpperCase()}</h2>
-            <p style="font-size:14px; margin-bottom:15px; opacity:0.8"><b>Sfida:</b> Crea un ciclo che stampi i numeri da 1 a 10</p>
+            <p style="font-size:14px; margin-bottom:15px; opacity:0.8"><b>Sfida:</b> Crea un ciclo che stampi i numeri da 1 a 10.</p>
             
-            <div style="background:#1e1e1e; border-radius:8px; border:1px solid #333; padding:15px;">
-                <div id="code-editor" 
-                     contenteditable="true" 
-                     spellcheck="false"
-                     oninput="highlightIDE(this)"
-                     style="width:100%; min-height:120px; color:#d4d4d4; font-family:'Consolas', monospace; font-size:14px; line-height:1.5; outline:none; white-space:pre; tab-size:4;"></div>
+            <div id="editor-wrapper" style="position:relative; background:#1e1e1e; border-radius:12px; height:200px; border:1px solid #333; overflow:hidden;">
+                <pre id="highlighting" aria-hidden="true" style="position:absolute; top:0; left:0; width:100%; height:100%; margin:0; padding:15px; box-sizing:border-box; font-family:'Fira Code', 'Consolas', monospace; font-size:14px; line-height:1.5; pointer-events:none; z-index:1; background:transparent; overflow:hidden;"><code id="highlighting-content" class="language-${pLang}"></code></pre>
+                
+                <textarea id="editing" spellcheck="false" 
+                    oninput="updateEditor(this.value)" 
+                    onscroll="syncScroll(this)"
+                    onkeydown="handleTab(event, this)"
+                    style="position:absolute; top:0; left:0; width:100%; height:100%; margin:0; padding:15px; box-sizing:border-box; background:transparent; color:transparent; caret-color:white; border:none; font-family:'Fira Code', 'Consolas', monospace; font-size:14px; line-height:1.5; outline:none; resize:none; z-index:2; white-space:pre; overflow:auto;"></textarea>
             </div>
 
-            <button class="btn-apple" onclick="checkL5('${lang}')" style="margin-top:15px; background:var(--accent); color:white; width:100%">Esegui e Verifica</button>
-            
-            <div id="terminal-output" style="display:none; margin-top:20px; background:#000; border-radius:8px; padding:15px; font-family:monospace; border:1px solid #333;">
-                <div style="color:#34c759; font-size:11px; margin-bottom:5px;">● TERMINALE</div>
-                <pre id="console-res" style="color:#fff; margin:0; font-size:13px; white-space:pre-wrap;"></pre>
+            <button class="btn-apple" onclick="checkL5('${lang}')" style="margin-top:15px; background:var(--accent); color:white; width:100%; font-weight:600">Esegui e Verifica</button>
+            <div id="terminal-output" style="display:none; margin-top:20px; background:#000; border-radius:10px; padding:15px; border:1px solid #444;">
+                <div style="color:#34c759; font-size:11px; margin-bottom:5px; font-family:sans-serif;">TERMINALE</div>
+                <pre id="console-res" style="color:#fff; margin:0; font-size:13px; font-family:monospace; white-space:pre-wrap;"></pre>
             </div>
-            <div id="fb" style="margin-top:10px;"></div>
         </div>
     `;
 }
