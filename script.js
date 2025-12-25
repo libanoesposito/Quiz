@@ -329,6 +329,24 @@ function startStep(lang, lvl) {
     renderQ();
 }
 
+function checkL5(lang) {
+    const code = document.getElementById('code-editor').innerText.trim();
+    const terminal = document.getElementById('terminal-output');
+    const consoleRes = document.getElementById('console-res');
+    
+    terminal.style.display = "block";
+    
+    // Controllo flessibile (funziona sia per Python che JS)
+    if (code.includes("1, 11") || code.includes("1,11") || code.includes("i <= 10")) {
+        consoleRes.innerText = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10";
+        consoleRes.style.color = "#fff";
+    } else {
+        consoleRes.innerText = "Output: " + code + "\n\n[Sistema]: Risultato non corrispondente alla richiesta.";
+        consoleRes.style.color = "#ff3b30";
+    }
+}
+
+
 function renderL5(lang) {
     updateNav(true, `showLevels('${lang}')`);
     const container = document.getElementById('content-area');
@@ -338,13 +356,12 @@ function renderL5(lang) {
             <h2 style="font-size:18px; margin-bottom:10px">ESAMINATORE: ${lang.toUpperCase()}</h2>
             <p style="font-size:14px; margin-bottom:15px; opacity:0.8"><b>Sfida:</b> Crea un ciclo che stampi i numeri da 1 a 10</p>
             
-            <div id="editor-container" style="position:relative; background:#1e1e1e; border-radius:8px; height:150px; border:1px solid #333; overflow:hidden;">
-                <div id="code-highlight" style="position:absolute; top:0; left:0; width:100%; height:100%; padding:15px; box-sizing:border-box; white-space:pre-wrap; word-wrap:break-word; font-family:'Consolas', 'Monaco', monospace; font-size:14px; line-height:1.5; color:#d4d4d4; z-index:1; pointer-events:none;"></div>
-                
-                <textarea id="code-input" spellcheck="false"
-                    oninput="syncEditor(this.value)"
-                    onscroll="syncScroll(this)"
-                    style="position:absolute; top:0; left:0; width:100%; height:100%; padding:15px; box-sizing:border-box; background:transparent; color:transparent; caret-color:#aeafad; border:none; font-family:'Consolas', 'Monaco', monospace; font-size:14px; line-height:1.5; outline:none; resize:none; z-index:2; white-space:pre-wrap; word-wrap:break-word;"></textarea>
+            <div style="background:#1e1e1e; border-radius:8px; border:1px solid #333; padding:15px;">
+                <div id="code-editor" 
+                     contenteditable="true" 
+                     spellcheck="false"
+                     oninput="highlightIDE(this)"
+                     style="width:100%; min-height:120px; color:#d4d4d4; font-family:'Consolas', monospace; font-size:14px; line-height:1.5; outline:none; white-space:pre; tab-size:4;"></div>
             </div>
 
             <button class="btn-apple" onclick="checkL5('${lang}')" style="margin-top:15px; background:var(--accent); color:white; width:100%">Esegui e Verifica</button>
@@ -357,54 +374,6 @@ function renderL5(lang) {
         </div>
     `;
 }
-
-function syncEditor(text) {
-    const highlightElement = document.getElementById('code-highlight');
-    
-    // Logica colori VS Code
-    let code = text
-        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") // Protezione HTML
-        .replace(/\b(for|in|if|while|def|return|class|import)\b/g, '<span style="color:#569cd6">$1</span>') // Keyword Blu
-        .replace(/\b(range|print|len|input)\b/g, '<span style="color:#dcdcaa">$1</span>') // Funzioni Gialle
-        .replace(/(\d+)/g, '<span style="color:#b5cea8">$1</span>') // Numeri Verde-Acqua
-        .replace(/:/g, '<span style="color:#ffd700">:</span>') // Due punti Oro
-        .replace(/\((.*?)\)/g, '(<span style="color:#9cdcfe">$1</span>)'); // Variabili dentro parentesi Azzurro
-
-    // Aggiungiamo uno spazio finale per gestire correttamente l'andata a capo
-    highlightElement.innerHTML = code + (text.endsWith("\n") ? "\n " : "");
-}
-
-// Mantiene i due layer allineati durante lo scroll
-function syncScroll(el) {
-    const highlightElement = document.getElementById('code-highlight');
-    highlightElement.scrollTop = el.scrollTop;
-}
-
-function checkL5(lang) {
-    const input = document.getElementById('code-input').value.trim();
-    const terminal = document.getElementById('terminal-output');
-    const consoleRes = document.getElementById('console-res');
-    const fb = document.getElementById('fb');
-
-    // Esempio per Python/JS (puoi personalizzare la soluzione attesa)
-    const validSolutions = [
-        "for i in range(1, 11):\n    print(i)",
-        "for i in range(1,11):print(i)"
-    ];
-
-    terminal.style.display = "block";
-    
-    if (validSolutions.some(s => input.replace(/\s+/g, '') === s.replace(/\s+/g, ''))) {
-        consoleRes.innerText = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10";
-        consoleRes.style.color = "#fff";
-        fb.innerHTML = `<span style="color:#34c759">✓ Eseguito con successo!</span>`;
-    } else {
-        consoleRes.innerText = "SyntaxError: invalid syntax at line 1";
-        consoleRes.style.color = "#ff3b30";
-        fb.innerHTML = `<span style="color:#ff3b30">✗ Errore: verifica la sintassi.</span>`;
-    }
-}
-
 
 
 function renderQ() {
