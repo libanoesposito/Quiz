@@ -1622,9 +1622,6 @@ html += `
         </div>
     </div>`;
 
-        const attivi = users.filter(u => !u.deleted);
-        const eliminati = users.filter(u => u.deleted);
-
         // Rendering Utenti
         if (attivi.length === 0) {
             html += `<div style="text-align:center; padding:20px; color:#666">Nessun utente nel cloud</div>`;
