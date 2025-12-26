@@ -1697,7 +1697,7 @@ if (attivi.length === 0) {
             </div>
             
             <div style="display:flex; gap:14px; align-items:center; color:currentColor">
-                <span style="cursor:pointer" title="Storico" onclick="showUserDetails('${u.pin}')">
+                <span style="cursor:pointer" title="Storico" onclick="showUserHistory(${u.id})">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.7"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                 </span>
                 <span style="cursor:pointer; color:#ff3b30" title="Elimina" onclick="adminDeleteUser(${u.id})">
