@@ -416,16 +416,23 @@ async function registerUser() {
         dbUsers[pin] = newUser;
         localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
 
+        // --- FIX PER NON IMPALLARE IL SITO ---
         currentUser = newUser;
+        state.mode = 'user';           // Imposta il modo su user per sbloccare i tasti
+        state.currentPin = pin;        // Associa il pin allo stato globale
+        state.progress = {};           // Reset progressi locale per nuovo utente
+        
         localStorage.setItem('currentUserPin', pin);
+
         await db.collection("classifica").doc(pin).set({ 
             name: name, 
             score: 0, 
             userId: nextId 
         });
+
         closeModal();
-        updateNav(true);
-        renderUserHome();
+        updateNav(true, "showHome()"); 
+        showHome();                    
 
     } catch (error) {
         console.error("Errore registrazione:", error);
