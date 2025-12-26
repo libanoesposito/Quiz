@@ -2169,40 +2169,54 @@ async function adminClearTrash() {
 }
 
 /* Cambia PIN */
-async function userChangePin(oldPin, newPin) {
-    try {
-        // 1. Prendi i dati dal vecchio PIN (quello temporaneo)
-        const userRef = db.collection("utenti").doc(oldPin);
-        const snap = await userRef.get();
-        const data = snap.data();
+async function userChangePin() {
+    openModal("Cambia PIN", `
+        Inserisci il nuovo PIN a 4 cifre:
+        <input type="password" id="new-pin-field" maxlength="4" inputmode="numeric" 
+        style="margin-top:10px; text-align:center; width:80%; padding:8px; border-radius:8px; border:1px solid #ccc">
+    `, async () => {
+        const newPin = document.getElementById('new-pin-field').value;
+        const oldPin = state.currentPin;
 
-        // 2. Crea il nuovo documento con il PIN scelto dall'utente
-        // Impostiamo needsPinChange a FALSE perché ora ha il suo PIN definitivo
-        await db.collection("utenti").doc(newPin).set({
-            ...data,
-            pin: newPin,
-            needsPinChange: false 
-        });
-
-        // 3. CANCELLA IL VECCHIO PIN (Quello temporaneo)
-        await userRef.delete();
-
-        // 4. Pulisci la memoria locale
-        delete dbUsers[oldPin];
-        dbUsers[newPin] = { ...data, pin: newPin, needsPinChange: false };
+        if (newPin.length !== 4) { alert("Il PIN deve essere di 4 cifre"); return; }
         
-        // 5. Aggiorna il login dell'utente
-        currentUser = dbUsers[newPin];
-        localStorage.setItem('currentUserPin', newPin);
+        // 1. Controllo se il PIN esiste già su Firebase
+        const check = await db.collection("utenti").doc(newPin).get();
+        if (check.exists) { alert("PIN già in uso"); return; }
 
-        alert("PIN aggiornato con successo!");
-        renderUserHome(); // Torna alla home dell'utente
-        
-    } catch (e) {
-        console.error(e);
-        alert("Errore durante il cambio PIN");
-    }
+        try {
+            // 2. Recupera i dati dal vecchio PIN (quello TEMP)
+            const userData = dbUsers[oldPin];
+            
+            // Aggiorna i dati: togliamo il flag TEMP e mettiamo il nuovo PIN
+            const updatedData = { 
+                ...userData, 
+                pin: newPin, 
+                needsPinChange: false 
+            };
+
+            // 3. OPERAZIONE SUL CLOUD: Crea il nuovo e cancella il vecchio
+            await db.collection("utenti").doc(newPin).set(updatedData);
+            await db.collection("utenti").doc(oldPin).delete();
+
+            // 4. AGGIORNA LA LOCALE (Memoria browser)
+            dbUsers[newPin] = updatedData;
+            delete dbUsers[oldPin];
+            state.currentPin = newPin;
+            
+            saveMasterDB();
+            closeModal(); // Chiude il popup
+            renderProfile(); // Aggiorna la vista
+            
+            alert("PIN aggiornato correttamente!");
+
+        } catch (error) {
+            console.error(error);
+            alert("Errore durante il salvataggio nel Cloud.");
+        }
+    });
 }
+
 /* Azzera statistiche */
 async function userResetStats() {
     openModal("Azzera statistiche", "Vuoi azzerare tutte le tue statistiche? Questa azione è irreversibile.", async () => {
