@@ -1685,7 +1685,7 @@ if (attivi.length === 0) {
             </div>`;
 
         statsHTML = `
-            <div style="margin-top:15px; padding-top:10px; border-top: 1px solid rgba(120,120,128,0.08)">
+            <div id="stats-container-${u.id}" style="display:none; margin-top:15px; padding-top:10px; border-top: 1px solid rgba(120,120,128,0.08)">`;
                 ${getBar('Corrette', cor, '#34c759')}
                 ${getBar('Sbagliate', wr, '#ff3b30')}
                 ${getBar('Non Studiate', ns, '#0a84ff')}
@@ -1694,15 +1694,14 @@ if (attivi.length === 0) {
 
     const isTemp = u.needsPinChange ? `<span style="color:#ff9500; font-size:10px; font-weight:bold; margin-left:5px">⚠️ TEMP</span>` : '';
 
-    html += `
-    <div class="review-card is-ok" style="margin-bottom:16px">
+    html += `<div class="review-card is-ok" style="margin-bottom:16px; cursor:pointer" onclick="const s = document.getElementById('stats-container-${u.id}'); if(event.target.closest('span')) return; s.style.display = s.style.display === 'none' ? 'block' : 'none'">`;
         <div style="display:flex; justify-content:space-between; align-items:flex-start">
             <div>
                 <strong style="color:currentColor; font-size:15px">${u.name}</strong> ${isTemp}
                 <div style="font-size:12px; color:currentColor; opacity:0.6; display:flex; align-items:center; gap:8px; margin-top:4px">
                     ID ${u.id} • PIN: 
                     <span id="pin-text-${u.id}" style="font-family:monospace; filter:blur(4px); transition: filter 0.2s ease">${u.pin}</span>
-                    <span style="cursor:pointer; opacity:0.8; display:flex; padding:4px" onclick="togglePinVisibility('${u.id}')">
+                    <span style="cursor:pointer; opacity:0.8; display:flex; padding:4px" onclick="event.stopPropagation(); togglePinVisibility('${u.id}')">
                         <svg id="pin-icon-${u.id}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                         </svg>
@@ -1711,10 +1710,10 @@ if (attivi.length === 0) {
             </div>
             
             <div style="display:flex; gap:14px; align-items:center; color:currentColor">
-                <span style="cursor:pointer" title="Storico" onclick="showUserHistory(${u.id})">
+                <span style="cursor:pointer" title="Storico" onclick="event.stopPropagation(); showUserHistory(${u.id})">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.7"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                 </span>
-                <span style="cursor:pointer; color:#ff3b30" title="Elimina" onclick="adminDeleteUser(${u.id})">
+                <span style="cursor:pointer; color:#ff3b30" title="Elimina" onclick="event.stopPropagation(); adminDeleteUser(${u.id})">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                 </span>
             </div>
