@@ -1685,7 +1685,7 @@ if (attivi.length === 0) {
             </div>`;
 
         statsHTML = `
-            <div id="stats-container-${u.id}" style="display:none; margin-top:15px; padding-top:10px; border-top: 1px solid rgba(120,120,128,0.08)">`;
+            <div id="stats-container-${u.id}" style="display:none; margin-top:15px; padding-top:10px; border-top: 1px solid rgba(120,120,128,0.08)">
                 ${getBar('Corrette', cor, '#34c759')}
                 ${getBar('Sbagliate', wr, '#ff3b30')}
                 ${getBar('Non Studiate', ns, '#0a84ff')}
