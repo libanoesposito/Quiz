@@ -162,7 +162,9 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
     background: rgba(0, 0, 0, 0.4); /* Scurisce lo sfondo del sito */
     display: none;      /* Lo tiene nascosto all'inizio */
     justify-content: center;
-    align-items: flex-end;         /* Lo spinge in basso (stile iOS) */
+    align-items: center;         /* Lo spinge in basso (stile iOS) */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     z-index: 10000;                /* Lo mette sopra a ogni altra cosa */
 }
 
