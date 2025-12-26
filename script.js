@@ -969,7 +969,7 @@ function markNotStudied(idx) {
     if (!state.history[session.lang]) state.history[session.lang] = [];
     state.history[session.lang].push({
         question: data.q,
-        correctAnswer: data.options[data.correct]
+        correctAnswer: data.options[data.correct],
         isNotStudied: true, // Questo attiva il blu nel renderProfile
         level: session.lvl,  // Indica a quale barra aggiungere il blu
         lvl: session.lvl     // Doppia sicurezza
