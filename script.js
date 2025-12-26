@@ -2465,7 +2465,6 @@ async function renderGlobalClassifica() {
             else if (rank === 3) medal = "🥉";
             else medal = `<span style="opacity:0.5; font-size:14px; width:20px; text-align:center; display:inline-block">${rank}</span>`;
 
-            let crown = data.perfect > 0 ? "🏆" : "";
             // Gestione Sfondo e Bordi dinamici
             let cardStyle = `background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);`;
             
