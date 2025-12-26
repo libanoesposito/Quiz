@@ -937,7 +937,11 @@ function renderQ() {
         </div>
         <h2 style="font-size:18px; margin-bottom:20px">${data.q}</h2>
         <div id="opts" style="width:100%">
-            ${data.options.map((o, i) => `<button class="btn-apple" onclick="check(${i === data.correct})">${o}</button>`).join('')}
+            ${data.options.map((o, i) => {
+                // Puliamo il testo da eventuali apici per non rompere l'onclick
+                const safeOption = o.replace(/'/g, "\\'");
+                return `<button class="btn-apple" onclick="check(${i === data.correct}, '${safeOption}')">${o}</button>`;
+            }).join('')}
         </div>
         <div id="fb"></div>
         <div style="margin-top:10px; text-align:right">
