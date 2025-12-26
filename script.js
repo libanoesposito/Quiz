@@ -1797,7 +1797,7 @@ function togglePinVisibility(userId) {
 
 
 function showUserHistory(userId) {
-    const u = Object.values(dbUsers).find(user => user.userId == userId);
+    const u = attivi.find(user => user.id == userId) || eliminati.find(user => user.id == userId);
     if (!u) return;
 
     const htmlStorico = generateHistoryHTML(u);
