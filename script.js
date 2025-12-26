@@ -1331,11 +1331,11 @@ function generateHistoryHTML(u) {
             const status = h.ok ? "✅" : "❌";
             html += `<div style="font-size:12px; margin-bottom:6px">
                         ${status} Q${idx + 1}: ${h.question}<br>
-                        <em style="opacity:0.6">Risposta corretta: ${h.correctAnswer}</em>
+                        <em style="opacity:0.6">Risp. Corretta: ${h.correctAnswer || h.correctAns || h.answer || 'Risposta non salvata'}</em>
                      </div>`;
         });
     });
-    return html || "<div style='font-size:12px; opacity:0.6'>Nessuna domanda fatta</div>";
+    return html || "<div style='font-size:12px; opacity:0.6'>Nessuno Storico</div>";
 }
 
 // Toggle per linguaggio
