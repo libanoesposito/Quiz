@@ -1847,9 +1847,10 @@ function generateHistoryHTML(data) {
             historyData[lang].forEach((h, idx) => {
                 const status = h.ok ? "✅" : (h.isNotStudied ? "🟦" : "❌");
                 html += `<div style="font-size:12px; margin-bottom:6px">
-                            ${status} Q${idx + 1}: ${h.question}<br>
-                            <em style="opacity:0.6">Risp. Corretta: ${h.correctAnswer || '—'}</em>
-                         </div>`;
+            ${status} Q${idx + 1}: ${h.question}<br>
+            <span style="color:${h.ok ? '#34c759' : '#ff3b30'}">Tua: ${h.userAnswer || '—'}</span>
+            ${!h.ok ? `<br><em style="opacity:0.6">Corretta: ${h.correctAnswer || '—'}</em>` : ''}
+         </div>`;
             });
         }
     });
@@ -2081,9 +2082,10 @@ function showUserDetails(pin) {
         arr.forEach((h, idx) => {
             const status = h.ok ? "✅" : h.notStudied ? "🟡" : "❌";
             historyHtml += `<div style="font-size:12px; margin-bottom:2px">
-                                ${status} Q${idx+1}: ${h.q}
-                                <br><em style="opacity:0.6">Risposta corretta: ${h.correctAns || '—'}</em>
-                            </div>`;
+                    ${status} Q${idx+1}: ${h.question || h.q}
+                    <br><span style="color:${h.ok ? '#34c759' : '#ff3b30'}">Tua: ${h.userAnswer || '—'}</span>
+                    ${!h.ok ? `<br><em style="opacity:0.6">Corretta: ${h.correctAnswer || h.correctAns || '—'}</em>` : ''}
+                </div>`;
         });
     });
 
