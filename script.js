@@ -586,9 +586,9 @@ function showHome() {
             <div style="margin-top:10px; font-weight:700; font-size:13px">RIPASSO</div>
         </div>
         
-        <div class="lang-item" onclick="renderGlobalClassifica()" style="background: #ff9500; color: white;">
-            <img src="https://cdn-icons-png.flaticon.com/512/2817/2817958.png" width="35" style="filter: brightness(0) invert(1)">
-            <div style="margin-top:10px; font-weight:700; font-size:13px">CLASSIFICA</div>
+        <div class="lang-item profile-slot" onclick="renderGlobalClassifica()" style="background: rgba(255, 149, 0, 0.15) !important; border: 1px solid #ff9500 !important; color: #ff9500 !important;">
+          <img src="https://cdn-icons-png.flaticon.com/512/2817/2817958.png" width="30" style="filter: invert(58%) sepia(91%) saturate(2375%) hue-rotate(1deg) brightness(105%) contrast(105%); margin-bottom: 5px;">
+          <div style="font-weight:700; font-size:13px">CLASSIFICA</div>
         </div>
 
         <div class="lang-item profile-slot" onclick="renderProfile()" style="background: #0a84ff; color: white;">
