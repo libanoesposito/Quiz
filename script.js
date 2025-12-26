@@ -1648,7 +1648,7 @@ async function renderAdminPanel() {
                 <strong style="color:currentColor">${u.name}</strong> ${isTemp}
                 <div style="font-size:12px; color:currentColor; opacity:0.6; display:flex; align-items:center; gap:8px; margin-top:2px">
                     ID ${u.id} • PIN: 
-                    <span id="pin-text-${u.id}" style="font-family:monospace; letter-spacing:1px; filter:blur(4px); transition: filter 0.2s">${u.pin}</span>
+                    <span id="pin-text-${u.id}" style="font-family:monospace; ...">${u.pin}</span>
                     <span style="cursor:pointer; opacity:0.8; display:flex" onclick="togglePinVisibility('${u.id}')">
                         <svg id="pin-icon-${u.id}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
@@ -2169,23 +2169,40 @@ async function adminClearTrash() {
 }
 
 /* Cambia PIN */
-function userChangePin() {
-    openModal("Cambia PIN", `
-        Inserisci il nuovo PIN a 4 cifre:
-        <input type="password" id="new-pin-field" maxlength="4" inputmode="numeric" style="margin-top:10px; text-align:center; width:80%; padding:8px; border-radius:8px; border:1px solid #ccc">
-    `, () => {
-        const newPin = document.getElementById('new-pin-field').value;
-        if(newPin.length !== 4) { alert("Il PIN deve essere di 4 cifre"); return; }
-        if(dbUsers[newPin]) { alert("PIN già in uso"); return; }
+async function userChangePin(oldPin, newPin) {
+    try {
+        // 1. Prendi i dati dal vecchio PIN (quello temporaneo)
+        const userRef = db.collection("utenti").doc(oldPin);
+        const snap = await userRef.get();
+        const data = snap.data();
 
-        dbUsers[newPin] = dbUsers[state.currentPin];
-        delete dbUsers[state.currentPin];
-        state.currentPin = newPin;
-        saveMasterDB();
-        renderProfile();
-    });
+        // 2. Crea il nuovo documento con il PIN scelto dall'utente
+        // Impostiamo needsPinChange a FALSE perché ora ha il suo PIN definitivo
+        await db.collection("utenti").doc(newPin).set({
+            ...data,
+            pin: newPin,
+            needsPinChange: false 
+        });
+
+        // 3. CANCELLA IL VECCHIO PIN (Quello temporaneo)
+        await userRef.delete();
+
+        // 4. Pulisci la memoria locale
+        delete dbUsers[oldPin];
+        dbUsers[newPin] = { ...data, pin: newPin, needsPinChange: false };
+        
+        // 5. Aggiorna il login dell'utente
+        currentUser = dbUsers[newPin];
+        localStorage.setItem('currentUserPin', newPin);
+
+        alert("PIN aggiornato con successo!");
+        renderUserHome(); // Torna alla home dell'utente
+        
+    } catch (e) {
+        console.error(e);
+        alert("Errore durante il cambio PIN");
+    }
 }
-
 /* Azzera statistiche */
 async function userResetStats() {
     openModal("Azzera statistiche", "Vuoi azzerare tutte le tue statistiche? Questa azione è irreversibile.", async () => {
