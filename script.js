@@ -2393,7 +2393,11 @@ function openModal(title, content, onConfirm) {
     
     overlay.style.display = 'flex';
 
-    document.getElementById('modal-confirm').onclick = () => { onConfirm(); overlay.style.display='none'; };
+    const newConfirm = document.getElementById('modal-confirm');
+    const clonedConfirm = newConfirm.cloneNode(true);
+    newConfirm.parentNode.replaceChild(clonedConfirm, newConfirm);
+
+    clonedConfirm.onclick = () => { onConfirm(); overlay.style.display='none'; };
     document.getElementById('modal-cancel').onclick = () => { overlay.style.display='none'; };
 }
 
