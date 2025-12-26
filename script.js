@@ -1637,100 +1637,106 @@ async function renderAdminPanel() {
         </div>
     </div>`;
 
-        // Rendering Utenti
-        if (attivi.length === 0) {
-            html += `<div style="text-align:center; padding:20px; color:#666">Nessun utente nel cloud</div>`;
-        } else {
-            attivi.forEach(u => {
-    const stats = u.stats || { total: 0, correct: 0, perc: 0 };
-    const statsText = stats && stats.total ? `${stats.correct}/${stats.total} corrette · ${stats.perc}%` : "Nessun progresso";
-    
-    // Mostra un avviso se il PIN è temporaneo (da adminRestoreUser)
-    const isTemp = u.needsPinChange ? `<span style="color:#ff9500; font-size:10px; font-weight:bold; margin-left:5px">⚠️ TEMP</span>` : '';
+        // --- 1. RENDERING UTENTI ATTIVI ---
+if (attivi.length === 0) {
+    html += `<div style="text-align:center; padding:20px; color:#666">Nessun utente nel cloud</div>`;
+} else {
+    attivi.forEach(u => {
+        // Calcolo statistica a 3 colori (Sincronizzato con la tua history)
+        let cor = 0, wr = 0, ns = 0;
+        if (u.history) {
+            Object.values(u.history).forEach(langArr => {
+                langArr.forEach(h => {
+                    if (h.ok) cor++;
+                    else if (h.notStudied) ns++;
+                    else wr++;
+                });
+            });
+        }
 
-    html += `
-    <div class="review-card is-ok">
-        <div style="display:flex; justify-content:space-between; align-items:center">
-            <div>
-                <strong style="color:currentColor">${u.name}</strong> ${isTemp}
-                <div style="font-size:12px; color:currentColor; opacity:0.6; display:flex; align-items:center; gap:8px; margin-top:2px">
-                    ID ${u.id} • PIN: 
-                    <span id="pin-text-${u.id}" style="font-family:monospace; ...">${u.pin}</span>
-                    <span style="cursor:pointer; opacity:0.8; display:flex" onclick="togglePinVisibility('${u.id}')">
-                        <svg id="pin-icon-${u.id}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                        </svg>
+        const tot = cor + wr + ns;
+        let statsHTML = `<div style="margin-top:8px; font-size:12px; opacity:0.5">Nessun progresso</div>`;
+
+        if (tot > 0) {
+            const pCor = (cor / tot) * 100;
+            const pWr = (wr / tot) * 100;
+            const pNs = (ns / tot) * 100;
+
+            statsHTML = `
+                <div style="margin-top:10px">
+                    <div style="height:8px; border-radius:6px; background:rgba(120,120,128,0.12); overflow:hidden; display:flex">
+                        <div style="width:${pCor}%; background:#34c759; height:100%"></div>
+                        <div style="width:${pWr}%; background:#ff3b30; height:100%"></div>
+                        <div style="width:${pNs}%; background:#ffd60a; height:100%"></div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:10px; margin-top:5px; font-weight:700; opacity:0.8">
+                        <span style="color:#34c759">${cor} OK</span>
+                        <span style="color:#ff3b30">${wr} ERRORI</span>
+                        <span style="color:#ffcc00">${ns} NON STUDIATE</span>
+                    </div>
+                </div>`;
+        }
+
+        const isTemp = u.needsPinChange ? `<span style="color:#ff9500; font-size:10px; font-weight:bold; margin-left:5px">⚠️ TEMP</span>` : '';
+
+        html += `
+        <div class="review-card is-ok">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+                <div>
+                    <strong style="color:currentColor">${u.name}</strong> ${isTemp}
+                    <div style="font-size:12px; color:currentColor; opacity:0.6; display:flex; align-items:center; gap:8px; margin-top:2px">
+                        ID ${u.id} • PIN: 
+                        <span id="pin-text-${u.id}" style="font-family:monospace; filter:blur(4px)">${u.pin}</span>
+                        <span style="cursor:pointer; opacity:0.8; display:flex" onclick="togglePinVisibility('${u.id}')">
+                            <svg id="pin-icon-${u.id}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11-8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </span>
+                    </div>
+                </div>
+                
+                <div style="display:flex; gap:16px; align-items:center; color:currentColor">
+                    <span style="cursor:pointer" onclick="showUserDetails('${u.pin}')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.7"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </span>
+                    <span style="cursor:pointer; color:#ff3b30" onclick="adminDeleteUser(${u.id})">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                     </span>
                 </div>
             </div>
-            
-            <div style="display:flex; gap:16px; align-items:center; color:currentColor">
-                <span style="cursor:pointer" title="Storico" onclick="showUserHistory(${u.id})">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.7"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                </span>
+            ${statsHTML}
+        </div>`;
+    });
+}
 
-                <span style="cursor:pointer" title="Aggiorna" onclick="recalcUser(${u.id})">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.7"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                </span>
-
-                <span style="cursor:pointer" title="Reset Mirato" onclick="adminResetSingleUser(${u.id})">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.7"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg>
-                </span>
-
-                <span style="cursor:pointer; color:#ff3b30" title="Elimina" onclick="adminDeleteUser(${u.id})">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                </span>
-            </div>
-        </div>
-        <div style="margin-top:8px; font-size:13px; color:currentColor; opacity:0.8">${statsText}</div>
-    </div>`;
-});
-        }
-
-        // Sezione Eliminati - Testo visibile e allineamento
-// Sezione Eliminati - Coerenza Apple Icon
+// --- 2. RENDERING ELIMINATI ---
 if (eliminati.length > 0) {
     html += `
-        <div class="glass-card" style="
-            margin-top:30px; 
-            width:100%; 
-            max-width:none; 
-            padding:15px; 
-            border-radius:15px; 
-            border:1px solid rgba(255,59,48,0.3);
-            box-sizing: border-box;
-        ">
+        <div class="glass-card" style="margin-top:30px; padding:15px; border-radius:15px; border:1px solid rgba(255,59,48,0.3)">
             <div onclick="const el = document.getElementById('deleted-list'); el.style.display = el.style.display === 'none' ? 'block' : 'none'" 
                  style="cursor:pointer; display:flex; justify-content:center; align-items:center">
                 <strong style="color:#ff3b30; font-size:12px; letter-spacing:1px">UTENTI ELIMINATI (${eliminati.length}) ▾</strong>
             </div>
-            
-            <div id="deleted-list" style="display:none; margin-top:15px">
-                <div style="text-align:right; margin-bottom:12px">
-                    <span style="color:#ff3b30; font-size:10px; font-weight:700; cursor:pointer; text-decoration:underline; opacity:0.8" onclick="adminClearTrash()">SVUOTA TUTTO</span>
-                </div>`;
-    
+            <div id="deleted-list" style="display:none; margin-top:15px">`;
+
     eliminati.forEach(u => {
         html += `
-            <div style="padding:12px 0; border-bottom:1px solid rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center">
+            <div style="padding:12px 0; border-bottom:1px solid rgba(120,120,128,0.1); display:flex; justify-content:space-between; align-items:center; color:currentColor">
                 <div>
-                    <span style="font-weight:600; color:#1d1d1f">${u.name}</span>
+                    <span style="font-weight:600">${u.name}</span>
                     <div style="font-size:11px; opacity:0.5">ID ${u.id}</div>
                 </div>
-                
                 <div style="display:flex; gap:18px; align-items:center">
-                <span style="cursor:pointer; color:#34c759" onclick="adminRestoreUser(${u.id}, '${u.docId}')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
-                </span>
-
-                <span style="cursor:pointer; color:#0a84ff" onclick="showUserHistory(${u.id})">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                </span>
-
-                <span style="cursor:pointer; color:#ff3b30" onclick="adminPermanentDelete('${u.docId}')">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-    </span>
-</div>
+                    <span style="cursor:pointer; color:#34c759" onclick="adminRestoreUser(${u.id}, '${u.docId}')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+                    </span>
+                    <span style="cursor:pointer; opacity:0.7" onclick="showUserDetails('${u.pin}')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </span>
+                    <span style="cursor:pointer; color:#ff3b30" onclick="adminPermanentDelete('${u.docId}')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </span>
+                </div>
             </div>`;
     });
     html += `</div></div>`;
