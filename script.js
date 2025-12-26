@@ -586,13 +586,13 @@ function showHome() {
             <div style="margin-top:10px; font-weight:700; font-size:13px">RIPASSO</div>
         </div>
         
-        <div class="lang-item profile-slot" onclick="renderGlobalClassifica()" style="background: rgba(255, 149, 0, 0.15) !important; border: 1px solid #ff9500 !important; color: #ff9500 !important;">
-          <img src="https://cdn-icons-png.flaticon.com/512/2817/2817958.png" width="30" style="filter: invert(58%) sepia(91%) saturate(2375%) hue-rotate(1deg) brightness(105%) contrast(105%); margin-bottom: 5px;">
+        <div class="lang-item profile-slot" onclick="renderGlobalClassifica()" style="background: rgba(255, 149, 0, 0.15) !important; border: 1px solid #ff9500 !important; color: #ff9500 !important; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80px; padding: 0 !important;">
+          <img src="https://cdn-icons-png.flaticon.com/512/2817/2817958.png" width="28" style="filter: invert(58%) sepia(91%) saturate(2375%) hue-rotate(1deg) brightness(105%) contrast(105%); margin-bottom: 4px;">
           <div style="font-weight:700; font-size:13px">CLASSIFICA</div>
         </div>
 
-        <div class="lang-item profile-slot" onclick="renderProfile()" style="background: #0a84ff; color: white;">
-            <div style="font-weight:700; font-size:13px">IL MIO PROFILO</div>
+        <div class="lang-item profile-slot" onclick="renderProfile()" style="background: #0a84ff !important; border: 1px solid #0a84ff !important; color: white !important; display: flex; align-items: center; justify-content: center; min-height: 80px; padding: 0 !important;">
+          <div style="font-weight:700; font-size:13px">IL MIO PROFILO</div>
         </div>`;
     }
 
