@@ -316,7 +316,8 @@ function uiPin(type) {
     // Campo nome: lo mostriamo solo se stiamo registrando
     // NOTA: ID cambiato in "reg-name" per farlo leggere a registerUser()
     let nameField = type === 'register' ? 
-    `<input type="text" id="reg-name" class="btn-apple" placeholder="Il tuo Nome" style="text-align:center; margin-bottom:10px; display:block; margin-left:auto; margin-right:auto;">` : '';
+    `<input type="text" id="reg-name" class="btn-apple" placeholder="Il tuo Nome" 
+    style="text-align:center; width:100%; box-sizing:border-box; border:none; outline:none; display:block;">` : '';
 
     // Decidiamo quale funzione chiamare al clic
     let action = type === 'register' ? 'registerUser()' : "validatePin('login')";
@@ -329,8 +330,8 @@ function uiPin(type) {
             ${nameField}
             
             <input type="password" id="reg-pin" class="btn-apple" 
-       style="text-align:center; font-size:24px; letter-spacing:8px; display:block; margin-left:auto; margin-right:auto;" 
-       maxlength="4" inputmode="numeric" placeholder="PIN">
+    style="text-align:center; font-size:24px; letter-spacing:8px; width:100%; box-sizing:border-box; border:none; outline:none; display:block;" 
+    maxlength="4" inputmode="numeric" placeholder="PIN">
             
             <button class="btn-apple btn-primary" style="margin-top:20px" onclick="${action}">
                 Conferma
