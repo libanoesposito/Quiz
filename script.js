@@ -1845,13 +1845,20 @@ function generateHistoryHTML(data) {
         html += `<div style="margin-bottom:10px; border-bottom:1px solid rgba(120,120,120,0.1); padding-bottom:5px"><strong>${lang}</strong></div>`;
         if (Array.isArray(historyData[lang])) {
             historyData[lang].forEach((h, idx) => {
-                const status = h.ok ? "✅" : (h.isNotStudied ? "🟦" : "❌");
-                html += `<div style="font-size:12px; margin-bottom:6px">
-            ${status} Q${idx + 1}: ${h.question}<br>
-            <span style="color:${h.ok ? '#34c759' : '#ff3b30'}">Tua: ${h.userAnswer || '—'}</span>
-            ${!h.ok ? `<br><em style="opacity:0.6">Corretta: ${h.correctAnswer || '—'}</em>` : ''}
-         </div>`;
-            });
+    const status = h.ok ? "✅" : (h.isNotStudied ? "🟦" : "❌");
+    
+    // Creiamo la riga della risposta solo se NON è "non studiato"
+    let rispostaUtenteHtml = "";
+    if (!h.isNotStudied) {
+        rispostaUtenteHtml = `<br><span style="color:${h.ok ? '#34c759' : '#ff3b30'}">Tua: ${h.userAnswer || '—'}</span>`;
+    }
+
+    html += `<div style="font-size:12px; margin-bottom:6px">
+                ${status} Q${idx + 1}: ${h.question}
+                ${rispostaUtenteHtml}
+                ${!h.ok ? `<br><em style="opacity:0.6">Corretta: ${h.correctAnswer || '—'}</em>` : ''}
+             </div>`;
+});
         }
     });
     return html || "<div style='font-size:12px; opacity:0.6'>Nessun Storico</div>";
