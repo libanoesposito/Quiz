@@ -969,9 +969,11 @@ function markNotStudied(idx) {
     if (!state.history[session.lang]) state.history[session.lang] = [];
     state.history[session.lang].push({
         question: data.q,
+        correctAnswer: data.options[data.correct]
         isNotStudied: true, // Questo attiva il blu nel renderProfile
         level: session.lvl,  // Indica a quale barra aggiungere il blu
         lvl: session.lvl     // Doppia sicurezza
+        exp: data.exp
     });
 
     // 3. NUOVO: Avanza l'indice del progresso attivo
@@ -985,12 +987,13 @@ function markNotStudied(idx) {
     next();
 }
 
-function check(isOk) {
+function check(isOk, userAnsText) {
     const data = session.q[session.idx];
     if(state.mode === 'user') {
         if(!state.history[session.lang]) state.history[session.lang] = [];
         state.history[session.lang].push({
             question: data.q,
+            userAnswer: userAnsText || (isOk ? data.options[data.correct] : 'Sbagliata'),
             correctAnswer: data.options[data.correct],
             ok: isOk,
             exp: data.exp,
