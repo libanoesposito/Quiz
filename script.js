@@ -2434,7 +2434,22 @@ async function renderGlobalClassifica() {
         let rank = 1;
         snapshot.forEach(doc => {
             const data = doc.data();
-            const isMe = doc.id === state.currentPin;
+            
+            // FILTRO TESTER: Se l'utente è 1111, lo vede solo se lui stesso è loggato come 1111
+            if (doc.id === "1111" && state.currentPin !== "1111") {
+                return; // Salta questo utente e non incrementare il rank
+            }
+
+            // DEFINIZIONE UTENTE PERFETTO: 
+            // Qui assumiamo che nel DB tu abbia un campo (es. isPerfect) o che 
+            // i livelli perfetti corrispondano al totale dei livelli disponibili.
+            const isUtentePerfetto = data.perfect >= data.totalLevels; // Esempio di logica
+            
+            // Riconoscimento "IO" (Bordo arancione) solo se sei tu E sei perfetto
+            const isMeAndPerfect = (doc.id === state.currentPin) && isUtentePerfetto;
+            
+            // La corona 🏆 viene assegnata solo se è un Utente Perfetto
+            let crown = isUtentePerfetto ? "🏆" : "";
             
             // Gestione medaglie e numeri di posizione
             let medal = "";
@@ -2444,7 +2459,36 @@ async function renderGlobalClassifica() {
             else medal = `<span style="opacity:0.5; font-size:14px; width:20px; text-align:center; display:inline-block">${rank}</span>`;
 
             let crown = data.perfect > 0 ? "🏆" : "";
-            let specialStyle = isMe ? "border: 2px solid #ff9500;" : "border: 1px solid var(--border);";
+            // Gestione Sfondo e Bordi dinamici
+            let cardStyle = `background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);`;
+            
+            if (rank === 1) cardStyle = `background: rgba(255, 215, 0, 0.15); border: 1px solid #ffd700;`; // Oro
+            if (rank === 2) cardStyle = `background: rgba(192, 192, 192, 0.15); border: 1px solid #c0c0c0;`; // Argento
+            if (rank === 3) cardStyle = `background: rgba(205, 127, 50, 0.15); border: 1px solid #cd7f32;`; // Bronzo
+            
+            // Sovrascriviamo se è l'utente attuale ed è perfetto
+            if (isMeAndPerfect) cardStyle += "border: 2px solid #ff9500; box-shadow: 0 0 15px rgba(255, 149, 0, 0.3);";
+
+            html += `
+            <div class="review-card" style="${cardStyle} margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center; padding: 15px; border-radius: 16px;">
+                <div style="display:flex; align-items:center; gap:12px">
+                    <span style="font-size:18px; min-width:25px; font-weight:800">${medal}</span>
+                    <div>
+                        <div style="font-weight:700; font-size:15px; display:flex; align-items:center; gap:5px">
+                            ${data.name} ${crown}
+                        </div>
+                        <div style="display:inline-block; margin-top:4px; padding: 2px 8px; background: rgba(255,255,255,0.1); border-radius: 20px; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px">
+                            ${data.perfect || 0} PERFETTI
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align:right">
+                    <div style="font-weight:900; color:var(--accent); font-size:17px">${data.points || 0}</div>
+                    <div style="font-size:9px; opacity:0.6; font-weight:700">PUNTI</div>
+                </div>
+            </div>`;
+            rank++;
+            /*let specialStyle = isMe ? "border: 2px solid #ff9500;" : "border: 1px solid var(--border);";
 
             html += `
             <div class="review-card" style="${specialStyle} background: var(--bg-card); display:flex; justify-content:space-between; align-items:center">
@@ -2460,7 +2504,7 @@ async function renderGlobalClassifica() {
                     <div style="font-size:9px; opacity:0.5">PUNTI</div>
                 </div>
             </div>`;
-            rank++;
+            rank++;*/
         });
 
         html += `</div>`;
