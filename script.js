@@ -1695,9 +1695,7 @@ if (attivi.length === 0) {
 
     const isTemp = u.needsPinChange ? `<span style="color:#ff9500; font-size:10px; font-weight:bold; margin-left:5px">⚠️ TEMP</span>` : '';
 
-    html += `<div class="review-card is-ok" style="margin-bottom:16px; cursor:pointer" onclick="const s = document.getElementById('stats-container-${u.id}'); 
-    if(event.target.closest('span')) return; 
-    s.style.display = s.style.display === 'none' ? 'block' : 'none'">
+    html += `<div class="review-card is-ok" style="margin-bottom:16px; cursor:pointer" onclick="const s=document.getElementById('stats-container-${u.id}'); if(!event.target.closest('span')){ s.style.display=s.style.display==='none'?'block':'none'; }">
         <div style="display:flex; justify-content:space-between; align-items:flex-start">
             <div>
                 <strong style="color:currentColor; font-size:15px">${u.name}</strong> ${isTemp}
