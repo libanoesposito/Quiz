@@ -416,14 +416,16 @@ async function registerUser() {
         dbUsers[pin] = newUser;
         localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
 
+        currentUser = newUser;
+        localStorage.setItem('currentUserPin', pin);
+        await db.collection("classifica").doc(pin).set({ 
+            name: name, 
+            score: 0, 
+            userId: nextId 
+        });
         closeModal();
-        showHome();
-        
-        const finalPinInput = document.getElementById('pin-input');
-        if (finalPinInput) {
-            finalPinInput.value = pin;
-            // Se hai una funzione login() automatica, chiamala qui
-        }
+        updateNav(true);
+        renderUserHome();
 
     } catch (error) {
         console.error("Errore registrazione:", error);
