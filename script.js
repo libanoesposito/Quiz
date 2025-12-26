@@ -972,7 +972,7 @@ function markNotStudied(idx) {
         correctAnswer: data.options[data.correct],
         isNotStudied: true, // Questo attiva il blu nel renderProfile
         level: session.lvl,  // Indica a quale barra aggiungere il blu
-        lvl: session.lvl     // Doppia sicurezza
+        lvl: session.lvl,     // Doppia sicurezza
         exp: data.exp
     });
 
