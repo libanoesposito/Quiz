@@ -1655,32 +1655,31 @@ if (attivi.length === 0) {
     }
 
     const totalPotential = cor + wr + ns;
-    let statsHTML = `<div style="margin-top:12px; font-size:12px; opacity:0.5">Nessun progresso registrato</div>`;
+    let statsHTML = `<div style="margin-top:12px; font-size:12px; opacity:0.5">Nessun progresso</div>`;
 
     if (totalPotential > 0) {
-        // Funzione interna per generare le singole barre con stile Apple
+        // Funzione per le 3 barre separate
         const getBar = (label, value, color) => `
             <div style="margin-top:8px">
-                <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:600; margin-bottom:3px; opacity:0.7">
+                <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:700; margin-bottom:3px; opacity:0.6">
                     <span>${label.toUpperCase()}</span>
                     <span>${value}</span>
                 </div>
-                <div style="height:6px; background:rgba(120,120,128,0.12); border-radius:4px; overflow:hidden">
-                    <div style="width:${(value / totalPotential) * 100}%; height:100%; background:${color}; border-radius:4px; transition: width 0.5s ease"></div>
+                <div style="height:6px; background:rgba(120,120,128,0.1); border-radius:4px; overflow:hidden">
+                    <div style="width:${(value / totalPotential) * 100}%; height:100%; background:${color}; border-radius:4px"></div>
                 </div>
             </div>`;
 
         statsHTML = `
-            <div style="margin-top:15px; padding-top:12px; border-top: 1px solid rgba(120,120,128,0.08)">
+            <div style="margin-top:15px; padding-top:10px; border-top: 1px solid rgba(120,120,128,0.08)">
                 ${getBar('Corrette', cor, '#34c759')}
                 ${getBar('Sbagliate', wr, '#ff3b30')}
-                ${getBar('Non Studiate', ns, '#ffd60a')}
+                ${getBar('Non Studiate', ns, '#0a84ff')}
             </div>`;
     }
 
     const isTemp = u.needsPinChange ? `<span style="color:#ff9500; font-size:10px; font-weight:bold; margin-left:5px">⚠️ TEMP</span>` : '';
 
-    // Rendering della Card
     html += `
     <div class="review-card is-ok" style="margin-bottom:16px">
         <div style="display:flex; justify-content:space-between; align-items:flex-start">
@@ -1698,7 +1697,7 @@ if (attivi.length === 0) {
             </div>
             
             <div style="display:flex; gap:14px; align-items:center; color:currentColor">
-                <span style="cursor:pointer" title="Dettagli" onclick="showUserDetails('${u.pin}')">
+                <span style="cursor:pointer" title="Storico" onclick="showUserHistory(${u.id})">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.7"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                 </span>
                 <span style="cursor:pointer; color:#ff3b30" title="Elimina" onclick="adminDeleteUser(${u.id})">
@@ -1708,7 +1707,7 @@ if (attivi.length === 0) {
         </div>
         ${statsHTML}
     </div>`;
-    });
+});
 }
 
 // --- 2. RENDERING ELIMINATI ---
