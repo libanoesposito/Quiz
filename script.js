@@ -1614,6 +1614,9 @@ async function renderAdminPanel() {
         id: doc.data().userId
     }));
 
+      window.currentAttivi = attivi;
+      window.currentEliminati = eliminati;
+
         let html = `<div style="width:100%">`;
 
         // BLOCCO MANUTENZIONE
