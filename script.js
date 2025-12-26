@@ -1837,7 +1837,7 @@ function generateHistoryHTML(data) {
                 const status = h.ok ? "✅" : (h.isNotStudied ? "🟦" : "❌");
                 html += `<div style="font-size:12px; margin-bottom:6px">
                             ${status} Q${idx + 1}: ${h.question}<br>
-                            ${(h.notStudied || h.isNotStudied) ? '' : `<em style="opacity:0.6">Risp. Corretta: ${h.correctAnswer || '—'}</em>`}
+                            <em style="opacity:0.6">Risp. Corretta: ${h.correctAnswer || '—'}</em>
                          </div>`;
             });
         }
