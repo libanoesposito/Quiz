@@ -316,7 +316,7 @@ function uiPin(type) {
     // Campo nome: lo mostriamo solo se stiamo registrando
     // NOTA: ID cambiato in "reg-name" per farlo leggere a registerUser()
     let nameField = type === 'register' ? 
-        `<input type="text" id="reg-name" class="btn-apple" placeholder="Il tuo Nome" style="text-align:center; margin-bottom:10px">` : '';
+    `<input type="text" id="reg-name" class="btn-apple" placeholder="Il tuo Nome" style="text-align:center; margin-bottom:10px; background: rgba(255,255,255,0.05); cursor: text;">` : '';
 
     // Decidiamo quale funzione chiamare al clic
     let action = type === 'register' ? 'registerUser()' : "validatePin('login')";
@@ -329,13 +329,29 @@ function uiPin(type) {
             ${nameField}
             
             <input type="password" id="reg-pin" class="btn-apple" 
-                   style="text-align:center; font-size:24px; letter-spacing:8px" 
-                   maxlength="4" inputmode="numeric" placeholder="PIN">
+       style="text-align:center; font-size:24px; letter-spacing:8px; background: rgba(255,255,255,0.05); cursor: text;" 
+       maxlength="4" inputmode="numeric" placeholder="PIN">
             
             <button class="btn-apple btn-primary" style="margin-top:20px" onclick="${action}">
                 Conferma
             </button>
         </div>`;
+      // Focus automatico: se c'è il campo nome punta lì, altrimenti sul PIN
+    const focusTarget = document.getElementById('reg-name') || document.getElementById('reg-pin');
+    if(focusTarget) setTimeout(() => focusTarget.focus(), 100);
+
+    // Gestione tasto Enter
+    const inputs = [document.getElementById('reg-name'), document.getElementById('reg-pin')];
+    inputs.forEach(input => {
+        if(input) {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    // Esegue la stessa funzione del bottone Conferma
+                    type === 'register' ? registerUser() : validatePin('login');
+                }
+            });
+        }
+    });
 }
 
 
