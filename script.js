@@ -248,15 +248,21 @@ async function saveMasterDB() {
 
 // Funzione di supporto per la classifica (da aggiungere in fondo allo script)
 async function updateGlobalLeaderboard() {
+    if (state.mode !== 'user' || !state.currentPin || state.currentPin === "1111") return;
     if (state.mode !== 'user' || !state.currentPin) return;
     
     const u = dbUsers[state.currentPin];
     let pts = 0;
     let perfects = 0;
 
-    // Calcolo punti dai progressi salvati
-    Object.values(u.progress || {}).forEach(levelReached => {
-        pts += (levelReached * 100); // Esempio: 100 punti per ogni livello completato
+    Object.entries(u.progress || {}).forEach(([levelId, correctCount]) => {
+    pts += (correctCount * 10);
+    
+    // Recuperiamo il totale delle domande esistenti per quel livello specifico
+    const totalQuestionsInLevel = dbQuiz[levelId]?.length || 40; 
+    
+    // È PERFETTO solo se le risposte corrette coincidono con il totale delle domande
+    if (correctCount >= totalQuestionsInLevel) perfects++;
     });
 
     try {
@@ -279,12 +285,13 @@ async function syncToFirebase(pin, userData) {
     // Calcoliamo i punti per la classifica
     let pts = 0;
     let perfetti = 0;
-    Object.values(userData.history || {}).forEach(lang => {
-        const correctInLang = lang.filter(h => h.ok).length;
-        pts += (correctInLang * 10);
-        // Se un livello ha 15 corrette, è perfetto
-        if (correctInLang % 15 === 0 && correctInLang > 0) perfetti++;
-    });
+    Object.entries(userData.history || {}).forEach(([levelId, historyArray]) => {
+    const correctInLevel = historyArray.filter(h => h.ok).length;
+    pts += (correctInLevel * 10);
+    const totalQuestionsInLevel = dbQuiz[levelId]?.length || 40;
+    // Se ha indovinato TUTTE le domande disponibili nel database per quel livello
+    if (correctInLevel >= totalQuestionsInLevel) perfetti++;
+});
 
     try {
         await db.collection("classifica").doc(pin).set({
