@@ -1797,8 +1797,13 @@ function togglePinVisibility(userId) {
 
 
 function showUserHistory(userId) {
-    const u = Object.values(dbUsers).find(user => (user.id == userId || user.userId == userId));
-    if (!u) return;
+    const u = Object.values(dbUsers).find(user => user.userId == userId) || 
+    (window.currentEliminati ? window.currentEliminati.find(user => user.userId == userId) : null);
+
+    if (!u) {
+        console.error("Utente non trovato in dbUsers né negli eliminati");
+        return;
+    }
 
     const htmlStorico = generateHistoryHTML(u);
 
