@@ -599,7 +599,7 @@ function showHome() {
     // 3. Sezione Admin
     if(state.mode === 'admin') {
         html += `
-        <div class="lang-item profile-slot" onclick="renderAdminPanel()" style="background: #32d74b; color: white;">
+        <div class="lang-item profile-slot" onclick="renderAdminPanel()" style="background: #0a84ff; color: white;">
             <div style="font-weight:700; font-size:13px">PANNELLO ADMIN</div>
         </div>`;
     }
