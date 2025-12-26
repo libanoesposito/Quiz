@@ -236,7 +236,7 @@ async function saveMasterDB() {
             console.log("Sincronizzazione Cloud completata per:", state.currentPin);
             
             // Aggiorniamo anche la classifica globale ogni volta che salviamo i progressi
-            await updateGlobalClassificaData();
+            await updateGlobalLeaderboard();
         } catch (error) {
             console.error("Errore durante il salvataggio Cloud:", error);
         }
