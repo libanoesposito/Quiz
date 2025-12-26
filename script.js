@@ -1713,28 +1713,42 @@ if (attivi.length === 0) {
 // --- 2. RENDERING ELIMINATI ---
 if (eliminati.length > 0) {
     html += `
-        <div class="glass-card" style="margin-top:30px; padding:15px; border-radius:15px; border:1px solid rgba(255,59,48,0.3)">
+        <div class="glass-card" style="
+            margin-top:30px; 
+            width:100%; 
+            padding:15px; 
+            border-radius:15px; 
+            border:1px solid rgba(255,59,48,0.3);
+            box-sizing: border-box;
+        ">
             <div onclick="const el = document.getElementById('deleted-list'); el.style.display = el.style.display === 'none' ? 'block' : 'none'" 
                  style="cursor:pointer; display:flex; justify-content:center; align-items:center">
-                <strong style="color:#ff3b30; font-size:12px; letter-spacing:1px">UTENTI ELIMINATI (${eliminati.length}) ▾</strong>
+                <strong style="color:#ff3b30; font-size:12px; letter-spacing:1px">UTENTI ELIMINATI (${eliminati.length})</strong>
             </div>
-            <div id="deleted-list" style="display:none; margin-top:15px">`;
+            
+            <div id="deleted-list" style="display:none; margin-top:15px">
+                <div style="text-align:right; margin-bottom:12px">
+                    <span style="color:#ff3b30; font-size:10px; font-weight:700; cursor:pointer; text-decoration:underline; opacity:0.8" onclick="adminClearTrash()">SVUOTA TUTTO</span>
+                </div>`;
 
     eliminati.forEach(u => {
         html += `
             <div style="padding:12px 0; border-bottom:1px solid rgba(120,120,128,0.1); display:flex; justify-content:space-between; align-items:center; color:currentColor">
                 <div>
-                    <span style="font-weight:600">${u.name}</span>
+                    <span style="font-weight:600; color:currentColor">${u.name}</span>
                     <div style="font-size:11px; opacity:0.5">ID ${u.id}</div>
                 </div>
+                
                 <div style="display:flex; gap:18px; align-items:center">
-                    <span style="cursor:pointer; color:#34c759" onclick="adminRestoreUser(${u.id}, '${u.docId}')">
+                    <span style="cursor:pointer; color:#34c759" title="Ripristina" onclick="adminRestoreUser(${u.id}, '${u.docId}')">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
                     </span>
-                    <span style="cursor:pointer; opacity:0.7" onclick="showUserDetails('${u.pin}')">
+
+                    <span style="cursor:pointer; opacity:0.7" title="Storico" onclick="showUserHistory(${u.id})">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                     </span>
-                    <span style="cursor:pointer; color:#ff3b30" onclick="adminPermanentDelete('${u.docId}')">
+
+                    <span style="cursor:pointer; color:#ff3b30" title="Elimina definitivo" onclick="adminPermanentDelete('${u.docId}')">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                     </span>
                 </div>
