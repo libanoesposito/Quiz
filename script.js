@@ -1680,32 +1680,34 @@ if (attivi.length === 0) {
         const isTemp = u.needsPinChange ? `<span style="color:#ff9500; font-size:10px; font-weight:bold; margin-left:5px">⚠️ TEMP</span>` : '';
 
         html += `
-        <div class="review-card is-ok">
-            <div style="display:flex; justify-content:space-between; align-items:center">
-                <div>
-                    <strong style="color:currentColor">${u.name}</strong> ${isTemp}
-                    <div style="font-size:12px; color:currentColor; opacity:0.6; display:flex; align-items:center; gap:8px; margin-top:2px">
-                        ID ${u.id} • PIN: 
-                        <span id="pin-text-${u.id}" style="font-family:monospace; filter:blur(4px)">${u.pin}</span>
-                        <span style="cursor:pointer; opacity:0.8; display:flex" onclick="togglePinVisibility('${u.id}')">
-                            <svg id="pin-icon-${u.id}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-8 11-8 11-8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                            </svg>
-                        </span>
-                    </div>
-                </div>
-                
-                <div style="display:flex; gap:16px; align-items:center; color:currentColor">
-                    <span style="cursor:pointer" onclick="showUserDetails('${u.pin}')">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.7"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </span>
-                    <span style="cursor:pointer; color:#ff3b30" onclick="adminDeleteUser(${u.id})">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                    </span>
-                </div>
+<div class="review-card is-ok">
+    <div style="display:flex; justify-content:space-between; align-items:center">
+        <div>
+            <strong style="color:currentColor">${u.name}</strong> ${isTemp}
+            <div style="font-size:12px; color:currentColor; opacity:0.6; display:flex; align-items:center; gap:8px; margin-top:2px">
+                ID ${u.id} • PIN: 
+                <span id="pin-text-${u.id}" style="font-family:monospace; filter:blur(4px); transition: filter 0.2s ease">
+                    ${u.pin}
+                </span>
+                <span style="cursor:pointer; opacity:0.8; display:flex; padding:4px; margin-left:-4px" onclick="togglePinVisibility('${u.id}')">
+                    <svg id="pin-icon-${u.id}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                    </svg>
+                </span>
             </div>
-            ${statsHTML}
-        </div>`;
+        </div>
+        
+        <div style="display:flex; gap:16px; align-items:center; color:currentColor">
+            <span style="cursor:pointer" onclick="showUserDetails('${u.pin}')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.7"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </span>
+            <span style="cursor:pointer; color:#ff3b30" onclick="adminDeleteUser(${u.id})">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </span>
+        </div>
+    </div>
+    ${statsHTML}
+</div>`;
     });
 }
 
@@ -1751,20 +1753,32 @@ if (eliminati.length > 0) {
     }
 }
 
-// Lìocchio in admin
+// L'occhio in admin
 function togglePinVisibility(userId) {
     const text = document.getElementById(`pin-text-${userId}`);
     const icon = document.getElementById(`pin-icon-${userId}`);
     
-    // Se è sfocato, togliamo il blur, altrimenti lo rimettiamo
-    if (text.style.filter === 'blur(4px)' || text.style.filter === '') {
+    if (!text || !icon) return;
+
+    // Controlliamo lo stato attuale (se è blurrato o no)
+    const isBlurred = text.style.filter === 'blur(4px)' || text.style.filter === '';
+
+    if (isBlurred) {
+        // MOSTRA PIN
         text.style.filter = 'none';
-        // Icona occhio sbarrato
-        icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+        // Icona occhio sbarrato (SVG Lucide)
+        icon.innerHTML = `
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+        `;
     } else {
+        // NASCONDI PIN (Censura)
         text.style.filter = 'blur(4px)';
         // Icona occhio normale
-        icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+        icon.innerHTML = `
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+        `;
     }
 }
 
