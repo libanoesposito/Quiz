@@ -1642,72 +1642,72 @@ if (attivi.length === 0) {
     html += `<div style="text-align:center; padding:20px; color:#666">Nessun utente nel cloud</div>`;
 } else {
     attivi.forEach(u => {
-        // Calcolo statistica a 3 colori (Sincronizzato con la tua history)
-        let cor = 0, wr = 0, ns = 0;
-        if (u.history) {
-            Object.values(u.history).forEach(langArr => {
-                langArr.forEach(h => {
-                    if (h.ok) cor++;
-                    else if (h.notStudied) ns++;
-                    else wr++;
-                });
+    // 1. Calcolo dati reali dallo storico
+    let cor = 0, wr = 0, ns = 0;
+    if (u.history) {
+        Object.values(u.history).forEach(langArr => {
+            langArr.forEach(h => {
+                if (h.ok) cor++;
+                else if (h.notStudied) ns++;
+                else wr++;
             });
-        }
+        });
+    }
 
-        const tot = cor + wr + ns;
-        let statsHTML = `<div style="margin-top:8px; font-size:12px; opacity:0.5">Nessun progresso</div>`;
+    const totalPotential = cor + wr + ns;
+    let statsHTML = `<div style="margin-top:12px; font-size:12px; opacity:0.5">Nessun progresso registrato</div>`;
 
-        if (tot > 0) {
-            const pCor = (cor / tot) * 100;
-            const pWr = (wr / tot) * 100;
-            const pNs = (ns / tot) * 100;
+    if (totalPotential > 0) {
+        // Funzione interna per generare le singole barre con stile Apple
+        const getBar = (label, value, color) => `
+            <div style="margin-top:8px">
+                <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:600; margin-bottom:3px; opacity:0.7">
+                    <span>${label.toUpperCase()}</span>
+                    <span>${value}</span>
+                </div>
+                <div style="height:6px; background:rgba(120,120,128,0.12); border-radius:4px; overflow:hidden">
+                    <div style="width:${(value / totalPotential) * 100}%; height:100%; background:${color}; border-radius:4px; transition: width 0.5s ease"></div>
+                </div>
+            </div>`;
 
-            statsHTML = `
-                <div style="margin-top:10px">
-                    <div style="height:8px; border-radius:6px; background:rgba(120,120,128,0.12); overflow:hidden; display:flex">
-                        <div style="width:${pCor}%; background:#34c759; height:100%"></div>
-                        <div style="width:${pWr}%; background:#ff3b30; height:100%"></div>
-                        <div style="width:${pNs}%; background:#ffd60a; height:100%"></div>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; font-size:10px; margin-top:5px; font-weight:700; opacity:0.8">
-                        <span style="color:#34c759">${cor} OK</span>
-                        <span style="color:#ff3b30">${wr} ERRORI</span>
-                        <span style="color:#ffcc00">${ns} NON STUDIATE</span>
-                    </div>
-                </div>`;
-        }
+        statsHTML = `
+            <div style="margin-top:15px; padding-top:12px; border-top: 1px solid rgba(120,120,128,0.08)">
+                ${getBar('Corrette', cor, '#34c759')}
+                ${getBar('Sbagliate', wr, '#ff3b30')}
+                ${getBar('Non Studiate', ns, '#ffd60a')}
+            </div>`;
+    }
 
-        const isTemp = u.needsPinChange ? `<span style="color:#ff9500; font-size:10px; font-weight:bold; margin-left:5px">⚠️ TEMP</span>` : '';
+    const isTemp = u.needsPinChange ? `<span style="color:#ff9500; font-size:10px; font-weight:bold; margin-left:5px">⚠️ TEMP</span>` : '';
 
-        html += `
-<div class="review-card is-ok">
-    <div style="display:flex; justify-content:space-between; align-items:center">
-        <div>
-            <strong style="color:currentColor">${u.name}</strong> ${isTemp}
-            <div style="font-size:12px; color:currentColor; opacity:0.6; display:flex; align-items:center; gap:8px; margin-top:2px">
-                ID ${u.id} • PIN: 
-                <span id="pin-text-${u.id}" style="font-family:monospace; filter:blur(4px); transition: filter 0.2s ease">
-                    ${u.pin}
+    // Rendering della Card
+    html += `
+    <div class="review-card is-ok" style="margin-bottom:16px">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start">
+            <div>
+                <strong style="color:currentColor; font-size:15px">${u.name}</strong> ${isTemp}
+                <div style="font-size:12px; color:currentColor; opacity:0.6; display:flex; align-items:center; gap:8px; margin-top:4px">
+                    ID ${u.id} • PIN: 
+                    <span id="pin-text-${u.id}" style="font-family:monospace; filter:blur(4px); transition: filter 0.2s ease">${u.pin}</span>
+                    <span style="cursor:pointer; opacity:0.8; display:flex; padding:4px" onclick="togglePinVisibility('${u.id}')">
+                        <svg id="pin-icon-${u.id}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+            
+            <div style="display:flex; gap:14px; align-items:center; color:currentColor">
+                <span style="cursor:pointer" title="Dettagli" onclick="showUserDetails('${u.pin}')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.7"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                 </span>
-                <span style="cursor:pointer; opacity:0.8; display:flex; padding:4px; margin-left:-4px" onclick="togglePinVisibility('${u.id}')">
-                    <svg id="pin-icon-${u.id}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                    </svg>
+                <span style="cursor:pointer; color:#ff3b30" title="Elimina" onclick="adminDeleteUser(${u.id})">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                 </span>
             </div>
         </div>
-        
-        <div style="display:flex; gap:16px; align-items:center; color:currentColor">
-            <span style="cursor:pointer" onclick="showUserDetails('${u.pin}')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.7"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            </span>
-            <span style="cursor:pointer; color:#ff3b30" onclick="adminDeleteUser(${u.id})">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            </span>
-        </div>
-    </div>
-    ${statsHTML}
-</div>`;
+        ${statsHTML}
+    </div>`;
     });
 }
 
