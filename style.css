@@ -46,6 +46,9 @@
     background-size: 200% auto !important;
     animation: goldshine 5s linear infinite;
 }
+@keyframes goldshine {
+    to { background-position: 200% center; }
+}
 
 [data-theme-gold="true"] .btn-primary {
     background: var(--gold-gradient) !important;
