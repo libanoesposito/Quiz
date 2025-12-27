@@ -182,6 +182,12 @@ window.onload = async () => {
 function initTheme() {
     const saved = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', saved);
+    const stats = calcStats();
+    if (state.isPerfect) {
+        document.documentElement.setAttribute('data-theme-gold', 'true');
+    } else {
+        document.documentElement.removeAttribute('data-theme-gold');
+    }
 }
 
 function toggleTheme() {
@@ -1118,12 +1124,15 @@ function calcStats() {
             if (h.ok) ok++;
         });
     });
-    return {
+    const stats = {
         total: tot,
         correct: ok,
         wrong: tot - ok,
         perc: tot ? Math.round((ok / tot) * 100) : 0
     };
+    // Se l'utente ha fatto tutto giusto e ha risposto ad almeno una domanda
+    state.isPerfect = stats.total > 0 && stats.perc === 100;
+    return stats;
 }
 
 function toggleSecurity(el) {
