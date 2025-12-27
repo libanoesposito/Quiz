@@ -525,7 +525,7 @@ input:focus, textarea:focus, select:focus, button:focus {
     padding-top: 30px !important;      /* Più alta sopra */
     padding-bottom: 30px !important;   /* Più alta sotto */
     margin: 15px 0 !important;
-    transform: scale(1.02) !important;
+    box-sizing: border-box !important;
     z-index: 10 !important;
 }
 
