@@ -98,15 +98,16 @@
     box-shadow: 0 4px 15px rgba(189, 149, 63, 0.4) !important;
 }
 
-[data-theme-gold="true"]:not([data-theme="dark"]) .lang-item:not(.profile-slot),
+[data-theme-gold="true"]:not([data-theme="dark"]) .lang-item:not(.profile-slot), 
 [data-theme-gold="true"]:not([data-theme="dark"]) .security-box {
-    background: #ffffff !important;
-    /* Ombra "Neumorfica" dorata: crea profondità reale sul bianco */
+    background: rgba(255, 255, 255, 0.9) !important;
+    /* Bordo sfumato che simula la doratura laterale */
+    border: 1px solid rgba(189, 149, 63, 0.25) !important;
+    
+    /* Ombra direzionale: fa sembrare che la luce venga dall'alto a sinistra */
     box-shadow: 
-        4px 4px 10px rgba(189, 149, 63, 0.1),
-        -2px -2px 8px rgba(255, 255, 255, 1) !important;
-    border: 1px solid rgba(189, 149, 63, 0.2) !important;
-    transition: all 0.3s ease;
+        5px 5px 15px rgba(189, 149, 63, 0.08),
+        -2px -2px 10px rgba(255, 255, 255, 1) !important;
 }
 
 [data-theme-gold="true"]:not([data-theme="dark"]) .lang-item:not(.profile-slot):hover {
@@ -151,6 +152,12 @@
 [data-theme-gold="true"]:not([data-theme="dark"]) .lang-item:not(.profile-slot) {
     color: #1d1d1f !important;
     background: rgba(255, 255, 255, 0.6) !important; /* Più corpo in light mode */
+}
+[data-theme-gold="true"]:not([data-theme="dark"]) .glass-header {
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(20px) !important;
+    /* Un filo d'ombra sotto l'header per staccarlo dallo sfondo */
+    box-shadow: 0 2px 10px rgba(189, 149, 63, 0.1) !important;
 }
 
 body { 
