@@ -35,7 +35,17 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }*/
 
-[data-theme-gold="true"]:not([data-theme="dark"]) .glass-card, 
+[data-theme-gold="true"]:not([data-theme="dark"]) .glass-card {
+    /* Fondo effetto "Champagne" invece di bianco puro */
+    background: linear-gradient(to bottom, 
+        rgba(255, 255, 255, 0.95) 0%, 
+        rgba(212, 175, 55, 0.08) 100%) !important;
+    
+    /* Aumentiamo il bagliore: usiamo un'ombra più calda per il Light */
+    box-shadow: 0 15px 45px rgba(189, 149, 63, 0.3) !important;
+    border: 1px solid rgba(189, 149, 63, 0.4) !important;
+}
+
 [data-theme-gold="true"]:not([data-theme="dark"]) .glass-header {
     background: linear-gradient(to bottom, 
         rgba(255, 255, 255, 0.95) 0%, 
@@ -94,14 +104,27 @@
 
 [data-theme-gold="true"] .lang-item:not(.profile-slot), 
 [data-theme-gold="true"] .security-box {
+    /* Background universale leggero */
+    background: rgba(255, 255, 255, 0.03) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    
+    /* Bordo oro universale */
+    border: 1px solid rgba(189, 149, 63, 0.3) !important;
+    
+    /* Questo toglie la piattezza */
+    box-shadow: 0 4px 12px rgba(189, 149, 63, 0.12) !important;
+}
+/*[data-theme-gold="true"] .lang-item:not(.profile-slot), 
+[data-theme-gold="true"] .security-box {
     background: rgba(255, 255, 255, 0.05) !important;
     backdrop-filter: blur(10px) !important;
     -webkit-backdrop-filter: blur(10px) !important;
-    /* Aggiungiamo il bordo oro e un piccolo bagliore interno */
+    
     border: 1px solid rgba(189, 149, 63, 0.3) !important;
     box-shadow: none !important;
-    /*box-shadow: 0 4px 15px rgba(189, 149, 63, 0.15) !important;*/
-}
+    /*box-shadow: 0 4px 15px rgba(189, 149, 63, 0.15) !important;
+}*/
 [data-theme-gold="true"]:not([data-theme="dark"]) .lang-item:not(.profile-slot), 
 [data-theme-gold="true"]:not([data-theme="dark"]) .security-box {
     background: rgba(255, 255, 255, 0.7) !important; /* Più visibile sul bianco */
@@ -122,6 +145,13 @@
     background: rgba(255, 255, 255, 0.05) !important;
     backdrop-filter: blur(8px) !important;
     border: 0.5px solid rgba(252, 246, 186, 0.2) !important;
+}
+[data-theme="dark"][data-theme-gold="true"] .lang-item:not(.profile-slot) {
+    color: #ffffff !important;
+}
+[data-theme-gold="true"]:not([data-theme="dark"]) .lang-item:not(.profile-slot) {
+    color: #1d1d1f !important;
+    background: rgba(255, 255, 255, 0.6) !important; /* Più corpo in light mode */
 }
 
 body { 
