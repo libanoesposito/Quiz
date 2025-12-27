@@ -596,6 +596,7 @@ function setGuest() {
 }
 
 function showHome() {
+    renderTesterDebug(); // Fa apparire il fulmine se sei il tester
     calcStats(); // Aggiorna state.isPerfect basandosi sulla history attuale
     initTheme();
     localStorage.setItem('currentSection', 'home');
@@ -2447,41 +2448,6 @@ async function renderGlobalClassifica() {
     const container = document.getElementById('content-area');
     container.innerHTML = `<div style="text-align:center; padding:20px">Caricamento classifica...</div>`;
 
-    // 2. GESTIONE ICONA TESTER (Solo se PIN è 1111)
-    if (state.currentPin === "1111") {
-        const oldIcon = document.getElementById('tester-debug-icon');
-        if (oldIcon) oldIcon.remove();
-
-        const debugIcon = document.createElement('div');
-        debugIcon.id = 'tester-debug-icon';
-        
-        // Funzione click corretta (Async)
-        debugIcon.onclick = async () => { 
-            await toggleDebugPerfect(); 
-        };
-        
-        debugIcon.innerHTML = "⚡";
-        debugIcon.style.cssText = `
-            position: fixed; 
-            left: 15px; 
-            top: 15px; 
-            z-index: 9999; 
-            cursor: pointer; 
-            font-size: 24px; 
-            background: rgba(255, 149, 0, 0.2);
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            border: 2px solid #ff9500;
-            backdrop-filter: blur(5px);
-            box-shadow: 0 0 10px rgba(255, 149, 0, 0.3);
-        `;
-        document.body.appendChild(debugIcon);
-    }
-
     try {
         const snapshot = await db.collection("classifica").orderBy("points", "desc").limit(20).get();
         
@@ -2496,6 +2462,10 @@ async function renderGlobalClassifica() {
     const isUtentePerfetto = data.perfect > 0; 
     const isMe = doc.id === state.currentPin;
     const isMeAndPerfect = isMe && isUtentePerfetto;
+    if (isMe) {
+    state.isPerfect = isUtentePerfetto; 
+    initTheme(); 
+    }
 
     // Definiamo le classi e i colori in base allo stato
     let cardClass = "review-card";
@@ -2548,6 +2518,28 @@ async function renderGlobalClassifica() {
     } catch (e) {
         console.error("Errore classifica:", e);
         container.innerHTML = `<div style="color:red; text-align:center; padding:20px">Errore nel caricamento.</div>`;
+    }
+}
+
+function renderTesterDebug() {
+    // Rimuove eventuali icone vecchie per non duplicarle
+    const oldIcon = document.getElementById('tester-debug-icon');
+    if (oldIcon) oldIcon.remove();
+
+    // Mostra il fulmine SOLO se l'utente è il tester
+    if (state.currentPin === "1111") {
+        const debugIcon = document.createElement('div');
+        debugIcon.id = 'tester-debug-icon';
+        debugIcon.onclick = async () => { await toggleDebugPerfect(); };
+        debugIcon.innerHTML = "⚡";
+        debugIcon.style.cssText = `
+            position: fixed; left: 15px; top: 15px; z-index: 9999; 
+            cursor: pointer; font-size: 24px; background: rgba(255, 149, 0, 0.2);
+            width: 44px; height: 44px; display: flex; align-items: center;
+            justify-content: center; border-radius: 50%; border: 2px solid #ff9500;
+            backdrop-filter: blur(5px); box-shadow: 0 0 10px rgba(255, 149, 0, 0.3);
+        `;
+        document.body.appendChild(debugIcon);
     }
 }
 
