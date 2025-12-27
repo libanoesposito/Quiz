@@ -513,15 +513,15 @@ input:focus, textarea:focus, select:focus, button:focus {
 
 /* STILE UTENTE PERFETTO - ORO E NERO */
 .review-card.is-perfect-gold {
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(30, 30, 30, 0.2) 100%) !important;
+    background: radial-gradient(circle at center, rgba(189, 149, 63, 0.1) 0%, transparent 70%),
+                linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(20, 20, 20, 0.3) 100%) !important;
     backdrop-filter: blur(15px) saturate(180%) !important;
     -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
-    border: 1.5px solid #d4af37 !important;
-  /*  border: 1px solid #bf953f !important;*/
+    border: 1px solid #bf953f !important;
     position: relative;
     overflow: hidden;
     box-shadow: 0 0 15px rgba(191, 149, 63, 0.3) !important;
-    transform: scale(1.08) !important;
+    transform: scale(1.02) !important;
     margin-top: 20px !important;       /* Diamo spazio sopra per non farla toccare con le altre */
     margin-bottom: 20px !important;    /* Diamo spazio sotto */
     z-index: 10 !important;
@@ -543,14 +543,14 @@ input:focus, textarea:focus, select:focus, button:focus {
         rgba(255, 255, 255, 0) 60%,
         rgba(255, 255, 255, 0) 100%
     );
-    transform: rotate(45deg);
+    transform: rotate(-45deg);
     animation: shimmerGold 4s infinite linear;
     pointer-events: none;
 }
 
 @keyframes shimmerGold {
-    0% { transform: translateX(-150%) rotate(45deg); }
-    100% { transform: translateX(150%) rotate(45deg); }
+    0% { transform: translateX(-150%) rotate(-45deg); }
+    100% { transform: translateX(150%) rotate(-45deg); }
 }
 
 /* Colori testi per la card oro */
@@ -559,6 +559,26 @@ input:focus, textarea:focus, select:focus, button:focus {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font-weight: 800;
+}
+/* Rimpiccioliamo il 2° e 3° posto per dare importanza al 1° */
+.review-card.is-silver, 
+.review-card.is-bronze {
+    transform: scale(0.92) !important; /* Più piccole */
+    opacity: 0.85; /* Leggermente meno luminose */
+    margin-top: -5px !important; /* Le avviciniamo per compattare la vista */
+    margin-bottom: -5px !important;
+}
+
+/* Vetro Argento */
+.review-card.is-silver {
+    background: rgba(192, 192, 192, 0.1) !important;
+    border: 1px solid rgba(192, 192, 192, 0.3) !important;
+}
+
+/* Vetro Bronzo */
+.review-card.is-bronze {
+    background: rgba(205, 127, 50, 0.08) !important;
+    border: 1px solid rgba(205, 127, 50, 0.25) !important;
 }
 
 /* Colori Prism per VS Code Dark+ */
