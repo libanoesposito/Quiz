@@ -18,7 +18,8 @@
 
 /* MODIFICATORE GOLD: Sovrascrive solo ciò che serve, mantenendo lo sfondo Light o Dark */
 [data-theme-gold="true"] {
-    --accent: var(--gold-border);
+   --bg: #f0f0f2 !important; 
+    --card-bg: rgba(255, 255, 255, 0.7) !important;
 }
 
 /* Forza i testi in classifica ad usare la variabile --text invece di colori fissi */
