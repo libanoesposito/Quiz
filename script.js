@@ -2522,22 +2522,34 @@ async function renderGlobalClassifica() {
 }
 
 function renderTesterDebug() {
-    // Rimuove eventuali icone vecchie per non duplicarle
     const oldIcon = document.getElementById('tester-debug-icon');
     if (oldIcon) oldIcon.remove();
 
-    // Mostra il fulmine SOLO se l'utente è il tester
     if (state.currentPin === "1111") {
         const debugIcon = document.createElement('div');
         debugIcon.id = 'tester-debug-icon';
         debugIcon.onclick = async () => { await toggleDebugPerfect(); };
         debugIcon.innerHTML = "⚡";
+        
+        // CSS coordinato al tasto luna/sole
         debugIcon.style.cssText = `
-            position: fixed; left: 15px; top: 15px; z-index: 9999; 
-            cursor: pointer; font-size: 24px; background: rgba(255, 149, 0, 0.2);
-            width: 44px; height: 44px; display: flex; align-items: center;
-            justify-content: center; border-radius: 50%; border: 2px solid #ff9500;
-            backdrop-filter: blur(5px); box-shadow: 0 0 10px rgba(255, 149, 0, 0.3);
+            position: fixed; 
+            bottom: 30px;          /* Stessa altezza della luna */
+            left: 30px;            /* Posizionato a sinistra */
+            width: 50px;           /* Stessa dimensione */
+            height: 50px;
+            background: var(--card-bg); 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;         /* Stesso z-index del tema */
+            font-size: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         `;
         document.body.appendChild(debugIcon);
     }
@@ -2552,24 +2564,36 @@ async function toggleDebugPerfect() {
 
     try {
         if (isAlreadyPerfect) {
-            // Disattiva: torna a valori normali
             await docRef.set({
                 perfect: 0,
                 points: 10,
                 lastUpdate: new Date().getTime()
             }, { merge: true });
+            
+            state.isPerfect = false; // AGGIORNAMENTO STATO LOCALE
             alert("Modalità Perfetta DISATTIVATA");
         } else {
-            // Attiva: diventa perfetto
             await docRef.set({
-                perfect: 20, // Valore alto per la corona
+                perfect: 20, 
                 points: 5000,
                 lastUpdate: new Date().getTime()
             }, { merge: true });
+            
+            state.isPerfect = true; // AGGIORNAMENTO STATO LOCALE
             alert("Modalità Perfetta ATTIVATA");
         }
-        // Ricarica la classifica per vedere le modifiche
-        renderGlobalClassifica();
+
+        // --- QUESTA È LA PARTE CHIAVE ---
+        initTheme(); // Cambia il tema in TUTTO il sito istantaneamente
+        
+        // Ricarica la sezione attuale per vedere i cambiamenti grafici (Home o Classifica)
+        const currentSection = localStorage.getItem('currentSection');
+        if (currentSection === 'classifica') {
+            renderGlobalClassifica();
+        } else {
+            showHome();
+        }
+
     } catch (e) {
         console.error("Errore Debug:", e);
     }
