@@ -513,15 +513,18 @@ input:focus, textarea:focus, select:focus, button:focus {
 
 /* STILE UTENTE PERFETTO - ORO E NERO */
 .review-card.is-perfect-gold {
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(26, 26, 26, 0.4) 100%) !important;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid #bf953f !important;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(30, 30, 30, 0.2) 100%) !important;
+    backdrop-filter: blur(15px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
+    border: 1.5px solid #d4af37 !important;
+  /*  border: 1px solid #bf953f !important;*/
     position: relative;
     overflow: hidden;
     box-shadow: 0 0 15px rgba(191, 149, 63, 0.3) !important;
-    transform: scale(1.02);
-    z-index: 1;
+    transform: scale(1.08) !important;
+    margin-top: 20px !important;       /* Diamo spazio sopra per non farla toccare con le altre */
+    margin-bottom: 20px !important;    /* Diamo spazio sotto */
+    z-index: 10 !important;
 }
 
 /* Riflesso dorato che scorre */
