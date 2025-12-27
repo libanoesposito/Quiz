@@ -2429,14 +2429,19 @@ async function renderGlobalClassifica() {
     localStorage.setItem('currentSection', 'classifica');
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = "TOP PLAYERS";
+   // Se l'utente è il tester, aggiungiamo il tasto "Debug" in cima al contenitore
     if (state.currentPin === "1111") {
-    // Creiamo un contenitore per il tasto se non esiste o lo resettiamo
-    const debugBtn = `<div onclick="toggleDebugPerfect()" style="position:absolute; left:20px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:20px;">
-        ⚡
-    </div>`;
-    // Nota: Assicurati che il contenitore del titolo abbia position:relative o usa il selettore corretto della tua header
-    document.querySelector('.nav-header').innerHTML += debugBtn; 
-}
+    const debugBtn = `
+        <div onclick="toggleDebugPerfect()" style="padding:15px; background:rgba(255,149,0,0.1); border-radius:14px; margin-bottom:15px; cursor:pointer; display:flex; align-items:center; gap:10px; border:1px dashed #ff9500;">
+            <span style="font-size:20px">⚡</span>
+            <span style="font-weight:bold; font-size:14px; color:#ff9500">MODALITÀ TESTER: TOGGLE PERFETTO</span>
+        </div>`;
+    // Lo mettiamo all'inizio del contenitore
+    container.innerHTML = debugBtn; 
+    } else {
+    // Se non è il tester, puliamo il caricamento
+    container.innerHTML = "";
+    }
     
     const container = document.getElementById('content-area');
     container.innerHTML = `<div style="text-align:center; padding:20px">Caricamento classifica...</div>`;
