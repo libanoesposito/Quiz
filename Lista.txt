@@ -1,0 +1,192 @@
+Liste
+HTML
+
+•	Prism CSS → Tema per evidenziare codice.
+	•	Prism JS → Libreria per evidenziare codice.
+	•	Prism JavaScript → Evidenzia codice JS.
+	•	Prism CSS Component → Evidenzia codice CSS.
+	•	style.css → Stili personalizzati pagina.
+	•	glass-bg → Sfondo con effetto vetro.
+	•	glass-header → Intestazione con effetto vetro.
+	•	back-nav → Pulsante “indietro”.
+	•	app-title → Titolo dell’app.
+	•	right-nav → Area navigazione destra.
+	•	header-spacer → Spazio sotto intestazione.
+	•	main-container → Contenitore principale contenuti.
+	•	glass-card → Carta con effetto vetro.
+	•	content-area → Area per contenuti dinamici.
+	•	theme-toggle / theme-btn → Bottone per cambiare tema.
+	•	theme-icon → Icona tema attuale.
+	•	logout-modal → Modale per confermare logout.
+	•	modal-overlay → Sfondo semi-trasparente modale.
+	•	modal-content → Contenuto interno della modale.
+	•	btn-destruct → Bottone azione distruttiva (es. Esci).
+	•	btn-cancel → Bottone per annullare azione.
+	•	universal-modal → Modale generica per messaggi.
+	•	modal-title / modal-desc / modal-confirm-btn → Titolo, descrizione e conferma modale.
+	•	Firebase App → Inizializza Firebase.
+	•	Firebase Firestore → Database Firestore.
+	•	database.js → Script per interazioni col database.
+	•	script.js → Script principale dell’app.
+
+
+
+Style css
+
+•	:root → Variabili colori e stile base light.
+	•	[data-theme=“dark”] → Variabili colori e stile dark.
+	•	body → Layout principale pagina, blocco scroll e flex.
+	•	.glass-bg → Sfondo decorativo con gradienti.
+	•	.header-main → Contenitore intestazione principale.
+	•	.nav-slot → Slot per navigazione.
+	•	h1 → Titolo principale.
+	•	.main-container → Contenitore principale contenuti, scroll verticale.
+	•	.glass-card → Carta effetto vetro per contenuti.
+	•	.lang-grid → Griglia per lingue o elementi.
+	•	.lang-item → Elemento singolo griglia.
+	•	.lang-item.profile-slot → Slot profilo, card più grande.
+	•	.btn-apple → Bottone stile Apple.
+	•	.btn-primary → Bottone principale colorato.
+	•	.feedback-box → Box per feedback.
+	•	.correct / .wrong → Colori per risposte corrette o errate.
+	•	.error-inline → Messaggi di errore inline.
+	•	.review-card → Card per recensioni/feedback.
+	•	.review-card.is-ok / .is-err → Stato corretto/errato card.
+	•	.code-editor → Area editor codice.
+	•	.console-terminal → Console output codice.
+	•	.theme-toggle → Bottone cambio tema.
+	•	.dot → Pallino indicatore.
+	•	.back-link → Link di navigazione indietro.
+	•	.modal-overlay → Sfondo modale.
+	•	.modal-content → Contenuto interno modale.
+	•	.modal-btn → Bottone modale generico.
+	•	.btn-destruct / .btn-cancel → Bottone modale distruttivo/cancella.
+	•	.glass-header → Header con griglia 3 colonne.
+	•	#back-nav / #app-title / #right-nav → Elementi header (indietro, titolo, destra).
+	•	.logout-link → Link per logout.
+	•	.security-box → Container espandibile per sicurezza.
+	•	.security-header → Testata container espandibile.
+	•	.security-content → Contenuto container espandibile.
+	•	.chevron → Icona freccia espansione.
+	•	.progress-container → Barra progresso contenitore.
+	•	.progress-bar-fill → Riempimento barra progresso.
+	•	#editor → Area editor codice singolo.
+	•	#content-area → Contenitore contenuti principali.
+	•	#console-output → Output console.
+	•	.editor-wrapper → Wrapper editor codice livello 5.
+	•	.code-input / .code-highlight / #highlighting-content → Layer editor codice (input, evidenziazione).
+	•	input, textarea, select, button, [contenteditable] → Rimuove outline e ombra.
+	•	.btn-login-pin / .btn-confirm-action / .btn-user-profile / .btn-admin-panel → Pulsanti con effetto rimbalzo.
+	•	.review-card.is-perfect-gold → Card utente “oro perfetto” stile speciale.
+	•	.review-card.is-perfect-gold::after → Riflesso dorato animato card.
+	•	.is-perfect-gold .gold-text → Testo dorato card.
+
+
+Script
+
+•	firebaseConfig → Configurazione Firebase.
+	•	firebase.initializeApp → Inizializza Firebase.
+	•	db → Firestore database.
+	•	dbUsers → Database utenti locale (localStorage).
+	•	window.alert → Override alert nativo con popup stile Apple.
+	•	state → Stato globale dell’app (utente, progressi, modalità).
+	•	session → Variabile sessione attiva (vuota).
+	•	globalClassifica → Array dati classifica globale.
+	•	ADMIN_PIN / TESTER_PIN → PIN speciali admin e tester.
+	•	testerUser → Profilo utente tester di default.
+	•	window.onload → Funzione iniziale all’apertura pagina.
+	•	initTheme() → Imposta tema da localStorage o preferenza OS.
+	•	toggleTheme() → Cambia tema light/dark e icona.
+	•	updateNav(showBack, backTarget) → Aggiorna header (indietro/esci).
+	•	saveMasterDB() → Salva progressi su Firebase e localStorage.
+	•	updateGlobalLeaderboard() → Aggiorna classifica globale sul cloud.
+	•	syncToFirebase(pin, userData) → Sincronizza singolo utente su Firebase.
+	•	renderLogin() → Mostra schermata login iniziale.
+	•	uiPin(type) → Mostra input PIN per login o registrazione.
+	•	isWeakPin(pin) → Controlla se un PIN è troppo semplice.
+	•	registerUser() → Registra nuovo utente su Firebase e locale.
+	•	validatePin(type) → Controlla PIN esistente e gestisce login/registrazione.
+	•	setGuest() → Imposta sessione guest.
+	•	showHome() → Mostra schermata principale con percorsi, profilo, ripasso, classifica, pannello admin.
+	•	domandaRepo → Repository domande per livelli (usata in showHome).
+
+•	showLevels(lang) → Mostra i livelli di un linguaggio con progressi e blocchi.
+	•	startStep(lang, lvl) → Inizia un livello, carica domande o sfide L5.
+	•	updateEditor(text) → Aggiorna il contenuto dell’editor con evidenziazione sintassi Prism.
+	•	syncScroll(el) → Sincronizza lo scroll tra textarea e display evidenziato.
+	•	handleTab(e, el) → Inserisce 4 spazi alla pressione del tab in editor.
+	•	renderL5(lang, index = null) → Mostra sfide livello 5 (esame).
+	•	checkL5(lang, index) → Controlla il codice scritto dall’utente e aggiorna progressi.
+	•	handleInput(el, lang) → Evidenzia il testo in un contenteditable e riposiziona il cursore.
+	•	handleSpecialKeys(e) → Gestisce tasti speciali in contenteditable (Tab).
+	•	renderQ() → Mostra la domanda attuale con opzioni e barra di progresso.
+	•	markNotStudied(idx) → Segna una domanda come “non studiata” e aggiorna lo storico.
+	•	check(isOk, userAnsText) → Valida risposta scelta, aggiorna ripasso, storico e progressi.
+	•	next() → Passa alla prossima domanda o completa il livello aggiornando progressi.
+	•	logout() → Termina sessione, resetta stato e torna al login.
+	•	ensureUserId() → Garantisce che l’utente abbia un ID unico, lo assegna se mancante.
+	•	calcStats() → Calcola statistiche generali dell’utente (totali, giuste, sbagliate, %).
+	•	toggleSecurity(el) → Mostra/nasconde contenuto di sicurezza (profilo).
+
+•	renderProfile() → Mostra il profilo utente con statistiche, progressi e storico.
+	•	toggleGeneralProgress(card) → Mostra/nasconde i dettagli dei progressi generali.
+	•	toggleGeneralContent(id, card) → Mostra/nasconde sezioni come sicurezza o storico.
+	•	toggleHistory(el) → Mostra/nasconde uno specifico storico utente.
+	•	generateHistoryHTML(u) → Genera l’HTML dello storico per un utente.
+	•	toggleLangDetails(el) → Mostra/nasconde dettagli di un linguaggio nello storico.
+	•	toggleCard(el) → Mostra/nasconde il contenuto di una card (profilo, sicurezza, ripasso).
+	•	renderRipasso() → Mostra domande da ripassare (sbagliate o non studiate) con spiegazioni.
+	•	resetStats() → Azzera progressi e storico utente, aggiornando DB e profilo.
+	•	deleteAccount() → Segna l’account come eliminato e chiama logout.
+	•	GUEST_LIMITS → Limiti per modalità guest per livello.
+	•	guestLimitReached(lvl, idx) → Controlla se un guest ha raggiunto il limite domande.
+	•	startStep(lang, lvl) → Override soft per guest; limita livelli e numero domande.
+	•	renderQ() → Override soft per guest; mostra la domanda corrente con limiti demo.
+	•	next() → Override soft per guest; passa alla domanda successiva.
+	•	showGuestEndModal() → Mostra messaggio fine demo guest.
+	•	showGuestLocked() → Mostra messaggio blocco livelli avanzati guest.
+	•	renderAdminPanel() → Mostra pannello admin con utenti attivi, eliminati e azioni globali.
+	•	togglePinVisibility(id) → Mostra/nasconde PIN utente in admin panel (richiamata in HTML).
+	•	showUserHistory(id) → Mostra storico utente specifico (richiamata in HTML).
+	•	adminDeleteUser(id) → Elimina un utente dal cloud (soft delete).
+	•	adminRestoreUser(id, docId) → Ripristina un utente eliminato.
+	•	adminPermanentDelete(docId) → Elimina definitivamente un utente dal cloud.
+	•	adminClearTrash() → Svuota tutti gli utenti eliminati.
+	•	adminResetAll(type) → Reset globale dei dati utenti (FULL o STATS).
+
+PIN e visibilità
+	•	togglePinVisibility(userId)
+
+Storico e dettagli utente
+	•	showUserHistory(userId)
+	•	generateHistoryHTML(data)
+	•	showUserDetails(pin)
+
+Admin: lista utenti e pannello
+	•	renderAdminUsers()
+	•	calcUserStats(user)
+	•	recalcUser(userId)
+
+Admin: operazioni su utenti
+	•	adminDeleteUser(userId)
+	•	adminRestoreUser(userId, docId)
+	•	adminPermanentDelete(docId)
+	•	adminClearTrash()
+	•	adminResetSingleUser(userId)
+	•	adminResetAll(mode)
+
+Utente: gestione PIN e account
+	•	userChangePin()
+	•	userResetStats()
+	•	userDeleteAccount()
+
+Modale generico
+	•	openModal(title, content, onConfirm)
+	•	closeModal()
+
+Classifica globale
+	•	renderGlobalClassifica()
+	•	toggleDebugPerfect()
+
+Utility
+	•	findUserById(id)
