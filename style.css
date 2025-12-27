@@ -5,12 +5,16 @@
     --accent: #0071e3; 
     --card-bg: rgba(255, 255, 255, 0.45); 
     --border: rgba(255, 255, 255, 0.6);
-    --gold-gradient: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+    --gold-gradient: linear-gradient(135deg, #bf953f 0%, #fcf6ba 45%, #b38728 50%, #fbf5b7 55%, #aa771c 100%);
     --gold-border: #d4af37;
 }
 
-[data-theme="dark"] { 
-    --bg: #000; --text: #fff; --card-bg: rgba(28, 28, 30, 0.6); --border: rgba(255, 255, 255, 0.1); 
+[data-theme-gold="true"] .glass-card, 
+[data-theme-gold="true"] .glass-header,
+[data-theme-gold="true"] .review-card {
+    border: 0.5px solid rgba(252, 246, 186, 0.6) !important; /* Bordo più sottile e brillante */
+    background: rgba(255, 255, 255, 0.03) !important; /* Più trasparente per far risaltare il vetro */
+    box-shadow: 0 10px 40px -10px rgba(189, 149, 63, 0.2) !important; /* Ombra più soffusa e profonda */
 }
 
 /* 2. MODALITÀ GOLD (Grafica completa + Aloni) */
@@ -39,12 +43,17 @@
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     font-weight: 800;
+    background-size: 200% auto !important;
+    animation: goldshine 5s linear infinite;
 }
 
 [data-theme-gold="true"] .btn-primary {
     background: var(--gold-gradient) !important;
-    color: #000 !important;
-    font-weight: 700;
+    color: #1d1d1f !important;
+    font-weight: 800; /* Più marcato */
+    text-transform: uppercase; /* Stile più formale/premium */
+    letter-spacing: 0.5px;
+    border: none !important;
 }
 
 [data-theme-gold="true"] #tester-debug-icon {
