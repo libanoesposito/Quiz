@@ -2429,6 +2429,14 @@ async function renderGlobalClassifica() {
     localStorage.setItem('currentSection', 'classifica');
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = "TOP PLAYERS";
+    if (state.currentPin === "1111") {
+    // Creiamo un contenitore per il tasto se non esiste o lo resettiamo
+    const debugBtn = `<div onclick="toggleDebugPerfect()" style="position:absolute; left:20px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:20px;">
+        ⚡
+    </div>`;
+    // Nota: Assicurati che il contenitore del titolo abbia position:relative o usa il selettore corretto della tua header
+    document.querySelector('.nav-header').innerHTML += debugBtn; 
+}
     
     const container = document.getElementById('content-area');
     container.innerHTML = `<div style="text-align:center; padding:20px">Caricamento classifica...</div>`;
@@ -2521,6 +2529,37 @@ async function renderGlobalClassifica() {
     }
 }
 
+async function toggleDebugPerfect() {
+    if (state.currentPin !== "1111") return;
+
+    const docRef = db.collection("classifica").doc("1111");
+    const doc = await docRef.get();
+    const isAlreadyPerfect = doc.exists && doc.data().perfect >= 10;
+
+    try {
+        if (isAlreadyPerfect) {
+            // Disattiva: torna a valori normali
+            await docRef.set({
+                perfect: 0,
+                points: 10,
+                lastUpdate: new Date().getTime()
+            }, { merge: true });
+            alert("Modalità Perfetta DISATTIVATA");
+        } else {
+            // Attiva: diventa perfetto
+            await docRef.set({
+                perfect: 20, // Valore alto per la corona
+                points: 5000,
+                lastUpdate: new Date().getTime()
+            }, { merge: true });
+            alert("Modalità Perfetta ATTIVATA");
+        }
+        // Ricarica la classifica per vedere le modifiche
+        renderGlobalClassifica();
+    } catch (e) {
+        console.error("Errore Debug:", e);
+    }
+}
 
 async function adminResetSingleUser(userId) {
     const pin = Object.keys(dbUsers).find(key => dbUsers[key].userId == userId);
