@@ -181,10 +181,14 @@ window.onload = async () => {
 
 
 function initTheme() {
+    // 1. Gestione Light/Dark standard
     const saved = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', saved);
 
-    // Usa la variabile che hai appena impostato in calcStats
+    // 2. Controllo Gold forzato
+    // Chiamiamo calcStats per essere sicuri che state.isPerfect sia aggiornato
+    const stats = calcStats(); 
+    
     if (state.isPerfect) {
         document.documentElement.setAttribute('data-theme-gold', 'true');
     } else {
