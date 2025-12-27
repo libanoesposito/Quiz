@@ -116,7 +116,6 @@
     /* Sostituiamo il bianco trasparente con un beige dorato molto chiaro */
     background: rgba(189, 149, 63, 0.08) !important;
     border: 1.5px solid rgba(189, 149, 63, 0.15) !important;
-    color: #1d1d1f !important; /* Testo sempre scuro e leggibile */
 }
 [data-theme-gold="true"] .security-box {
     background: rgba(255, 255, 255, 0.05) !important;
