@@ -561,7 +561,7 @@ input:focus, textarea:focus, select:focus, button:focus {
 /* Rimpiccioliamo il 2° e 3° posto per dare importanza al 1° */
 .review-card.is-silver, 
 .review-card.is-bronze {
-    width: 90% !important;          /* Più stretta del primato */
+    width: 80% !important;          /* Più stretta del primato */
     margin-left: auto !important;    /* Centra la card più stretta */
     margin-right: auto !important;   /* Centra la card più stretta */
     padding-top: 10px !important;    /* Più bassa */
