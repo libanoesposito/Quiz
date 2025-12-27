@@ -596,6 +596,8 @@ function setGuest() {
 }
 
 function showHome() {
+    calcStats(); // Aggiorna state.isPerfect basandosi sulla history attuale
+    initTheme();
     localStorage.setItem('currentSection', 'home');
     updateNav(false);
     document.getElementById('app-title').innerText = "PERCORSI";
