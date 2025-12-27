@@ -28,16 +28,12 @@
 
 [data-theme-gold="true"]:not([data-theme="dark"]) .glass-card {
     /* Fondo "Champagne" con punto luce centrale */
-    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 1) 0%, rgba(252, 248, 232, 0.9) 100%) !important;
+    background: linear-gradient(135deg, #ffffff 0%, #fffbf0 100%) !important;
     
-    /* TRUCCO DESKTOP: Tripla ombra
-       1. Ombra interna bianca (riflesso spigolo)
-       2. Ombra esterna oro (bagliore)
-       3. Ombra esterna grigia morbida (profondità reale) */
     box-shadow: 
-        inset 0 1px 1px rgba(255, 255, 255, 1),
-        0 10px 30px rgba(189, 149, 63, 0.15),
-        0 30px 60px rgba(0, 0, 0, 0.05) !important;
+        0 20px 50px rgba(0, 0, 0, 0.05),
+        0 0 30px rgba(189, 149, 63, 0.25),
+        0 0 80px rgba(189, 149, 63, 0.15) !important;
     
     border: 1px solid rgba(189, 149, 63, 0.3) !important;
 }
@@ -100,14 +96,13 @@
 
 [data-theme-gold="true"]:not([data-theme="dark"]) .lang-item:not(.profile-slot), 
 [data-theme-gold="true"]:not([data-theme="dark"]) .security-box {
-    background: rgba(255, 255, 255, 0.9) !important;
-    /* Bordo sfumato che simula la doratura laterale */
-    border: 1px solid rgba(189, 149, 63, 0.25) !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(189, 149, 63, 0.3) !important;
     
-    /* Ombra direzionale: fa sembrare che la luce venga dall'alto a sinistra */
+    /* Glow interno ed esterno per dare l'effetto "oggetto prezioso" */
     box-shadow: 
-        5px 5px 15px rgba(189, 149, 63, 0.08),
-        -2px -2px 10px rgba(255, 255, 255, 1) !important;
+        0 5px 15px rgba(189, 149, 63, 0.1),
+        0 0 10px rgba(189, 149, 63, 0.05) !important;
 }
 
 [data-theme-gold="true"]:not([data-theme="dark"]) .lang-item:not(.profile-slot):hover {
@@ -115,16 +110,10 @@
     box-shadow: inset 2px 2px 5px rgba(189, 149, 63, 0.1) !important;
     transform: translateY(1px);
 }
-/*[data-theme-gold="true"] .lang-item:not(.profile-slot), 
-[data-theme-gold="true"] .security-box {
-    background: rgba(255, 255, 255, 0.05) !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
-    
-    border: 1px solid rgba(189, 149, 63, 0.3) !important;
-    box-shadow: none !important;
-    /*box-shadow: 0 4px 15px rgba(189, 149, 63, 0.15) !important;
-}*/
+[data-theme-gold="true"]:not([data-theme="dark"]) #app-title {
+    /* Crea un bagliore dietro le lettere dorate */
+    text-shadow: 0 0 15px rgba(189, 149, 63, 0.4);
+}
 [data-theme-gold="true"]:not([data-theme="dark"]) .lang-item:not(.profile-slot), 
 [data-theme-gold="true"]:not([data-theme="dark"]) .security-box {
     background: rgba(255, 255, 255, 0.7) !important; /* Più visibile sul bianco */
