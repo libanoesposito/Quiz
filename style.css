@@ -521,6 +521,10 @@ input:focus, textarea:focus, select:focus, button:focus {
     position: relative;
     overflow: hidden;
     box-shadow: 0 0 15px rgba(191, 149, 63, 0.3) !important;
+    width: 100% !important;           /* Si adatta perfettamente al contenitore */
+    padding-top: 30px !important;      /* Più alta sopra */
+    padding-bottom: 30px !important;   /* Più alta sotto */
+    margin: 15px 0 !important;
     transform: scale(1.02) !important;
     z-index: 10 !important;
 }
