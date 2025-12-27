@@ -9,6 +9,13 @@
     --gold-border: #d4af37;
 }
 
+[data-theme="dark"] { 
+    --bg: #000; 
+    --text: #fff; 
+    --card-bg: rgba(28, 28, 30, 0.6); 
+    --border: rgba(255, 255, 255, 0.1); 
+}
+
 [data-theme-gold="true"] .glass-card, 
 [data-theme-gold="true"] .glass-header,
 [data-theme-gold="true"] .review-card {
@@ -24,17 +31,14 @@
     --accent: var(--gold-border) !important;
 }
 
-/* Se siamo in Light Mode Gold, scuriamo leggermente lo sfondo per il contrasto */
-[data-theme="light"][data-theme-gold="true"], :root[data-theme-gold="true"]:not([data-theme="dark"]) {
-    --bg: #ececef !important;
-    --text: #1d1d1f !important;
+[data-theme-gold="true"] {
+    --accent: var(--gold-border) !important;
 }
 
 [data-theme="dark"][data-theme-gold="true"] {
-    --bg: #000000 !important;
-    --text: #ffffff !important;
-    --card-bg: rgba(30, 30, 30, 0.6) !important;
-    --border: rgba(255, 255, 255, 0.1) !important;
+    /* Non serve forzare --bg: #000 qui se lo abbiamo già nel tema dark standard, 
+       ma specifichiamo bene le card */
+    --card-bg: rgba(30, 30, 30, 0.8) !important;
 }
 
 [data-theme-gold="true"] h1, 
