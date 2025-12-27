@@ -182,6 +182,7 @@ window.onload = async () => {
 
 
 function initTheme() {
+    if (state.currentPin === "1111") state.isPerfect = localStorage.getItem('debugPerfect') === 'true';
     // 1. Gestione Light/Dark standard
     const saved = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', saved);
@@ -1140,8 +1141,9 @@ function calcStats() {
         wrong: tot - ok,
         perc: tot ? Math.round((ok / tot) * 100) : 0
     };
-    // Se l'utente ha fatto tutto giusto e ha risposto ad almeno una domanda
-    state.isPerfect = stats.total > 0 && stats.perc === 100;
+    if (state.currentPin !== "1111") {
+        state.isPerfect = stats.total > 0 && stats.perc === 100;
+    }
     return stats;
 }
 
@@ -2576,6 +2578,7 @@ async function toggleDebugPerfect() {
             }, { merge: true });
             
             state.isPerfect = false; // AGGIORNAMENTO STATO LOCALE
+            localStorage.setItem('debugPerfect', 'false');
             alert("Modalità Perfetta DISATTIVATA");
         } else {
             await docRef.set({
@@ -2585,6 +2588,7 @@ async function toggleDebugPerfect() {
             }, { merge: true });
             
             state.isPerfect = true; // AGGIORNAMENTO STATO LOCALE
+            localStorage.setItem('debugPerfect', 'false');
             alert("Modalità Perfetta ATTIVATA");
         }
 
