@@ -143,6 +143,7 @@ window.onload = async () => {
                 state.history = cloudUser.history || {};
                 state.ripasso = cloudUser.ripasso || { wrong: [], notStudied: [] };
                 state.activeProgress = cloudUser.activeProgress || {};
+                initTheme();
             }
             
             // 3. RIPRISTINO POSIZIONE (tua logica originale)
