@@ -17,7 +17,16 @@
 }
 
 [data-theme-gold="true"] .glass-card, 
-[data-theme-gold="true"] .glass-header,
+[data-theme-gold="true"] .glass-header {
+    /* Sfumatura: parte dal colore di fondo e sfuma verso un oro trasparente */
+    background: linear-gradient(to bottom, var(--bg) 0%, rgba(179, 135, 40, 0.15) 100%) !important;
+    
+    /* Bordo meno marcato: usiamo un gradiente sottile invece del colore solido */
+    border-bottom: 1px solid transparent !important;
+    border-image: linear-gradient(to right, transparent, var(--gold-border), transparent) 1 !important;
+    
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
 [data-theme-gold="true"] .review-card {
     border: 1px solid transparent !important;
     background: linear-gradient(var(--card-bg), var(--card-bg)) padding-box, 
@@ -27,10 +36,6 @@
 }
 
 /* 2. MODALITÀ GOLD (Grafica completa + Aloni) */
-[data-theme-gold="true"] {
-    --accent: var(--gold-border) !important;
-}
-
 [data-theme-gold="true"] {
     --accent: var(--gold-border) !important;
 }
@@ -55,18 +60,37 @@
     to { background-position: 200% center; }
 }
 
-[data-theme-gold="true"] .btn-primary {
+[data-theme-gold="true"] .btn-primary,
+[data-theme-gold="true"] .lang-item.profile-slot,
+[data-theme-gold="true"] .modal-btn:not(.btn-cancel) {
     background: var(--gold-gradient) !important;
     color: #1d1d1f !important;
     font-weight: 800; /* Più marcato */
     text-transform: uppercase; /* Stile più formale/premium */
     letter-spacing: 0.5px;
     border: none !important;
+    box-shadow: 0 4px 15px rgba(189, 149, 63, 0.4) !important;
+}
+
+[data-theme-gold="true"] .lang-item:not(.profile-slot), 
+[data-theme-gold="true"] .security-box {
+    background: rgba(255, 255, 255, 0.05) !important; /* Trasparenza per vedere la card sotto */
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 0.5px solid rgba(252, 246, 186, 0.2) !important; /* Filo d'oro sottile */
+    box-shadow: none !important; /* Pulizia per non appesantire il layer */
 }
 
 [data-theme-gold="true"] #tester-debug-icon {
     border-color: var(--gold-border) !important;
     box-shadow: 0 0 15px rgba(191, 149, 63, 0.4);
+}
+
+[data-theme-gold="true"] .lang-item:not(.profile-slot), 
+[data-theme-gold="true"] .security-box {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 0.5px solid rgba(252, 246, 186, 0.2) !important;
 }
 
 body { 
@@ -489,12 +513,15 @@ input:focus, textarea:focus, select:focus, button:focus {
 
 /* STILE UTENTE PERFETTO - ORO E NERO */
 .review-card.is-perfect-gold {
-    background: linear-gradient(135deg, #000 0%, #1a1a1a 100%) !important;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(26, 26, 26, 0.4) 100%) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid #bf953f !important;
     position: relative;
     overflow: hidden;
     box-shadow: 0 0 15px rgba(191, 149, 63, 0.3) !important;
     transform: scale(1.02);
+    z-index: 1;
 }
 
 /* Riflesso dorato che scorre */
@@ -509,12 +536,13 @@ input:focus, textarea:focus, select:focus, button:focus {
         to bottom right,
         rgba(255, 255, 255, 0) 0%,
         rgba(255, 255, 255, 0) 40%,
-        rgba(255, 215, 0, 0.1) 50%,
+        rgba(255, 215, 0, 0.15) 50%,
         rgba(255, 255, 255, 0) 60%,
         rgba(255, 255, 255, 0) 100%
     );
     transform: rotate(45deg);
-    animation: shimmer Gold 4s infinite;
+    animation: shimmerGold 4s infinite linear;
+    pointer-events: none;
 }
 
 @keyframes shimmerGold {
