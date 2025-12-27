@@ -30,12 +30,11 @@
     --text: #1d1d1f !important;
 }
 
-/* RIPRISTINO EFFETTI GRAFICI CHE AVEVI */
-[data-theme-gold="true"] .glass-card, 
-[data-theme-gold="true"] .glass-header,
-[data-theme-gold="true"] .review-card { /* Aggiunto anche alle card classifica */
-    border: 1px solid var(--gold-border) !important;
-    box-shadow: 0 8px 32px 0 rgba(189, 149, 63, 0.3) !important; /* L'alone che volevi */
+[data-theme="dark"][data-theme-gold="true"] {
+    --bg: #000000 !important;
+    --text: #ffffff !important;
+    --card-bg: rgba(30, 30, 30, 0.6) !important;
+    --border: rgba(255, 255, 255, 0.1) !important;
 }
 
 [data-theme-gold="true"] h1, 
