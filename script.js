@@ -2477,63 +2477,57 @@ async function renderGlobalClassifica() {
         let rank = 1;
         snapshot.forEach(doc => {
             const data = doc.data();
-            
-            // Filtro tester: il PIN 1111 lo vede solo il tester stesso
-            if (doc.id === "1111" && state.currentPin !== "1111") return;
+    
+    if (doc.id === "1111" && state.currentPin !== "1111") return;
 
-            const isUtentePerfetto = data.perfect > 0; 
-            const isMe = doc.id === state.currentPin;
-            const isMeAndPerfect = isMe && isUtentePerfetto;
+    const isUtentePerfetto = data.perfect > 0; 
+    const isMe = doc.id === state.currentPin;
+    const isMeAndPerfect = isMe && isUtentePerfetto;
 
-            let crown = isUtentePerfetto ? "🏆" : "";
-            
-            let medal = "";
-            if (rank === 1) medal = "🥇";
-            else if (rank === 2) medal = "🥈";
-            else if (rank === 3) medal = "🥉";
-            else medal = `<span style="opacity:0.5; font-size:14px; width:20px; text-align:center; display:inline-block">${rank}</span>`;
+    // Definiamo le classi e i colori in base allo stato
+    let cardClass = "review-card";
+    let textClass = "";
+    let inlineStyle = ""; 
+    let crown = isUtentePerfetto ? "🏆" : "";
+    
+    // ASSEGNAZIONE TEMA ORO E NERO
+    if (isMeAndPerfect) {
+        cardClass += " is-perfect-gold";
+        textClass = "gold-glow-text";
+    } else {
+        // Stili standard per il podio se non sei "Perfect"
+        if (rank === 1) inlineStyle = `background: rgba(255, 215, 0, 0.15); border: 1px solid #ffd700;`;
+        else if (rank === 2) inlineStyle = `background: rgba(192, 192, 192, 0.15); border: 1px solid #c0c0c0;`;
+        else if (rank === 3) inlineStyle = `background: rgba(205, 127, 50, 0.15); border: 1px solid #cd7f32;`;
+        else inlineStyle = `background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);`;
+    }
 
-            // STILI
-            let cardStyle = `background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);`;
-            let textColor = "#ffffff";
-            let accentColor = "var(--accent)"; 
+    let medal = "";
+    if (rank === 1) medal = "🥇";
+    else if (rank === 2) medal = "🥈";
+    else if (rank === 3) medal = "🥉";
+    else medal = `<span style="opacity:0.5; font-size:14px; width:20px; text-align:center; display:inline-block">${rank}</span>`;
 
-            // TRASFORMAZIONE GOLD
-            if (isMeAndPerfect) {
-                cardStyle = `
-                    background: linear-gradient(135deg, rgba(255, 215, 0, 0.25) 0%, rgba(255, 149, 0, 0.15) 100%);
-                    border: 2px solid #ff9500;
-                    box-shadow: 0 0 20px rgba(255, 149, 0, 0.4);
-                    transform: scale(1.02);
-                `;
-                textColor = "#ff9500"; 
-                accentColor = "#ff9500";
-            } else {
-                if (rank === 1) cardStyle = `background: rgba(255, 215, 0, 0.15); border: 1px solid #ffd700;`;
-                if (rank === 2) cardStyle = `background: rgba(192, 192, 192, 0.15); border: 1px solid #c0c0c0;`;
-                if (rank === 3) cardStyle = `background: rgba(205, 127, 50, 0.15); border: 1px solid #cd7f32;`;
-            }
-
-            html += `
-            <div class="review-card" style="${cardStyle} transition: all 0.3s ease; margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center; padding: 15px; border-radius: 16px;">
-                <div style="display:flex; align-items:center; gap:12px">
-                    <span style="font-size:18px; min-width:25px; font-weight:800">${medal}</span>
-                    <div>
-                        <div style="font-weight:800; font-size:16px; color:${textColor}; display:flex; align-items:center; gap:5px">
-                            ${data.name} ${crown}
-                        </div>
-                        <div style="display:inline-block; margin-top:4px; padding: 2px 8px; background: rgba(255,255,255,0.1); border-radius: 20px; font-size:10px; font-weight:700; text-transform:uppercase; color:${isMeAndPerfect ? '#ff9500' : 'rgba(255,255,255,0.6)'}">
-                            ${data.perfect || 0} PERFETTI
-                        </div>
-                    </div>
+    html += `
+    <div class="${cardClass}" style="${inlineStyle} transition: all 0.3s ease; margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center; padding: 15px; border-radius: 16px;">
+        <div style="display:flex; align-items:center; gap:12px; position:relative; z-index:2">
+            <span style="font-size:18px; min-width:25px; font-weight:800">${medal}</span>
+            <div>
+                <div class="${textClass}" style="font-size:16px; color:${isMeAndPerfect ? '' : '#fff'}; display:flex; align-items:center; gap:5px">
+                    ${data.name} ${crown}
                 </div>
-                <div style="text-align:right">
-                    <div style="font-weight:900; color:${accentColor}; font-size:19px">${data.points || 0}</div>
-                    <div style="font-size:9px; opacity:0.7; font-weight:800; color:${textColor}">PUNTI</div>
+                <div style="display:inline-block; margin-top:4px; padding: 2px 8px; background: rgba(255,255,255,0.1); border-radius: 20px; font-size:10px; font-weight:700; text-transform:uppercase; color:${isMeAndPerfect ? '#bf953f' : 'rgba(255,255,255,0.6)'}">
+                    ${data.perfect || 0} PERFETTI
                 </div>
-            </div>`;
-            rank++;
-        });
+            </div>
+        </div>
+        <div style="text-align:right; position:relative; z-index:2">
+            <div class="${textClass}" style="font-weight:900; color:${isMeAndPerfect ? '' : 'var(--accent)'}; font-size:19px">${data.points || 0}</div>
+            <div style="font-size:9px; opacity:0.7; font-weight:800; color:${isMeAndPerfect ? '#bf953f' : '#fff'}">PUNTI</div>
+        </div>
+    </div>`;
+    rank++;
+});
 
         html += `</div>`;
         container.innerHTML = html;
