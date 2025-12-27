@@ -18,15 +18,28 @@
 
 [data-theme-gold="true"] .glass-card, 
 [data-theme-gold="true"] .glass-header {
-    /* Sfumatura: parte dal colore di fondo e sfuma verso un oro trasparente */
+    /* Usiamo un fondo leggermente più ambrato per la luce */
+    background: linear-gradient(to bottom, 
+        rgba(255, 255, 255, 0.9) 0%, 
+        rgba(189, 149, 63, 0.1) 100%) !important;
+    
+    border-bottom: 1px solid transparent !important;
+    border-image: linear-gradient(to right, transparent, var(--gold-border), transparent) 1 !important;
+    
+    /* Ombra più decisa per staccare dal fondo bianco */
+    box-shadow: 0 10px 30px rgba(189, 149, 63, 0.15) !important;
+}
+/*[data-theme-gold="true"] .glass-card, 
+[data-theme-gold="true"] .glass-header {
+   
     background: linear-gradient(to bottom, var(--bg) 0%, rgba(179, 135, 40, 0.15) 100%) !important;
     
-    /* Bordo meno marcato: usiamo un gradiente sottile invece del colore solido */
+   
     border-bottom: 1px solid transparent !important;
     border-image: linear-gradient(to right, transparent, var(--gold-border), transparent) 1 !important;
     
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
-}
+}*/
 [data-theme-gold="true"] .review-card {
     border: 1px solid transparent !important;
     background: linear-gradient(var(--card-bg), var(--card-bg)) padding-box, 
