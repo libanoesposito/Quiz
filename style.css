@@ -1,32 +1,55 @@
+/* 1. VARIABILI DI BASE */
 :root { 
     --bg: #f5f5f7; 
     --text: #1d1d1f; 
     --accent: #0071e3; 
     --card-bg: rgba(255, 255, 255, 0.45); 
     --border: rgba(255, 255, 255, 0.6);
-    /* Definiamo l'oro qui così esiste anche in Light Mode */
     --gold-gradient: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
     --gold-border: #d4af37;
 }
 
 [data-theme="dark"] { 
-    --bg: #000; 
-    --text: #fff; 
-    --card-bg: rgba(28, 28, 30, 0.6); 
-    --border: rgba(255, 255, 255, 0.1); 
+    --bg: #000; --text: #fff; --card-bg: rgba(28, 28, 30, 0.6); --border: rgba(255, 255, 255, 0.1); 
 }
 
-/* MODIFICATORE GOLD: Sovrascrive solo ciò che serve, mantenendo lo sfondo Light o Dark */
+/* 2. MODALITÀ GOLD (Grafica completa + Aloni) */
 [data-theme-gold="true"] {
-   --bg: #f0f0f2 !important; 
-    --card-bg: rgba(255, 255, 255, 0.7) !important;
+    --accent: var(--gold-border) !important;
 }
 
-/* Forza i testi in classifica ad usare la variabile --text invece di colori fissi */
+/* Se siamo in Light Mode Gold, scuriamo leggermente lo sfondo per il contrasto */
+[data-theme="light"][data-theme-gold="true"], :root[data-theme-gold="true"]:not([data-theme="dark"]) {
+    --bg: #ececef !important;
+    --text: #1d1d1f !important;
+}
+
+/* RIPRISTINO EFFETTI GRAFICI CHE AVEVI */
+[data-theme-gold="true"] .glass-card, 
+[data-theme-gold="true"] .glass-header,
+[data-theme-gold="true"] .review-card { /* Aggiunto anche alle card classifica */
+    border: 1px solid var(--gold-border) !important;
+    box-shadow: 0 8px 32px 0 rgba(189, 149, 63, 0.3) !important; /* L'alone che volevi */
+}
+
+[data-theme-gold="true"] h1, 
+[data-theme-gold="true"] #app-title,
 [data-theme-gold="true"] .gold-glow-text {
-    background: var(--gold-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    background: var(--gold-gradient) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    font-weight: 800;
+}
+
+[data-theme-gold="true"] .btn-primary {
+    background: var(--gold-gradient) !important;
+    color: #000 !important;
+    font-weight: 700;
+}
+
+[data-theme-gold="true"] #tester-debug-icon {
+    border-color: var(--gold-border) !important;
+    box-shadow: 0 0 15px rgba(191, 149, 63, 0.4);
 }
 
 body { 
