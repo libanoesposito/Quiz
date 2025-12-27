@@ -99,7 +99,8 @@
     -webkit-backdrop-filter: blur(10px) !important;
     /* Aggiungiamo il bordo oro e un piccolo bagliore interno */
     border: 1px solid rgba(189, 149, 63, 0.3) !important;
-    box-shadow: 0 4px 15px rgba(189, 149, 63, 0.15) !important;
+    box-shadow: none !important;
+    /*box-shadow: 0 4px 15px rgba(189, 149, 63, 0.15) !important;*/
 }
 [data-theme-gold="true"]:not([data-theme="dark"]) .lang-item:not(.profile-slot), 
 [data-theme-gold="true"]:not([data-theme="dark"]) .security-box {
