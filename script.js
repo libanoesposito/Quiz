@@ -2500,7 +2500,7 @@ async function renderGlobalClassifica() {
         <div style="display:flex; align-items:center; gap:12px; position:relative; z-index:2">
             <span style="font-size:18px; min-width:25px; font-weight:800">${medal}</span>
             <div>
-                <div class="${textClass}" style="font-size:16px; color:${isMeAndPerfect ? '' : '#fff'}; display:flex; align-items:center; gap:5px">
+                <div class="${textClass}" style="font-size:16px; color: var(--text); display:flex; align-items:center; gap:5px">
                     ${data.name} ${crown}
                 </div>
                 <div style="display:inline-block; margin-top:4px; padding: 2px 8px; background: rgba(255,255,255,0.1); border-radius: 20px; font-size:10px; font-weight:700; text-transform:uppercase; color:${isMeAndPerfect ? '#bf953f' : 'rgba(255,255,255,0.6)'}">
