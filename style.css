@@ -12,9 +12,11 @@
 [data-theme-gold="true"] .glass-card, 
 [data-theme-gold="true"] .glass-header,
 [data-theme-gold="true"] .review-card {
-    border: 0.5px solid rgba(252, 246, 186, 0.6) !important; /* Bordo più sottile e brillante */
-    background: rgba(255, 255, 255, 0.03) !important; /* Più trasparente per far risaltare il vetro */
-    box-shadow: 0 10px 40px -10px rgba(189, 149, 63, 0.2) !important; /* Ombra più soffusa e profonda */
+    border: 1px solid transparent !important;
+    background: linear-gradient(var(--card-bg), var(--card-bg)) padding-box, 
+                var(--gold-gradient) border-box !important;
+    /* Aumentiamo leggermente l'alone per dare profondità */
+    box-shadow: 0 8px 32px 0 rgba(189, 149, 63, 0.25) !important;
 }
 
 /* 2. MODALITÀ GOLD (Grafica completa + Aloni) */
