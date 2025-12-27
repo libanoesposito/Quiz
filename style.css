@@ -27,15 +27,19 @@
 
 
 [data-theme-gold="true"]:not([data-theme="dark"]) .glass-card {
-    /* Gradiente effetto seta/perla */
-    background: linear-gradient(135deg, #ffffff 0%, #fff9f0 50%, #f7efd7 100%) !important;
+    /* Fondo "Champagne" con punto luce centrale */
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 1) 0%, rgba(252, 248, 232, 0.9) 100%) !important;
     
-    /* Doppia ombra: una esterna dorata e una interna (inset) bianca per il bordo lucido */
+    /* TRUCCO DESKTOP: Tripla ombra
+       1. Ombra interna bianca (riflesso spigolo)
+       2. Ombra esterna oro (bagliore)
+       3. Ombra esterna grigia morbida (profondità reale) */
     box-shadow: 
-        0 20px 40px rgba(189, 149, 63, 0.2), 
-        inset 0 0 15px rgba(255, 255, 255, 1) !important;
+        inset 0 1px 1px rgba(255, 255, 255, 1),
+        0 10px 30px rgba(189, 149, 63, 0.15),
+        0 30px 60px rgba(0, 0, 0, 0.05) !important;
     
-    border: 1px solid rgba(189, 149, 63, 0.4) !important;
+    border: 1px solid rgba(189, 149, 63, 0.3) !important;
 }
 
 [data-theme-gold="true"]:not([data-theme="dark"]) .glass-header {
