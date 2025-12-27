@@ -2436,12 +2436,19 @@ async function renderGlobalClassifica() {
     // 2. POI AGGIUNGIAMO IL TASTO DEBUG (Se tester)
     let debugHtml = "";
     if (state.currentPin === "1111") {
-        debugHtml = `
-            <div onclick="toggleDebugPerfect()" style="padding:15px; background:rgba(255,149,0,0.1); border-radius:14px; margin-bottom:15px; cursor:pointer; display:flex; align-items:center; gap:10px; border:1px dashed #ff9500;">
-                <span style="font-size:20px">⚡</span>
-                <span style="font-weight:bold; font-size:14px; color:#ff9500">MODALITÀ TESTER: TOGGLE PERFETTO</span>
-            </div>`;
-    }
+    // Rimuoviamo eventuali icone esistenti per non duplicarle
+    const oldIcon = document.getElementById('tester-debug-icon');
+    if (oldIcon) oldIcon.remove();
+
+    const debugIcon = document.createElement('div');
+    debugIcon.id = 'tester-debug-icon';
+    debugIcon.onclick = toggleDebugPerfect;
+    debugIcon.innerHTML = "⚡";
+    debugIcon.style = "position:absolute; left:20px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:20px; z-index:100;";
+    
+    // Lo appendiamo alla barra di navigazione (cerca il contenitore del titolo)
+    document.querySelector('.nav-bar')?.appendChild(debugIcon) || document.querySelector('.nav-header')?.appendChild(debugIcon);
+}
 
     container.innerHTML = debugHtml + `<div style="text-align:center; padding:20px">Caricamento classifica...</div>`;
 
@@ -2457,40 +2464,58 @@ async function renderGlobalClassifica() {
             
             if (doc.id === "1111" && state.currentPin !== "1111") return;
 
-            // Logica perfetto semplificata per evitare errori se manca totalLevels
+           // Logica Perfetto: se ha almeno 1 livello perfetto lo consideriamo tale
             const isUtentePerfetto = data.perfect > 0; 
-            const isMeAndPerfect = (doc.id === state.currentPin) && isUtentePerfetto;
+            const isMe = doc.id === state.currentPin;
+            const isMeAndPerfect = isMe && isUtentePerfetto;
+
             let crown = isUtentePerfetto ? "🏆" : "";
             
+            // Gestione medaglie
             let medal = "";
             if (rank === 1) medal = "🥇";
             else if (rank === 2) medal = "🥈";
             else if (rank === 3) medal = "🥉";
             else medal = `<span style="opacity:0.5; font-size:14px; width:20px; text-align:center; display:inline-block">${rank}</span>`;
 
+            // STILE CARD: Default Glass
             let cardStyle = `background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);`;
-            if (rank === 1) cardStyle = `background: rgba(255, 215, 0, 0.15); border: 1px solid #ffd700;`;
-            if (rank === 2) cardStyle = `background: rgba(192, 192, 192, 0.15); border: 1px solid #c0c0c0;`;
-            if (rank === 3) cardStyle = `background: rgba(205, 127, 50, 0.15); border: 1px solid #cd7f32;`;
-            
-            if (isMeAndPerfect) cardStyle += "border: 2px solid #ff9500; box-shadow: 0 0 15px rgba(255, 149, 0, 0.3);";
+            let textColor = "#ffffff";
+            let accentColor = "var(--accent)"; // Il tuo colore arancione standard
+
+            // TRASFORMAZIONE GOLD (Se sono io ed è attivo il Perfect)
+            if (isMeAndPerfect) {
+                cardStyle = `
+                    background: linear-gradient(135deg, rgba(255, 215, 0, 0.25) 0%, rgba(255, 149, 0, 0.15) 100%);
+                    border: 2px solid #ff9500;
+                    box-shadow: 0 0 20px rgba(255, 149, 0, 0.4);
+                    transform: scale(1.02);
+                `;
+                textColor = "#ff9500"; // Nome diventa oro/arancio
+                accentColor = "#ff9500";
+            } else {
+                // Stili per il podio normale
+                if (rank === 1) cardStyle = `background: rgba(255, 215, 0, 0.15); border: 1px solid #ffd700;`;
+                if (rank === 2) cardStyle = `background: rgba(192, 192, 192, 0.15); border: 1px solid #c0c0c0;`;
+                if (rank === 3) cardStyle = `background: rgba(205, 127, 50, 0.15); border: 1px solid #cd7f32;`;
+            }
 
             html += `
-            <div class="review-card" style="${cardStyle} margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center; padding: 15px; border-radius: 16px;">
+            <div class="review-card" style="${cardStyle} transition: all 0.3s ease; margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center; padding: 15px; border-radius: 16px;">
                 <div style="display:flex; align-items:center; gap:12px">
                     <span style="font-size:18px; min-width:25px; font-weight:800">${medal}</span>
                     <div>
-                        <div style="font-weight:700; font-size:15px; display:flex; align-items:center; gap:5px">
+                        <div style="font-weight:800; font-size:16px; color:${textColor}; display:flex; align-items:center; gap:5px">
                             ${data.name} ${crown}
                         </div>
-                        <div style="display:inline-block; margin-top:4px; padding: 2px 8px; background: rgba(255,255,255,0.1); border-radius: 20px; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px">
+                        <div style="display:inline-block; margin-top:4px; padding: 2px 8px; background: rgba(255,255,255,0.1); border-radius: 20px; font-size:10px; font-weight:700; text-transform:uppercase; color:${isMeAndPerfect ? '#ff9500' : 'rgba(255,255,255,0.6)'}">
                             ${data.perfect || 0} PERFETTI
                         </div>
                     </div>
                 </div>
                 <div style="text-align:right">
-                    <div style="font-weight:900; color:var(--accent); font-size:17px">${data.points || 0}</div>
-                    <div style="font-size:9px; opacity:0.6; font-weight:700">PUNTI</div>
+                    <div style="font-weight:900; color:${accentColor}; font-size:19px">${data.points || 0}</div>
+                    <div style="font-size:9px; opacity:0.7; font-weight:800; color:${textColor}">PUNTI</div>
                 </div>
             </div>`;
             rank++;
