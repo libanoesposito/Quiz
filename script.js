@@ -73,8 +73,9 @@ let state = {
     currentUser: null, 
     progress: {},    
     history: {},
-    ripasso: { wrong: [], notStudied: [] }, // Aggiungi questa
-    activeProgress: {}                      // Aggiungi questa
+    ripasso: { wrong: [], notStudied: [] }, 
+    activeProgress: {},                      
+    isPerfectGold: false
 };
 
 
@@ -182,7 +183,8 @@ window.onload = async () => {
 function initTheme() {
     const saved = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', saved);
-    const stats = calcStats();
+
+    // Usa la variabile che hai appena impostato in calcStats
     if (state.isPerfect) {
         document.documentElement.setAttribute('data-theme-gold', 'true');
     } else {
