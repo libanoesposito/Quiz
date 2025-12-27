@@ -2430,88 +2430,75 @@ async function renderGlobalClassifica() {
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = "TOP PLAYERS";
     
-    // 1. PRIMA DI TUTTO DEFINIAMO IL CONTAINER
+    // 1. DEFINIAMO IL CONTAINER
     const container = document.getElementById('content-area');
-    
-    // 2. POI AGGIUNGIAMO IL TASTO DEBUG (Se tester)
-    let debugHtml = "";
+    container.innerHTML = `<div style="text-align:center; padding:20px">Caricamento classifica...</div>`;
+
+    // 2. GESTIONE ICONA TESTER (Solo se PIN è 1111)
     if (state.currentPin === "1111") {
-    const oldIcon = document.getElementById('tester-debug-icon');
-    if (oldIcon) oldIcon.remove();
+        const oldIcon = document.getElementById('tester-debug-icon');
+        if (oldIcon) oldIcon.remove();
 
-    const debugIcon = document.createElement('div');
-    debugIcon.id = 'tester-debug-icon';
-    
-    // AGGIUNTA ASYNC QUI SOTTO
-    debugIcon.onclick = async () => { 
-        await toggleDebugPerfect(); 
-    };
-    
-    debugIcon.innerHTML = "⚡";
-    debugIcon.style.cssText = `
-        position: fixed; 
-        left: 15px; 
-        top: 15px; 
-        z-index: 9999; 
-        cursor: pointer; 
-        font-size: 24px; 
-        background: rgba(255, 149, 0, 0.2);
-        width: 44px;
-        height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        border: 2px solid #ff9500;
-        backdrop-filter: blur(5px);
-        box-shadow: 0 0 10px rgba(255, 149, 0, 0.3);
-    `;
-    
-    document.body.appendChild(debugIcon);
-}
-    const debugIcon = document.createElement('div');
-    debugIcon.id = 'tester-debug-icon';
-    debugIcon.onclick = toggleDebugPerfect;
-    debugIcon.innerHTML = "⚡";
-    debugIcon.style = "position:absolute; left:20px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:20px; z-index:100;";
-    
-    // Lo appendiamo alla barra di navigazione (cerca il contenitore del titolo)
-    document.querySelector('.nav-bar')?.appendChild(debugIcon) || document.querySelector('.nav-header')?.appendChild(debugIcon);
-
-    container.innerHTML = debugHtml + `<div style="text-align:center; padding:20px">Caricamento classifica...</div>`;
+        const debugIcon = document.createElement('div');
+        debugIcon.id = 'tester-debug-icon';
+        
+        // Funzione click corretta (Async)
+        debugIcon.onclick = async () => { 
+            await toggleDebugPerfect(); 
+        };
+        
+        debugIcon.innerHTML = "⚡";
+        debugIcon.style.cssText = `
+            position: fixed; 
+            left: 15px; 
+            top: 15px; 
+            z-index: 9999; 
+            cursor: pointer; 
+            font-size: 24px; 
+            background: rgba(255, 149, 0, 0.2);
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 2px solid #ff9500;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 10px rgba(255, 149, 0, 0.3);
+        `;
+        document.body.appendChild(debugIcon);
+    }
 
     try {
         const snapshot = await db.collection("classifica").orderBy("points", "desc").limit(20).get();
         
-        // Iniziamo a costruire la lista (aggiungendo il tasto debug in testa)
-        let html = debugHtml + `<div style="width:100%; display:flex; flex-direction:column; gap:10px">`;
+        let html = `<div style="width:100%; display:flex; flex-direction:column; gap:10px">`;
         
         let rank = 1;
         snapshot.forEach(doc => {
             const data = doc.data();
             
+            // Filtro tester: il PIN 1111 lo vede solo il tester stesso
             if (doc.id === "1111" && state.currentPin !== "1111") return;
 
-           // Logica Perfetto: se ha almeno 1 livello perfetto lo consideriamo tale
             const isUtentePerfetto = data.perfect > 0; 
             const isMe = doc.id === state.currentPin;
             const isMeAndPerfect = isMe && isUtentePerfetto;
 
             let crown = isUtentePerfetto ? "🏆" : "";
             
-            // Gestione medaglie
             let medal = "";
             if (rank === 1) medal = "🥇";
             else if (rank === 2) medal = "🥈";
             else if (rank === 3) medal = "🥉";
             else medal = `<span style="opacity:0.5; font-size:14px; width:20px; text-align:center; display:inline-block">${rank}</span>`;
 
-            // STILE CARD: Default Glass
+            // STILI
             let cardStyle = `background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);`;
             let textColor = "#ffffff";
-            let accentColor = "var(--accent)"; // Il tuo colore arancione standard
+            let accentColor = "var(--accent)"; 
 
-            // TRASFORMAZIONE GOLD (Se sono io ed è attivo il Perfect)
+            // TRASFORMAZIONE GOLD
             if (isMeAndPerfect) {
                 cardStyle = `
                     background: linear-gradient(135deg, rgba(255, 215, 0, 0.25) 0%, rgba(255, 149, 0, 0.15) 100%);
@@ -2519,10 +2506,9 @@ async function renderGlobalClassifica() {
                     box-shadow: 0 0 20px rgba(255, 149, 0, 0.4);
                     transform: scale(1.02);
                 `;
-                textColor = "#ff9500"; // Nome diventa oro/arancio
+                textColor = "#ff9500"; 
                 accentColor = "#ff9500";
             } else {
-                // Stili per il podio normale
                 if (rank === 1) cardStyle = `background: rgba(255, 215, 0, 0.15); border: 1px solid #ffd700;`;
                 if (rank === 2) cardStyle = `background: rgba(192, 192, 192, 0.15); border: 1px solid #c0c0c0;`;
                 if (rank === 3) cardStyle = `background: rgba(205, 127, 50, 0.15); border: 1px solid #cd7f32;`;
@@ -2550,11 +2536,11 @@ async function renderGlobalClassifica() {
         });
 
         html += `</div>`;
-        container.innerHTML = html; // Applichiamo tutto al DOM
+        container.innerHTML = html;
 
     } catch (e) {
         console.error("Errore classifica:", e);
-        container.innerHTML = `<div style="color:red; text-align:center; padding:20px">Errore nel caricamento della classifica globale.</div>`;
+        container.innerHTML = `<div style="color:red; text-align:center; padding:20px">Errore nel caricamento.</div>`;
     }
 }
 
