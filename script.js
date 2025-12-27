@@ -2477,7 +2477,6 @@ async function renderGlobalClassifica() {
     
     // Lo appendiamo alla barra di navigazione (cerca il contenitore del titolo)
     document.querySelector('.nav-bar')?.appendChild(debugIcon) || document.querySelector('.nav-header')?.appendChild(debugIcon);
-}
 
     container.innerHTML = debugHtml + `<div style="text-align:center; padding:20px">Caricamento classifica...</div>`;
 
