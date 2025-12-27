@@ -2588,7 +2588,7 @@ async function toggleDebugPerfect() {
             }, { merge: true });
             
             state.isPerfect = true; // AGGIORNAMENTO STATO LOCALE
-            localStorage.setItem('debugPerfect', 'false');
+            localStorage.setItem('debugPerfect', 'true');
             alert("Modalità Perfetta ATTIVATA");
         }
 
