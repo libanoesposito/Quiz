@@ -569,9 +569,12 @@ input:focus, textarea:focus, select:focus, button:focus {
     margin: 8px auto !important;
     padding-top: 10px !important;    /* Più bassa */
     padding-bottom: 10px !important; /* Più bassa */
+    margin-left: auto !important;
+    margin-right: auto !important;
     border-radius: 15px !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-    opacity: 0.8;                   /* Le rende visivamente meno pesanti */
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2) !important;
+    opacity: 0.85;                   /* Le rende visivamente meno pesanti */
+    transform: none !important;
 }
 
 /* Vetro Argento */
