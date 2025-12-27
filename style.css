@@ -521,9 +521,12 @@ input:focus, textarea:focus, select:focus, button:focus {
     position: relative;
     overflow: hidden;
     box-shadow: 0 0 15px rgba(191, 149, 63, 0.3) !important;
-    transform: scale(1.02) !important;
+    width: 100% !important;        /* Prende tutta la larghezza disponibile */
+    padding-top: 35px !important;    /* Aumenta l'altezza verso l'alto */
+    padding-bottom: 35px !important; /* Aumenta l'altezza verso il basso */
+    margin: 20px 0 !important;       /* Distanzia dalle altre */
+    transform: none !important;
     margin-top: 20px !important;       /* Diamo spazio sopra per non farla toccare con le altre */
-    margin-bottom: 20px !important;    /* Diamo spazio sotto */
     z-index: 10 !important;
 }
 
@@ -563,10 +566,12 @@ input:focus, textarea:focus, select:focus, button:focus {
 /* Rimpiccioliamo il 2° e 3° posto per dare importanza al 1° */
 .review-card.is-silver, 
 .review-card.is-bronze {
-    transform: scale(0.92) !important; /* Più piccole */
-    opacity: 0.85; /* Leggermente meno luminose */
-    margin-top: -5px !important; /* Le avviciniamo per compattare la vista */
-    margin-bottom: -5px !important;
+    width: 90% !important;          /* Più stretta del primato */
+    margin-left: auto !important;    /* Centra la card più stretta */
+    margin-right: auto !important;   /* Centra la card più stretta */
+    padding-top: 10px !important;    /* Più bassa */
+    padding-bottom: 10px !important; /* Più bassa */
+    opacity: 0.8;                   /* Le rende visivamente meno pesanti */
 }
 
 /* Vetro Argento */
