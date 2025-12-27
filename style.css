@@ -419,7 +419,48 @@ input:focus, textarea:focus, select:focus, button:focus {
     }
 }
 
+/* STILE UTENTE PERFETTO - ORO E NERO */
+.review-card.is-perfect-gold {
+    background: linear-gradient(135deg, #000 0%, #1a1a1a 100%) !important;
+    border: 1px solid #bf953f !important;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(191, 149, 63, 0.3) !important;
+    transform: scale(1.02);
+}
 
+/* Riflesso dorato che scorre */
+.review-card.is-perfect-gold::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        to bottom right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0) 40%,
+        rgba(255, 215, 0, 0.1) 50%,
+        rgba(255, 255, 255, 0) 60%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(45deg);
+    animation: shimmer Gold 4s infinite;
+}
+
+@keyframes shimmerGold {
+    0% { transform: translateX(-150%) rotate(45deg); }
+    100% { transform: translateX(150%) rotate(45deg); }
+}
+
+/* Colori testi per la card oro */
+.is-perfect-gold .gold-text {
+    background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+}
 
 /* Colori Prism per VS Code Dark+ */
 .token.keyword { color: #569cd6 !important; }
