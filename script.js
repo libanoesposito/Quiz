@@ -2436,17 +2436,18 @@ async function renderGlobalClassifica() {
     // 2. POI AGGIUNGIAMO IL TASTO DEBUG (Se tester)
     let debugHtml = "";
     if (state.currentPin === "1111") {
-    // Rimuoviamo eventuali icone esistenti per non duplicarle
     const oldIcon = document.getElementById('tester-debug-icon');
     if (oldIcon) oldIcon.remove();
-      const debugIcon = document.createElement('div');
+
+    const debugIcon = document.createElement('div');
     debugIcon.id = 'tester-debug-icon';
+    
+    // AGGIUNTA ASYNC QUI SOTTO
     debugIcon.onclick = async () => { 
         await toggleDebugPerfect(); 
     };
-    debugIcon.innerHTML = "⚡";
     
-    // 3. Stile forzato: lo mettiamo fisso in alto a sinistra
+    debugIcon.innerHTML = "⚡";
     debugIcon.style.cssText = `
         position: fixed; 
         left: 15px; 
@@ -2455,20 +2456,19 @@ async function renderGlobalClassifica() {
         cursor: pointer; 
         font-size: 24px; 
         background: rgba(255, 149, 0, 0.2);
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
         display: flex;
         align-items: center;
         justify-content: center;
         border-radius: 50%;
-        border: 1px solid #ff9500;
+        border: 2px solid #ff9500;
         backdrop-filter: blur(5px);
+        box-shadow: 0 0 10px rgba(255, 149, 0, 0.3);
     `;
     
-    // 4. Lo aggiungiamo al body così non dipende dalla testata
     document.body.appendChild(debugIcon);
 }
-
     const debugIcon = document.createElement('div');
     debugIcon.id = 'tester-debug-icon';
     debugIcon.onclick = toggleDebugPerfect;
