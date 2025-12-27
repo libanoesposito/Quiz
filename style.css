@@ -521,12 +521,7 @@ input:focus, textarea:focus, select:focus, button:focus {
     position: relative;
     overflow: hidden;
     box-shadow: 0 0 15px rgba(191, 149, 63, 0.3) !important;
-    width: 100% !important;        /* Prende tutta la larghezza disponibile */
-    padding-top: 35px !important;    /* Aumenta l'altezza verso l'alto */
-    padding-bottom: 35px !important; /* Aumenta l'altezza verso il basso */
-    margin: 20px 0 !important;       /* Distanzia dalle altre */
     transform: scale(1.02) !important;
-    margin-top: 20px !important;       /* Diamo spazio sopra per non farla toccare con le altre */
     z-index: 10 !important;
 }
 
