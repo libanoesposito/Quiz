@@ -16,8 +16,16 @@
     --border: rgba(255, 255, 255, 0.1); 
 }
 
-
 [data-theme-gold="true"] .glass-card, 
+[data-theme-gold="true"] .glass-header {
+    background: linear-gradient(to bottom, var(--bg) 0%, rgba(179, 135, 40, 0.15) 100%) !important;
+    border-bottom: 1px solid transparent !important;
+    border-image: linear-gradient(to right, transparent, var(--gold-border), transparent) 1 !important;
+    /* Questo è il bagliore che ora avrai sia in Light che in Dark */
+    box-shadow: 0 15px 35px rgba(189, 149, 63, 0.25) !important;
+}
+
+/*[data-theme-gold="true"] .glass-card, 
 [data-theme-gold="true"] .glass-header {
     background: linear-gradient(to bottom, var(--bg) 0%, rgba(179, 135, 40, 0.15) 100%) !important;
     
@@ -25,7 +33,7 @@
     border-image: linear-gradient(to right, transparent, var(--gold-border), transparent) 1 !important;
     
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
-}
+}*/
 
 [data-theme-gold="true"]:not([data-theme="dark"]) .glass-card, 
 [data-theme-gold="true"]:not([data-theme="dark"]) .glass-header {
@@ -86,11 +94,17 @@
 
 [data-theme-gold="true"] .lang-item:not(.profile-slot), 
 [data-theme-gold="true"] .security-box {
-    background: rgba(255, 255, 255, 0.05) !important; /* Trasparenza per vedere la card sotto */
+    background: rgba(255, 255, 255, 0.05) !important;
     backdrop-filter: blur(10px) !important;
     -webkit-backdrop-filter: blur(10px) !important;
-    border: 0.5px solid rgba(252, 246, 186, 0.2) !important; /* Filo d'oro sottile */
-    box-shadow: none !important; /* Pulizia per non appesantire il layer */
+    /* Aggiungiamo il bordo oro e un piccolo bagliore interno */
+    border: 1px solid rgba(189, 149, 63, 0.3) !important;
+    box-shadow: 0 4px 15px rgba(189, 149, 63, 0.15) !important;
+}
+[data-theme-gold="true"]:not([data-theme="dark"]) .lang-item:not(.profile-slot), 
+[data-theme-gold="true"]:not([data-theme="dark"]) .security-box {
+    background: rgba(255, 255, 255, 0.7) !important; /* Più visibile sul bianco */
+    border: 1px solid rgba(189, 149, 63, 0.5) !important; /* Bordo più marcato */
 }
 
 [data-theme-gold="true"] #tester-debug-icon {
@@ -125,6 +139,12 @@ body {
     top: 0;
     left: 0;
     transition: background 0.5s ease; 
+}
+
+[data-theme-gold="true"]:not([data-theme="dark"]) .lang-item:not(.profile-slot) {
+    background: rgba(255, 255, 255, 0.5) !important; /* Più solido */
+    border: 1px solid var(--gold-border) !important; /* Bordo oro netto */
+    box-shadow: 0 4px 12px rgba(189, 149, 63, 0.1) !important; /* Mini bagliore */
 }
 
 
