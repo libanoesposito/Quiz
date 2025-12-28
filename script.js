@@ -224,6 +224,9 @@ if (state.currentPin === testerUser.pin) {
     if (testerGold) {
         document.body.classList.add('gold-theme');
         document.documentElement.setAttribute('data-theme-gold', 'true');
+        if (state.isPerfect && state.currentPin !== testerUser.pin) {
+    db.collection('utenti').doc(state.currentPin).set({ goldMode: true }, { merge: true });
+}
     } else {
         document.body.classList.remove('gold-theme');
         document.documentElement.removeAttribute('data-theme-gold');
