@@ -892,9 +892,16 @@ function startStep(lang, lvl) {
         });
         let savedIdx = 0;
         if (state.mode === 'user') {
+            if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
+            dbUsers[state.currentPin].savedQuizzes[storageKey] = selezione;
+        }
+    } // <--- CHIUDE L'ELSE
+
+    let savedIdx = 0;
+    if (state.mode === 'user') {
         savedIdx = dbUsers[state.currentPin].activeProgress?.[storageKey] || 0;
     }
-        }
+
     session = { lang: lang, lvl: lvl, q: selezione, idx: savedIdx };
     saveMasterDB();
     renderQ();
