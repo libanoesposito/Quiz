@@ -153,8 +153,13 @@ if (savedPin === testerUser.pin) {
         state.theme = 'gold';
         document.body.classList.add('gold-theme');
     } else {
-        initTheme(); // tema dark/light normale
-    }
+        state.theme = 'normal'; // oppure 'light'/'dark' se vuoi distinguere
+        initTheme();
+       }
+    }else if{
+    state.theme = 'normal'; // o 'light'/'dark' se vuoi distinguere
+    initTheme();
+}
 } else if (cloudUser.goldMode) {
     // Tema gold per utenti normali
     state.theme = 'gold';
@@ -310,7 +315,8 @@ function toggleTheme() {
     // Se l'utente è il tester, salva lo stato gold in locale
 if (state.currentPin === testerUser.pin) {
     const isGoldActive = document.body.classList.contains('gold-theme');
-    localStorage.setItem('testerGold', isGoldActive); // true/false
+    state.theme = isGoldActive ? 'gold' : 'normal'; // aggiorna memoria
+    localStorage.setItem('testerGold', isGoldActive); // salva stato
 }
 }
 
