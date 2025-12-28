@@ -62,6 +62,22 @@
     --accent: var(--gold-border) !important;
 }
 
+[data-theme-gold="true"]:not([data-theme="dark"]) .review-card.is-perfect-gold {
+    background: linear-gradient(135deg, #ffffff 0%, #fff9e6 100%) !important;
+    box-shadow: 0 10px 40px rgba(189, 149, 63, 0.3) !important;
+    border: 2px solid #bf953f !important;
+}
+
+/* Adattamento riflesso shimmer per fondo chiaro */
+[data-theme-gold="true"]:not([data-theme="dark"]) .review-card.is-perfect-gold::after {
+    background: linear-gradient(
+        to bottom right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 215, 0, 0.2) 50%,
+        rgba(255, 255, 255, 0) 100%
+    ) !important;
+}
+
 [data-theme="dark"][data-theme-gold="true"] {
     /* Non serve forzare --bg: #000 qui se lo abbiamo già nel tema dark standard, 
        ma specifichiamo bene le card */
@@ -164,12 +180,6 @@ body {
     top: 0;
     left: 0;
     transition: background 0.5s ease; 
-}
-
-[data-theme-gold="true"]:not([data-theme="dark"]) .lang-item:not(.profile-slot) {
-    background: rgba(255, 255, 255, 0.5) !important; /* Più solido */
-    border: 1px solid var(--gold-border) !important; /* Bordo oro netto */
-    box-shadow: 0 4px 12px rgba(189, 149, 63, 0.1) !important; /* Mini bagliore */
 }
 
 
