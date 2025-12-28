@@ -213,7 +213,7 @@ function initTheme() {
     // 1. Gestione Light/Dark standard
     const saved = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', saved);
-    if (!state.currentPin || state.currentPin.trim() === "") {
+   /* if (!state.currentPin || state.currentPin.trim() === "") {
         console.warn("initTheme: PIN non ancora disponibile, salto la chiamata cloud.");
         return; 
     }
@@ -228,7 +228,15 @@ function initTheme() {
             document.documentElement.setAttribute('data-theme-gold', 'true');
         }
     });
-}
+}*/
+  if (state.currentPin && state.currentPin.trim() !== "" && state.currentPin !== testerUser.pin) {
+        db.collection('utenti').doc(state.currentPin).get().then(doc => {
+            if (doc.exists && doc.data().goldMode) {
+                document.body.classList.add('gold-theme');
+                document.documentElement.setAttribute('data-theme-gold', 'true');
+            }
+        });
+    }
     // 2. Controllo Gold per utenti perfetti
     const stats = calcStats(); 
     if (state.isPerfect) {
