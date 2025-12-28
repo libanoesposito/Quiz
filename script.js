@@ -795,57 +795,63 @@ function showLevels(lang) {
     const comp = state.progress[lang] || 0;
 
     for (let i = 1; i <= 5; i++) {
-        let label = (i === 5) ? "TEST OPERATIVO" : "Livello " + i;
-        let isLocked = false;
+    let label = (i === 5) ? "TEST OPERATIVO" : "Livello " + i;
+    let isLocked = false;
 
-        if (state.mode === 'user') {
-            if (i >= 4 && comp < 3 && state.currentPin !== "1111") isLocked = true;
-        }
-        if (state.mode === 'admin' || state.mode === 'guest') isLocked = false;
-        let totalExist = 0;
-        let userCorrectUniques = 0;
-        if (domandaRepo[lang] && domandaRepo[lang]["L" + i]) {
-            totalExist = domandaRepo[lang]["L" + i].length;
-            const historyLivello = state.history ? state.history[`${lang}_${i}`] || [] : [];
-            const uniqueCorrect = new Set(historyLivello.filter(h => h.ok).map(h => h.q));
-            userCorrectUniques = uniqueCorrect.size;
-        }
+    // 1. LOGICA BLOCCO (Tua originale)
+    if (state.mode === 'user') {
+        if (i >= 4 && comp < 3 && state.currentPin !== "1111") isLocked = true;
+    }
+    if (state.mode === 'admin' || state.mode === 'guest') isLocked = false;
 
-        // 2. DETERMINA STATO BARRA (Verde vs Oro)
-        let isGoldPhase = userCorrectUniques > 15 || comp >= i;
-        let displayTotal = isGoldPhase ? totalExist : 15;
-        let displayCurrent = userCorrectUniques; 
-        
-        // Se non è ancora in Gold Phase, il limite visivo è 15
-        if (!isGoldPhase && displayCurrent > 15) displayCurrent = 15;
-        
-        const percentage = (displayCurrent / displayTotal) * 100;
-        // Il pezzetto verde occupa sempre una porzione fissa se siamo in Gold Phase
-        const greenSplit = isGoldPhase ? (15 / totalExist) * 100 : percentage;
-        const goldSplit = isGoldPhase ? percentage - greenSplit : 0;
+    // 2. LOGICA PROGRESSO ATTUALE (Tua originale che gestisce i quiz a metà)
+    let currentIdx = 0;
+    if (state.mode === 'user' && dbUsers[state.currentPin]?.activeProgress) {
+        currentIdx = dbUsers[state.currentPin].activeProgress[`${lang}_${i}`] || 0;
+    }
+    if (comp >= i) currentIdx = 15;
 
-        html += `
-            <button class="btn-apple"
-                ${isLocked ? 'disabled' : ''}
-                onclick="startStep('${lang}', ${i})"
-                style="display:block; text-align:left; padding:15px; position:relative">
+    // 3. LOGICA ORO (Nuova espansione)
+    let totalExist = 0;
+    let userCorrectUniques = 0;
+    if (domandaRepo[lang] && domandaRepo[lang]["L" + i]) {
+        totalExist = domandaRepo[lang]["L" + i].length;
+        const historyLivello = state.history ? state.history[`${lang}_${i}`] || [] : [];
+        const uniqueCorrect = new Set(historyLivello.filter(h => h.ok).map(h => h.q));
+        userCorrectUniques = uniqueCorrect.size;
+    }
 
-                <div style="display:flex; justify-content:space-between; align-items:center; width:100%">
-                    <span>${label} ${isLocked ? '🔒' : ''}</span>
-                    ${(state.mode === 'user' && !isLocked)
-                        ? `<span style="font-size:11px; font-weight:bold; color:${isGoldPhase ? '#d4af37' : 'inherit'}">
-                            ${displayCurrent}/${displayTotal}
-                           </span>`
-                        : ''}
-                </div>
+    // Calcolo lunghezze barre
+    let isGoldPhase = comp >= i; // Entra in fase oro solo se il livello è già stato superato
+    let displayTotal = isGoldPhase ? totalExist : 15;
+    let displayCurrent = isGoldPhase ? Math.max(15, userCorrectUniques) : currentIdx;
+    
+    const percentage = (displayCurrent / displayTotal) * 100;
+    const greenSplit = isGoldPhase ? (15 / totalExist) * 100 : percentage;
+    const goldSplit = isGoldPhase ? percentage - greenSplit : 0;
 
+    html += `
+        <button class="btn-apple"
+            ${isLocked ? 'disabled' : ''}
+            onclick="startStep('${lang}', ${i})"
+            style="display:block; text-align:left; padding:15px; position:relative">
+
+            <div style="display:flex; justify-content:space-between; align-items:center; width:100%">
+                <span>${label} ${isLocked ? '🔒' : ''}</span>
                 ${(state.mode === 'user' && !isLocked)
-                    ? `<div class="progress-container" style="height:10px; background:rgba(0,0,0,0.1); border-radius:5px; display:flex; overflow:hidden; margin-top:10px">
-                           <div style="width:${greenSplit}%; background:#28a745; height:100%; transition:0.5s"></div>
-                           <div style="width:${goldSplit}%; background:linear-gradient(90deg, #ffd700, #ff8c00); height:100%; transition:0.5s"></div>
-                       </div>`
+                    ? `<span style="font-size:11px; font-weight:bold; color:${isGoldPhase ? '#d4af37' : 'inherit'}">
+                        ${displayCurrent}/${displayTotal}
+                       </span>`
                     : ''}
-            </button>`;
+            </div>
+
+            ${(state.mode === 'user' && !isLocked)
+                ? `<div class="progress-container" style="height:10px; background:rgba(0,0,0,0.1); border-radius:5px; display:flex; overflow:hidden; margin-top:10px">
+                       <div style="width:${greenSplit}%; background:#28a745; height:100%; transition:0.5s"></div>
+                       <div style="width:${goldSplit}%; background:linear-gradient(90deg, #ffd700, #ff8c00); height:100%; transition:0.5s"></div>
+                   </div>`
+                : ''}
+        </button>`;
     }
 
     document.getElementById('content-area').innerHTML = html;
