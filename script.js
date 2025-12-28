@@ -271,6 +271,7 @@ if (state.currentPin === testerUser.pin) {
     document.body.classList.remove('gold-theme');
     document.documentElement.removeAttribute('data-theme-gold');
     }
+}
 
 
 function toggleTheme() {
