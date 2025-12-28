@@ -829,29 +829,26 @@ function showLevels(lang) {
     const percentage = (displayCurrent / displayTotal) * 100;
     const greenSplit = isGoldPhase ? (15 / totalExist) * 100 : percentage;
     const goldSplit = isGoldPhase ? percentage - greenSplit : 0;
+        html += `
+            <button class="btn-apple"
+                ${isLocked ? 'disabled' : ''}
+                onclick="startStep('${lang}', ${i})"
+                style="display:block; text-align:left; padding:15px">
 
-    html += `
-        <button class="btn-apple"
-            ${isLocked ? 'disabled' : ''}
-            onclick="startStep('${lang}', ${i})"
-            style="display:block; text-align:left; padding:15px; position:relative">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%">
+                    <span>${label} ${isLocked ? '🔒' : ''}</span>
+                    ${(state.mode === 'user' && !isLocked)
+                        ? `<span style="font-size:12px; opacity:0.6; ${isGoldPhase ? 'color:#d4af37; opacity:1;' : ''}">${displayCurrent}/${displayTotal}</span>`
+                        : ''}
+                </div>
 
-            <div style="display:flex; justify-content:space-between; align-items:center; width:100%">
-                <span>${label} ${isLocked ? '🔒' : ''}</span>
                 ${(state.mode === 'user' && !isLocked)
-                    ? `<span style="font-size:11px; font-weight:bold; color:${isGoldPhase ? '#d4af37' : 'inherit'}">
-                        ${displayCurrent}/${displayTotal}
-                       </span>`
+                    ? `<div class="progress-container" style="display:flex; overflow:hidden;">
+                           <div class="progress-bar-fill" style="width:${greenSplit}%; height:100%; border-radius:0;"></div>
+                           <div style="width:${goldSplit}%; background:linear-gradient(90deg, #ffd700, #ff8c00); height:100%; transition:0.5s"></div>
+                       </div>`
                     : ''}
-            </div>
-
-            ${(state.mode === 'user' && !isLocked)
-                ? `<div class="progress-container" style="height:10px; background:rgba(0,0,0,0.1); border-radius:5px; display:flex; overflow:hidden; margin-top:10px">
-                       <div style="width:${greenSplit}%; background:#28a745; height:100%; transition:0.5s"></div>
-                       <div style="width:${goldSplit}%; background:linear-gradient(90deg, #ffd700, #ff8c00); height:100%; transition:0.5s"></div>
-                   </div>`
-                : ''}
-        </button>`;
+            </button>`;
     }
 
     document.getElementById('content-area').innerHTML = html;
