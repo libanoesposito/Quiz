@@ -149,20 +149,18 @@ window.onload = async () => {
                 // Gestione tema: tester o utente normale
                 if (savedPin === testerUser.pin) {
                     // Se gold salvato in locale, applica gold
-                    const testerGold = localStorage.getItem('testerGold') === 'true';
-                    if (testerGold) {
-                        state.theme = 'gold';
-                        document.body.classList.add('gold-theme');
-                    } else if (cloudUser.goldMode) {
-                        // Se gold attivo sul cloud, applica gold
-                        state.theme = 'gold';
-                        document.body.classList.add('gold-theme');
-                        localStorage.setItem('testerGold', true);
-                    } else {
-                        // Tema normale dark/light
-                        state.theme = 'normal';
-                        initTheme();
-                    }
+                    const doc = await db.collection('utenti').doc(savedPin).get();
+const cloudUser = doc.data();
+
+// Gold tester da cloud
+const testerGold = cloudUser.testerGold === true;
+if (testerGold) {
+    state.theme = 'gold';
+    document.body.classList.add('gold-theme');
+} else {
+    state.theme = 'normal';
+    initTheme();
+}
                 } else if (cloudUser.goldMode) {
                     // Tema gold per utenti normali
                     state.theme = 'gold';
@@ -274,6 +272,9 @@ if (state.currentPin === testerUser.pin) {
     const isGoldActive = document.body.classList.contains('gold-theme');
     state.theme = isGoldActive ? 'gold' : 'normal'; // aggiorna memoria
     localStorage.setItem('testerGold', isGoldActive); // salva stato
+    
+    // Salva anche su Firebase
+    db.collection('utenti').doc(state.currentPin).set({ testerGold: isGoldActive }, { merge: true });
 }
 }
 
