@@ -106,19 +106,20 @@ if (!dbUsers[TESTER_PIN]) {
 
 
 window.onload = async () => {
-    // Applica subito il tema dark/light del device o quello salvato in locale
     initTheme();
 
     const savedPinRaw = localStorage.getItem('sessionPin');
-    const savedPin = savedPinRaw ? savedPinRaw.trim() : null;
+    
+    // Pulizia estrema del valore recuperato
+    const savedPin = (savedPinRaw && typeof savedPinRaw === 'string') ? savedPinRaw.trim() : "";
 
-    // Se non c'è un PIN salvato, vai subito al login
-    if (!savedPin || savedPin.length === 0) {
-    console.warn("Path vuoto intercettato, redirect al login", savedPin);
-    localStorage.removeItem('sessionPin');
-    renderLogin();
-    return;
-}
+    // Se il PIN è nullo, vuoto o solo spazi, abortiamo subito verso il login
+    if (!savedPin || savedPin === "" || savedPin === "null" || savedPin === "undefined") {
+        console.warn("Path non valido intercettato, redirect al login");
+        localStorage.removeItem('sessionPin');
+        renderLogin();
+        return;
+    }
 
 
     try {
