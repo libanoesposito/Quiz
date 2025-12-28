@@ -863,17 +863,37 @@ function startStep(lang, lvl) {
     if (state.mode === 'user' && dbUsers[state.currentPin].savedQuizzes?.[storageKey]) {
         selezione = dbUsers[state.currentPin].savedQuizzes[storageKey];
     } else {
+        // --- INIZIO SOSTITUZIONE ---
         const rimescolate = [...stringhe].sort(() => 0.5 - Math.random());
         selezione = rimescolate.slice(0, 15).map(r => {
             const p = r.split("|");
-            return { q: p[0], options: [p[1], p[2], p[3]], correct: parseInt(p[4]), exp: p[5] };
-        });
-        if (state.mode === 'user') {
-            if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
-            dbUsers[state.currentPin].savedQuizzes[storageKey] = selezione;
-        }
-    }
+            const domandaTesto = p[0];
+            const spiegazione = p[5];
+            
+            // Creiamo un array di oggetti per le opzioni
+            // p[1] è sempre la corretta nel tuo database, quindi le diamo id: 0
+            let opzioniPerPartita = [
+                { testo: p[1], id: 0 }, 
+                { testo: p[2], id: 1 },
+                { testo: p[3], id: 2 }
+            ];
 
+            // Mescoliamo le opzioni solo per questa visualizzazione
+            opzioniPerPartita.sort(() => 0.5 - Math.random());
+
+            // Troviamo dove è finita la corretta (quella con id: 0)
+            const nuovoIndiceCorretto = opzioniPerPartita.findIndex(opt => opt.id === 0);
+
+            return { 
+                q: domandaTesto, 
+                options: opzioniPerPartita.map(o => o.testo), 
+                correct: nuovoIndiceCorretto, 
+                exp: spiegazione 
+            };
+        });
+        // --- FINE SOSTITUZIONE ---
+
+        if (state.mode === 'user') {
     let savedIdx = 0;
     if (state.mode === 'user') {
         savedIdx = dbUsers[state.currentPin].activeProgress?.[storageKey] || 0;
