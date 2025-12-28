@@ -106,6 +106,7 @@ if (!dbUsers[TESTER_PIN]) {
 
 
 window.onload = async () => {
+    initTheme();
     const savedPin = localStorage.getItem('sessionPin');
     
     // Se non c'è un PIN salvato, vai subito al login
@@ -144,11 +145,22 @@ window.onload = async () => {
                 state.activeProgress = cloudUser.activeProgress || {};
                 // Se l'utente ha modalità gold attiva, applica subito il tema
                 // Tema: gold se attivo, altrimenti dark/light del dispositivo o localStorage
-if (cloudUser.goldMode) {
+// Gestione tema: tester o utente normale
+if (savedPin === testerUser.pin) {
+    // Controlla gold del tester in locale
+    const testerGold = localStorage.getItem('testerGold') === 'true';
+    if (testerGold) {
+        state.theme = 'gold';
+        document.body.classList.add('gold-theme');
+    } else {
+        initTheme(); // tema dark/light normale
+    }
+} else if (cloudUser.goldMode) {
+    // Tema gold per utenti normali
     state.theme = 'gold';
     document.body.classList.add('gold-theme');
 } else {
-    // Assicura che il tema dark/light o locale venga applicato
+    // Tema normale per gli altri
     initTheme();
 }
             }
