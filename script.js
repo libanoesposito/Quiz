@@ -307,6 +307,11 @@ function toggleTheme() {
         // Icona LUNA (quella che avevi nel file HTML)
         icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
     }
+    // Se l'utente è il tester, salva lo stato gold in locale
+if (state.currentPin === testerUser.pin) {
+    const isGoldActive = document.body.classList.contains('gold-theme');
+    localStorage.setItem('testerGold', isGoldActive); // true/false
+}
 }
 
 function updateNav(showBack, backTarget) {
