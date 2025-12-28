@@ -862,32 +862,32 @@ function startStep(lang, lvl) {
     if (state.mode === 'user' && dbUsers[state.currentPin].savedQuizzes?.[storageKey]) {
         selezione = dbUsers[state.currentPin].savedQuizzes[storageKey];
     } else {
-        // --- INIZIO SOSTITUZIONE ---
-        const rimescolate = [...stringhe].sort(() => 0.5 - Math.random());
+        // 1. Identifichiamo le domande già indovinate per non ripeterle nella fase Oro
+        const historyLivello = state.history ? state.history[`${lang}_${lvl}`] || [] : [];
+        const giaIndovinate = new Set(historyLivello.filter(h => h.ok).map(h => h.q));
+
+        // 2. Filtriamo il database: se il livello è già superato, prendiamo solo le "nuove"
+        const comp = state.progress[lang] || 0;
+        let sorgente = [...stringhe];
+        if (comp >= lvl) {
+            const rimanenti = stringhe.filter(s => !giaIndovinate.has(s.split("|")[0]));
+            if (rimanenti.length > 0) sorgente = rimanenti;
+        }
+
+        // 3. Mescoliamo e creiamo la selezione (massimo 15)
+        const rimescolate = sorgente.sort(() => 0.5 - Math.random());
         selezione = rimescolate.slice(0, 15).map(r => {
             const p = r.split("|");
-            const domandaTesto = p[0];
-            const spiegazione = p[5];
             
-            // Creiamo un array di oggetti per le opzioni
-            // p[1] è sempre la corretta nel tuo database, quindi le diamo id: 0
-            let opzioniPerPartita = [
-                { testo: p[1], id: 0 }, 
-                { testo: p[2], id: 1 },
-                { testo: p[3], id: 2 }
-            ];
-
-            // Mescoliamo le opzioni solo per questa visualizzazione
-            opzioniPerPartita.sort(() => 0.5 - Math.random());
-
-            // Troviamo dove è finita la corretta (quella con id: 0)
-            const nuovoIndiceCorretto = opzioniPerPartita.findIndex(opt => opt.id === 0);
-
+            // Mescolamento opzioni (già risolto)
+            let opts = [{ t: p[1], id: 0 }, { t: p[2], id: 1 }, { t: p[3], id: 2 }];
+            opts.sort(() => 0.5 - Math.random());
+            
             return { 
-                q: domandaTesto, 
-                options: opzioniPerPartita.map(o => o.testo), 
-                correct: nuovoIndiceCorretto, 
-                exp: spiegazione 
+                q: p[0], 
+                options: opts.map(o => o.t), 
+                correct: opts.findIndex(o => o.id === 0), 
+                exp: p[5] 
             };
         });
         // --- FINE SOSTITUZIONE ---
