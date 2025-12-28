@@ -148,20 +148,35 @@ window.onload = async () => {
             
             // 3. RIPRISTINO POSIZIONE (tua logica originale)
             const lastSection = localStorage.getItem('currentSection');
-            const lastLang = localStorage.getItem('currentLang');
+const lastLang = localStorage.getItem('currentLang');
 
-            if (lastSection === 'profile') {
-                renderProfile();
-            } else if (lastSection === 'ripasso') {
-                renderRipasso();
-            } else if (lastSection === 'levels' && lastLang) {
-                showLevels(lastLang);
-            } else if (lastSection === 'admin') {
-                renderAdminPanel();
-            } else if (lastSection === 'classifica') {
-                renderGlobalClassifica();
-            } else {
-                showHome();
+if (lastSection === 'profile') {
+    renderProfile();
+    return;
+}
+
+if (lastSection === 'ripasso') {
+    renderRipasso();
+    return;
+}
+
+if (lastSection === 'levels' && lastLang) {
+    showLevels(lastLang);
+    return;
+}
+
+if (lastSection === 'admin') {
+    renderAdminPanel();
+    return;
+}
+
+if (lastSection === 'classifica') {
+    renderGlobalClassifica();
+    return;
+}
+
+// solo se NON esiste nulla da ripristinare
+showHome();
             }
         } else {
             // Se il PIN è nel localStorage ma non esiste su Firebase (es. database resettato)
