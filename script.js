@@ -196,15 +196,15 @@ showHome();
 };
 
 // Funzione autonoma per gestire il tasto indietro della SPA
-function handleBackButtonInApp() {
-  // Aggiunge uno stato iniziale nella cronologia per intercettare popstate
+// Gestione tasto indietro del browser nella SPA
+function handleBackButtonSPA() {
+  // Stato iniziale nella cronologia
   history.replaceState({ view: localStorage.getItem('currentSection') || 'home' }, '', window.location.href);
 
   // Listener per il tasto indietro
   window.addEventListener('popstate', (event) => {
     const lastView = event.state?.view || 'home';
 
-    // Ripristina la vista ricordata senza uscire dall'app
     switch (lastView) {
       case 'home':
         showHome();
@@ -235,13 +235,13 @@ function handleBackButtonInApp() {
         showHome();
     }
 
-    // Aggiorna lo stato nella cronologia così il back resta coerente
+    // Aggiorna la cronologia per mantenere il back coerente
     history.pushState({ view: lastView }, '', window.location.href);
   });
 }
 
-// Chiamare subito dopo aver caricato lo script
-handleBackButtonInApp();
+// Chiamare subito dopo averla definita
+handleBackButtonSPA();
 
 function initTheme() {
     if (state.currentPin === "1111") state.isPerfect = localStorage.getItem('debugPerfect') === 'true';
@@ -664,6 +664,8 @@ function setGuest() {
 }
 
 function showHome() {
+    localStorage.setItem('currentSection', 'home');
+    history.pushState({ view: 'home' }, '', window.location.href);
     renderTesterDebug(); // Fa apparire il fulmine se sei il tester
     calcStats(); // Aggiorna state.isPerfect basandosi sulla history attuale
     initTheme();
@@ -713,6 +715,8 @@ function showHome() {
 
 
 function showLevels(lang) {
+    localStorage.setItem('currentSection', 'levels');
+    history.pushState({ view: 'levels' }, '', `#levels-${lang}`);
     localStorage.setItem('currentSection', 'levels');
     localStorage.setItem('currentLang', lang);
 
@@ -774,6 +778,8 @@ function showLevels(lang) {
 }
 
 function startStep(lang, lvl) {
+    localStorage.setItem('currentSection', 'quiz');
+    history.pushState({ view: 'quiz' }, '', `#quiz-${lang}-${lvl}`);
     // Mostra sempre tasto esci
     updateNav(true, "showLevels('" + lang + "')");
 
@@ -1217,6 +1223,8 @@ function toggleSecurity(el) {
 
 function renderProfile() {
     localStorage.setItem('currentSection', 'profile');
+    history.pushState({ view: 'profile' }, '', window.location.href);
+    localStorage.setItem('currentSection', 'profile');
     if (!state.currentPin || !dbUsers[state.currentPin]) return;
 
     ensureUserId();
@@ -1488,6 +1496,8 @@ function toggleCard(el) {
 
 function renderRipasso() {
     localStorage.setItem('currentSection', 'ripasso');
+    history.pushState({ view: 'ripasso' }, '', window.location.href);
+    localStorage.setItem('currentSection', 'ripasso');
     if (state.mode !== 'user') return;
     const u = dbUsers[state.currentPin];
     if (!u) return;
@@ -1702,6 +1712,8 @@ function showGuestLocked() {
    ========================= */
 
 async function renderAdminPanel() {
+    localStorage.setItem('currentSection', 'admin');
+    history.pushState({ view: 'admin' }, '', window.location.href);
     localStorage.setItem('currentSection', 'admin');
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = "ADMIN";
@@ -2509,6 +2521,8 @@ function openModal(title, content, onConfirm) {
 }
 
 async function renderGlobalClassifica() {
+    localStorage.setItem('currentSection', 'classifica');
+    history.pushState({ view: 'classifica' }, '', window.location.href);
     localStorage.setItem('currentSection', 'classifica');
     updateNav(true, "showHome()");
     document.getElementById('app-title').innerText = "TOP PLAYERS";
