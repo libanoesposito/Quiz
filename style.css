@@ -176,6 +176,31 @@
     }
 }
 
+/* COERENZA TOTALE LIGHT GOLD: Livelli, Profilo e Box */
+[data-theme-gold="true"]:not([data-theme="dark"]) .lang-item, 
+[data-theme-gold="true"]:not([data-theme="dark"]) .security-box,
+[data-theme-gold="true"]:not([data-theme="dark"]) .review-card:not(.is-perfect-gold) {
+    /* Fondo bianco seta/avorio */
+    background: rgba(255, 255, 255, 0.9) !important;
+    
+    /* Bordo oro coerente */
+    border: 1px solid rgba(189, 149, 63, 0.3) !important;
+    
+    /* Glow delicato per togliere la piattezza desktop */
+    box-shadow: 0 4px 12px rgba(189, 149, 63, 0.1) !important;
+    
+    /* Colore testo antracite per eleganza */
+    color: #1d1d1f !important;
+}
+
+/* Effetto al passaggio del mouse per i livelli */
+[data-theme-gold="true"]:not([data-theme="dark"]) .lang-item:hover {
+    background: #ffffff !important;
+    border-color: rgba(189, 149, 63, 0.6) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(189, 149, 63, 0.15) !important;
+}
+
 body { 
     margin: 0; 
     font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
