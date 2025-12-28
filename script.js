@@ -896,7 +896,7 @@ function startStep(lang, lvl) {
         if (state.mode === 'user') {
         savedIdx = dbUsers[state.currentPin].activeProgress?.[storageKey] || 0;
     }
-]
+        }
     session = { lang: lang, lvl: lvl, q: selezione, idx: savedIdx };
     saveMasterDB();
     renderQ();
