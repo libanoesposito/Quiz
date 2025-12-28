@@ -795,7 +795,7 @@ function showLevels(lang) {
     const comp = state.progress[lang] || 0;
 
     for (let i = 1; i <= 5; i++) {
-let totalExist = 0;
+        let totalExist = 0;
         let userCorrectUniques = 0;
         if (domandaRepo[lang] && domandaRepo[lang]["L" + i]) {
             totalExist = domandaRepo[lang]["L" + i].length;
@@ -890,14 +890,13 @@ function startStep(lang, lvl) {
                 exp: p[5] 
             };
         });
-        // --- FINE SOSTITUZIONE ---
 
         if (state.mode === 'user') {
-    let savedIdx = 0;
-    if (state.mode === 'user') {
+        let savedIdx = 0;
+        if (state.mode === 'user') {
         savedIdx = dbUsers[state.currentPin].activeProgress?.[storageKey] || 0;
     }
-
+]
     session = { lang: lang, lvl: lvl, q: selezione, idx: savedIdx };
     saveMasterDB();
     renderQ();
