@@ -149,8 +149,6 @@ window.onload = async () => {
                 // Gestione tema: tester o utente normale
                 if (savedPin === testerUser.pin) {
                     // Se gold salvato in locale, applica gold
-                    const doc = await db.collection('utenti').doc(savedPin).get();
-const cloudUser = doc.data();
 
 // Gold tester da cloud
 const testerGold = cloudUser.testerGold === true;
