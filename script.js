@@ -656,6 +656,11 @@ function showHome() {
     history.pushState({ view: 'home' }, '', window.location.href);
     renderTesterDebug(); // Fa apparire il fulmine se sei il tester
     calcStats(); // Aggiorna state.isPerfect basandosi sulla history attuale
+    // Recupera stato gold dal Cloud per il tester/utente
+    if(state.currentPin === "1111") {
+        const doc = await db.collection("classifica").doc("1111").get();
+        state.isPerfect = doc.exists && doc.data().perfect >= 10;
+    }
     initTheme();
     localStorage.setItem('currentSection', 'home');
     updateNav(false);
