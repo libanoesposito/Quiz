@@ -113,11 +113,12 @@ window.onload = async () => {
     const savedPin = savedPinRaw ? savedPinRaw.trim() : null;
 
     // Se non c'è un PIN salvato, vai subito al login
-    if (!savedPin) {
+    if (!savedPin || savedPin.length === 0) {
+    console.warn("Path vuoto intercettato, redirect al login", savedPin);
     localStorage.removeItem('sessionPin');
     renderLogin();
     return;
-    }
+}
 
 
     try {
