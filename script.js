@@ -106,35 +106,29 @@ if (!dbUsers[TESTER_PIN]) {
 
 
 window.onload = async () => {
-    initTheme();
     const savedPin = localStorage.getItem('sessionPin');
-    
-    // Se non c'è un PIN salvato, vai subito al login
+
     if (!savedPin) {
         renderLogin();
         return;
     }
 
     try {
-        // 1. CHIAMATA AL CLOUD: Cerchiamo l'utente su Firebase
         const doc = await db.collection("utenti").doc(savedPin).get();
 
         if (doc.exists) {
             const cloudUser = doc.data();
 
-            // Se l'account è segnato come eliminato nel cloud, fermati
             if (cloudUser.deleted) {
                 localStorage.removeItem('sessionPin');
                 renderLogin();
                 return;
             }
 
-            // 2. SINCRONIZZAZIONE: Aggiorniamo dbUsers locale con i dati freschi dal cloud
             dbUsers[savedPin] = cloudUser;
-            
             state.currentPin = savedPin;
             state.currentUser = cloudUser.name;
-            
+
             if (savedPin === ADMIN_PIN) {
                 state.mode = 'admin';
             } else {
@@ -143,68 +137,60 @@ window.onload = async () => {
                 state.history = cloudUser.history || {};
                 state.ripasso = cloudUser.ripasso || { wrong: [], notStudied: [] };
                 state.activeProgress = cloudUser.activeProgress || {};
-                // Se l'utente ha modalità gold attiva, applica subito il tema
-                // Tema: gold se attivo, altrimenti dark/light del dispositivo o localStorage
-// Gestione tema: tester o utente normale
-if (savedPin === testerUser.pin) {
-    // Controlla gold del tester in locale
-    const testerGold = localStorage.getItem('testerGold') === 'true';
-    if (testerGold) {
-        state.theme = 'gold';
-        document.body.classList.add('gold-theme');
-    } else {
-        state.theme = 'normal'; // oppure 'light'/'dark'
-        initTheme(); // applica tema normale
-    }
-} else if (cloudUser.goldMode) {
-    // Tema gold per utenti normali
-    state.theme = 'gold';
-    document.body.classList.add('gold-theme');
-} else {
-    // Tema normale per gli altri
-    initTheme();
-}
-            
-            // 3. RIPRISTINO POSIZIONE (tua logica originale)
+
+                if (savedPin === testerUser.pin) {
+                    const testerGold = localStorage.getItem('testerGold') === 'true';
+                    if (testerGold) {
+                        state.theme = 'gold';
+                        document.body.classList.add('gold-theme');
+                    } else {
+                        state.theme = 'normal';
+                        initTheme();
+                    }
+                } else if (cloudUser.goldMode) {
+                    state.theme = 'gold';
+                    document.body.classList.add('gold-theme');
+                } else {
+                    initTheme();
+                }
+            }
+
             const lastSection = localStorage.getItem('currentSection');
-const lastLang = localStorage.getItem('currentLang');
+            const lastLang = localStorage.getItem('currentLang');
 
-if (lastSection === 'profile') {
-    renderProfile();
-    return;
-}
+            if (lastSection === 'profile') {
+                renderProfile();
+                return;
+            }
 
-if (lastSection === 'ripasso') {
-    renderRipasso();
-    return;
-}
+            if (lastSection === 'ripasso') {
+                renderRipasso();
+                return;
+            }
 
-if (lastSection === 'levels' && lastLang) {
-    showLevels(lastLang);
-    return;
-}
+            if (lastSection === 'levels' && lastLang) {
+                showLevels(lastLang);
+                return;
+            }
 
-if (lastSection === 'admin') {
-    renderAdminPanel();
-    return;
-}
+            if (lastSection === 'admin') {
+                renderAdminPanel();
+                return;
+            }
 
-if (lastSection === 'classifica') {
-    renderGlobalClassifica();
-    return;
-}
+            if (lastSection === 'classifica') {
+                renderGlobalClassifica();
+                return;
+            }
 
-// solo se NON esiste nulla da ripristinare
-showHome();
-            
+            showHome();
+
         } else {
-            // Se il PIN è nel localStorage ma non esiste su Firebase (es. database resettato)
             localStorage.removeItem('sessionPin');
             renderLogin();
         }
     } catch (error) {
         console.error("Errore critico durante il caricamento cloud:", error);
-        // In caso di errore di rete, proviamo comunque a caricare dai dati locali come backup
         if (dbUsers[savedPin]) {
             state.currentPin = savedPin;
             showHome();
