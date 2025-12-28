@@ -674,31 +674,6 @@ input:focus, textarea:focus, select:focus, button:focus {
     border: 1px solid rgba(205, 127, 50, 0.25) !important;
 }
 
-/* LIGHT GOLD: Card allungate dei livelli e Profilo */
-[data-theme-gold="true"]:not([data-theme="dark"]) .lang-item {
-    background: white !important;
-    border: 1px solid rgba(189, 149, 63, 0.3) !important;
-    box-shadow: 0 4px 15px rgba(189, 149, 63, 0.08) !important;
-    color: #1d1d1f !important;
-}
-
-/* Evita che il tasto "Il mio profilo" diventi bianco (deve restare oro pieno) */
-[data-theme-gold="true"]:not([data-theme="dark"]) .lang-item.profile-slot {
-    background: var(--gold-gradient) !important;
-    border: none !important;
-    color: #1d1d1f !important;
-}
-
-/* LIGHT GOLD: Barra di progresso nei livelli */
-[data-theme-gold="true"]:not([data-theme="dark"]) .progress-container {
-    background: rgba(189, 149, 63, 0.1) !important; /* Sfondo barra dorato scarico */
-    border: 0.5px solid rgba(189, 149, 63, 0.2) !important;
-}
-
-[data-theme-gold="true"]:not([data-theme="dark"]) .progress-bar-fill {
-    background: #bf953f !important; /* Riempimento oro invece di verde */
-    box-shadow: 0 0 8px rgba(189, 149, 63, 0.3);
-}
 
 /* Colori Prism per VS Code Dark+ */
 .token.keyword { color: #569cd6 !important; }
