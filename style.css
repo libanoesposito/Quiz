@@ -176,29 +176,30 @@
     }
 }
 
-/* COERENZA TOTALE LIGHT GOLD: Livelli, Profilo e Box */
-[data-theme-gold="true"]:not([data-theme="dark"]) .lang-item, 
-[data-theme-gold="true"]:not([data-theme="dark"]) .security-box,
-[data-theme-gold="true"]:not([data-theme="dark"]) .review-card:not(.is-perfect-gold) {
-    /* Fondo bianco seta/avorio */
-    background: rgba(255, 255, 255, 0.9) !important;
-    
-    /* Bordo oro coerente */
+/* LIGHT GOLD: Card allungate dei livelli e Profilo */
+[data-theme-gold="true"]:not([data-theme="dark"]) .lang-item {
+    background: white !important;
     border: 1px solid rgba(189, 149, 63, 0.3) !important;
-    
-    /* Glow delicato per togliere la piattezza desktop */
-    box-shadow: 0 4px 12px rgba(189, 149, 63, 0.1) !important;
-    
-    /* Colore testo antracite per eleganza */
+    box-shadow: 0 4px 15px rgba(189, 149, 63, 0.08) !important;
     color: #1d1d1f !important;
 }
 
-/* Effetto al passaggio del mouse per i livelli */
-[data-theme-gold="true"]:not([data-theme="dark"]) .lang-item:hover {
-    background: #ffffff !important;
-    border-color: rgba(189, 149, 63, 0.6) !important;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(189, 149, 63, 0.15) !important;
+/* Evita che il tasto "Il mio profilo" diventi bianco (deve restare oro pieno) */
+[data-theme-gold="true"]:not([data-theme="dark"]) .lang-item.profile-slot {
+    background: var(--gold-gradient) !important;
+    border: none !important;
+    color: #1d1d1f !important;
+}
+
+/* LIGHT GOLD: Barra di progresso nei livelli */
+[data-theme-gold="true"]:not([data-theme="dark"]) .progress-container {
+    background: rgba(189, 149, 63, 0.1) !important; /* Sfondo barra dorato scarico */
+    border: 0.5px solid rgba(189, 149, 63, 0.2) !important;
+}
+
+[data-theme-gold="true"]:not([data-theme="dark"]) .progress-bar-fill {
+    background: #bf953f !important; /* Riempimento oro invece di verde */
+    box-shadow: 0 0 8px rgba(189, 149, 63, 0.3);
 }
 
 body { 
