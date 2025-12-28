@@ -196,30 +196,34 @@
 }
 
 /*ULTIMO*/
-/* LIGHT GOLD: Interno pagina Profilo */
-[data-theme-gold="true"]:not([data-theme="dark"]) .security-box {
+/* LIGHT GOLD: Interno Profilo (I bottoni bianchi individuati) */
+[data-theme-gold="true"]:not([data-theme="dark"]) .btn-apple {
     background: #ffffff !important;
-    border: 1.5px solid rgba(189, 149, 63, 0.4) !important;
-    box-shadow: 0 4px 12px rgba(189, 149, 63, 0.08) !important;
-}
-
-/* Header della sezione sicurezza (titolo cliccabile) */
-[data-theme-gold="true"]:not([data-theme="dark"]) .security-header {
+    border: 1.5px solid rgba(189, 149, 63, 0.4) !important; /* Bordo oro */
+    box-shadow: 0 4px 12px rgba(189, 149, 63, 0.1) !important; /* Profondità */
     color: #1d1d1f !important;
-    font-weight: 700 !important;
+    margin-bottom: 12px !important;
 }
 
-/* Testi descrittivi all'interno dei box del profilo */
-[data-theme-gold="true"]:not([data-theme="dark"]) .security-content,
-[data-theme-gold="true"]:not([data-theme="dark"]) .security-content p,
-[data-theme-gold="true"]:not([data-theme="dark"]) .security-content span {
-    color: #3a3a3c !important; /* Un grigio molto scuro leggibile */
+/* Gestione speciale per il tasto "Elimina/Esci" nel profilo */
+[data-theme-gold="true"]:not([data-theme="dark"]) .btn-destruct {
+    background: rgba(255, 59, 48, 0.05) !important; /* Fondo rossiccio chiarissimo */
+    border: 1.5px solid rgba(255, 59, 48, 0.3) !important; /* Bordo rosso */
+    color: #ff3b30 !important; /* Testo rosso Apple */
 }
 
-/* Il tasto Logout o azioni distruttive nel profilo (manteniamo il rosso ma pulito) */
-[data-theme-gold="true"]:not([data-theme="dark"]) .logout-link {
-    color: #ff3b30 !important;
-    font-weight: 700 !important;
+/* Il popup di conferma (modal-content) che la console dava come trasparente */
+[data-theme-gold="true"]:not([data-theme="dark"]) .modal-content {
+    background: #ffffff !important;
+    border: 1px solid rgba(189, 149, 63, 0.3) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Forza tutti i testi dentro il profilo ad essere scuri e leggibili */
+[data-theme-gold="true"]:not([data-theme="dark"]) .btn-apple, 
+[data-theme-gold="true"]:not([data-theme="dark"]) .modal-content h3,
+[data-theme-gold="true"]:not([data-theme="dark"]) .modal-content p {
+    color: #1d1d1f !important;
 }
 
 body { 
