@@ -106,7 +106,6 @@ if (!dbUsers[TESTER_PIN]) {
 
 
 window.onload = async () => {
-    initTheme();
     const savedPin = localStorage.getItem('sessionPin');
     
     // Se non c'è un PIN salvato, vai subito al login
