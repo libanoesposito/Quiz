@@ -110,12 +110,13 @@ window.onload = async () => {
     initTheme();
 
     const savedPin = localStorage.getItem('sessionPin');
-    
+
     // Se non c'è un PIN salvato, vai subito al login
-    if (!savedPin) {
-        renderLogin();
-        return;
-    }
+    if (!savedPin || savedPin.trim() === '') {
+    localStorage.removeItem('sessionPin');
+    renderLogin();
+    return;
+}
 
     try {
         // 1. CHIAMATA AL CLOUD: Cerchiamo l'utente su Firebase
