@@ -109,16 +109,23 @@ window.onload = async () => {
     // Applica subito il tema dark/light del device o quello salvato in locale
     initTheme();
 
-    const savedPin = localStorage.getItem('sessionPin');
+    const savedPinRaw = localStorage.getItem('sessionPin');
+    const savedPin = savedPinRaw ? savedPinRaw.trim() : null;
 
     // Se non c'è un PIN salvato, vai subito al login
-    if (!savedPin || savedPin.trim() === '') {
+    if (!savedPin) {
     localStorage.removeItem('sessionPin');
     renderLogin();
     return;
-}
+    }
+
 
     try {
+        // 🔒 ULTIMA GUARDIA DI SICUREZZA
+        if (savedPin.length === 0) {
+        renderLogin();
+        return;
+        }
         // 1. CHIAMATA AL CLOUD: Cerchiamo l'utente su Firebase
         const doc = await db.collection("utenti").doc(savedPin).get();
 
@@ -151,15 +158,15 @@ window.onload = async () => {
                 if (savedPin === testerUser.pin) {
                     // Se gold salvato in locale, applica gold
 
-// Gold tester da cloud
-const testerGold = cloudUser.testerGold === true;
-if (testerGold) {
-    state.theme = 'gold';
-    document.body.classList.add('gold-theme');
-} else {
-    state.theme = 'normal';
-    initTheme();
-}
+                // Gold tester da cloud
+                const testerGold = cloudUser.testerGold === true;
+                if (testerGold) {
+                state.theme = 'gold';
+                document.body.classList.add('gold-theme');
+                } else {
+                state.theme = 'normal';
+                initTheme();
+                }
                 } else if (cloudUser.goldMode) {
                     // Tema gold per utenti normali
                     state.theme = 'gold';
