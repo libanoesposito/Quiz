@@ -651,7 +651,7 @@ function setGuest() {
     state.mode = 'guest'; state.progress = {}; state.history = {}; showHome(); 
 }
 
-function showHome() {
+async function showHome() {
     localStorage.setItem('currentSection', 'home');
     history.pushState({ view: 'home' }, '', window.location.href);
     renderTesterDebug(); // Fa apparire il fulmine se sei il tester
