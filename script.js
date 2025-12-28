@@ -890,8 +890,6 @@ function startStep(lang, lvl) {
                 exp: p[5] 
             };
         });
-
-        if (state.mode === 'user') {
         let savedIdx = 0;
         if (state.mode === 'user') {
         savedIdx = dbUsers[state.currentPin].activeProgress?.[storageKey] || 0;
