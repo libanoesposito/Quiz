@@ -143,12 +143,14 @@ window.onload = async () => {
                 state.ripasso = cloudUser.ripasso || { wrong: [], notStudied: [] };
                 state.activeProgress = cloudUser.activeProgress || {};
                 // Se l'utente ha modalità gold attiva, applica subito il tema
-                if (cloudUser.goldMode) {
-                   state.theme = 'gold';
-                   document.body.classList.add('gold-theme');
-                } else {
-                   initTheme();
-                }
+                // Tema: gold se attivo, altrimenti dark/light del dispositivo o localStorage
+if (cloudUser.goldMode) {
+    state.theme = 'gold';
+    document.body.classList.add('gold-theme');
+} else {
+    // Assicura che il tema dark/light o locale venga applicato
+    initTheme();
+}
             }
             
             // 3. RIPRISTINO POSIZIONE (tua logica originale)
