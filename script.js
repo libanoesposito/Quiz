@@ -2025,6 +2025,11 @@ if (attivi.length === 0) {
             </div>
             
             <div style="display:flex; gap:14px; align-items:center; color:currentColor">
+            <span style="cursor:pointer; color:#ff9500" title="Reset progressi" onclick="event.stopPropagation(); adminResetSingleUser(${u.id})">
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+             <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+              </svg>
+               </span>
                 <span style="cursor:pointer" title="Storico" onclick="event.stopPropagation(); showUserHistory(${u.id})">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.7"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                 </span>
