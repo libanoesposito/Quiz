@@ -106,29 +106,37 @@ if (!dbUsers[TESTER_PIN]) {
 
 
 window.onload = async () => {
-    const savedPin = localStorage.getItem('sessionPin');
+    // Applica subito il tema dark/light del device o quello salvato in locale
+    initTheme();
 
+    const savedPin = localStorage.getItem('sessionPin');
+    
+    // Se non c'è un PIN salvato, vai subito al login
     if (!savedPin) {
         renderLogin();
         return;
     }
 
     try {
+        // 1. CHIAMATA AL CLOUD: Cerchiamo l'utente su Firebase
         const doc = await db.collection("utenti").doc(savedPin).get();
 
         if (doc.exists) {
             const cloudUser = doc.data();
 
+            // Se l'account è segnato come eliminato nel cloud, fermati
             if (cloudUser.deleted) {
                 localStorage.removeItem('sessionPin');
                 renderLogin();
                 return;
             }
 
+            // 2. SINCRONIZZAZIONE: Aggiorniamo dbUsers locale con i dati freschi dal cloud
             dbUsers[savedPin] = cloudUser;
+            
             state.currentPin = savedPin;
             state.currentUser = cloudUser.name;
-
+            
             if (savedPin === ADMIN_PIN) {
                 state.mode = 'admin';
             } else {
@@ -138,59 +146,54 @@ window.onload = async () => {
                 state.ripasso = cloudUser.ripasso || { wrong: [], notStudied: [] };
                 state.activeProgress = cloudUser.activeProgress || {};
 
+                // Gestione tema: tester o utente normale
                 if (savedPin === testerUser.pin) {
+                    // Se gold salvato in locale, applica gold
                     const testerGold = localStorage.getItem('testerGold') === 'true';
                     if (testerGold) {
                         state.theme = 'gold';
                         document.body.classList.add('gold-theme');
+                    } else if (cloudUser.goldMode) {
+                        // Se gold attivo sul cloud, applica gold
+                        state.theme = 'gold';
+                        document.body.classList.add('gold-theme');
+                        localStorage.setItem('testerGold', true);
                     } else {
+                        // Tema normale dark/light
                         state.theme = 'normal';
                         initTheme();
                     }
                 } else if (cloudUser.goldMode) {
+                    // Tema gold per utenti normali
                     state.theme = 'gold';
                     document.body.classList.add('gold-theme');
                 } else {
+                    // Tema normale per gli altri
                     initTheme();
                 }
             }
 
+            // 3. RIPRISTINO POSIZIONE
             const lastSection = localStorage.getItem('currentSection');
             const lastLang = localStorage.getItem('currentLang');
 
-            if (lastSection === 'profile') {
-                renderProfile();
-                return;
-            }
+            if (lastSection === 'profile') { renderProfile(); return; }
+            if (lastSection === 'ripasso') { renderRipasso(); return; }
+            if (lastSection === 'levels' && lastLang) { showLevels(lastLang); return; }
+            if (lastSection === 'admin') { renderAdminPanel(); return; }
+            if (lastSection === 'classifica') { renderGlobalClassifica(); return; }
 
-            if (lastSection === 'ripasso') {
-                renderRipasso();
-                return;
-            }
-
-            if (lastSection === 'levels' && lastLang) {
-                showLevels(lastLang);
-                return;
-            }
-
-            if (lastSection === 'admin') {
-                renderAdminPanel();
-                return;
-            }
-
-            if (lastSection === 'classifica') {
-                renderGlobalClassifica();
-                return;
-            }
-
+            // Solo se NON esiste nulla da ripristinare
             showHome();
 
         } else {
+            // PIN nel localStorage ma non esiste su Firebase
             localStorage.removeItem('sessionPin');
             renderLogin();
         }
     } catch (error) {
         console.error("Errore critico durante il caricamento cloud:", error);
+        // In caso di errore di rete, proviamo comunque a caricare dai dati locali
         if (dbUsers[savedPin]) {
             state.currentPin = savedPin;
             showHome();
@@ -200,68 +203,31 @@ window.onload = async () => {
     }
 };
 
-// Funzione autonoma per gestire il tasto indietro della SPA
-// Gestione tasto indietro del browser nella SPA
-function handleBackButtonSPA() {
-  // Stato iniziale nella cronologia
-  history.replaceState({ view: localStorage.getItem('currentSection') || 'home' }, '', window.location.href);
-
-  // Listener per il tasto indietro
-  window.addEventListener('popstate', (event) => {
-    const lastView = event.state?.view || 'home';
-
-    switch (lastView) {
-      case 'home':
-        showHome();
-        break;
-      case 'levels':
-        const lang = localStorage.getItem('currentLang') || null;
-        showLevels(lang);
-        break;
-      case 'quiz':
-        const lvl = localStorage.getItem('quizLevel') || null;
-        const index = localStorage.getItem('quizIndex') || null;
-        startStep(localStorage.getItem('quizLang'), lvl);
-        if (index !== null) state.qIndex = index;
-        break;
-      case 'profile':
-        renderProfile();
-        break;
-      case 'ripasso':
-        renderRipasso();
-        break;
-      case 'admin':
-        renderAdminPanel();
-        break;
-      case 'classifica':
-        renderGlobalClassifica();
-        break;
-      default:
-        showHome();
-    }
-
-    // Aggiorna la cronologia per mantenere il back coerente
-    history.pushState({ view: lastView }, '', window.location.href);
-  });
-}
-
-// Chiamare subito dopo averla definita
-handleBackButtonSPA();
-
 function initTheme() {
-    if (state.currentPin === "1111") state.isPerfect = localStorage.getItem('debugPerfect') === 'true';
     // 1. Gestione Light/Dark standard
     const saved = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', saved);
 
-    // 2. Controllo Gold forzato
-    // Chiamiamo calcStats per essere sicuri che state.isPerfect sia aggiornato
+    // 2. Controllo Gold per utenti perfetti
     const stats = calcStats(); 
-    
     if (state.isPerfect) {
         document.documentElement.setAttribute('data-theme-gold', 'true');
+        document.body.classList.add('gold-theme');
     } else {
         document.documentElement.removeAttribute('data-theme-gold');
+        document.body.classList.remove('gold-theme');
+    }
+
+    // 3. Controllo Gold per il tester (1111)
+    if (state.currentPin === testerUser.pin) {
+        const testerGold = localStorage.getItem('testerGold') === 'true';
+        if (testerGold) {
+            document.body.classList.add('gold-theme');
+            document.documentElement.setAttribute('data-theme-gold', 'true');
+        } else {
+            document.body.classList.remove('gold-theme');
+            document.documentElement.removeAttribute('data-theme-gold');
+        }
     }
 }
 
