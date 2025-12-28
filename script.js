@@ -785,6 +785,79 @@ handleBackButtonSPA();
 function showLevels(lang) {
     localStorage.setItem('currentSection', 'levels');
     history.pushState({ view: 'levels' }, '', `#levels-${lang}`);
+    localStorage.setItem('currentLang', lang);
+
+    updateNav(true, "showHome()");
+    document.getElementById('app-title').innerText = lang;
+
+    let html = "";
+    const comp = state.progress[lang] || 0;
+
+    for (let i = 1; i <= 5; i++) {
+        let label = (i === 5) ? "TEST OPERATIVO" : "Livello " + i;
+        let isLocked = false;
+
+        // 1. LOGICA BLOCCO
+        if (state.mode === 'user') {
+            if (i >= 4 && comp < 3 && state.currentPin !== "1111") isLocked = true;
+        }
+        if (state.mode === 'admin' || state.mode === 'guest') isLocked = false;
+
+        // 2. RECUPERO PROGRESSI
+        let currentIdx = 0;
+        if (state.mode === 'user' && dbUsers[state.currentPin]?.activeProgress) {
+            currentIdx = dbUsers[state.currentPin].activeProgress[`${lang}_${i}`] || 0;
+        }
+
+        let totalExist = 0;
+        let userCorrectUniques = 0;
+        if (domandaRepo[lang] && domandaRepo[lang]["L" + i]) {
+            totalExist = domandaRepo[lang]["L" + i].length;
+            const historyLivello = state.history ? state.history[`${lang}_${i}`] || [] : [];
+            const uniqueCorrect = new Set(historyLivello.filter(h => h.ok).map(h => h.q));
+            userCorrectUniques = uniqueCorrect.size;
+        }
+
+        // 3. LOGICA ORO (Attiva solo se ha completato le 15)
+        let isGoldPhase = (comp >= i); 
+        
+        let displayTotal = isGoldPhase ? totalExist : 15;
+        let displayCurrent = isGoldPhase ? userCorrectUniques : currentIdx;
+        
+        // Calcolo percentuali per le barre
+        const percentage = (displayCurrent / displayTotal) * 100;
+        const greenSplit = isGoldPhase ? (15 / displayTotal) * 100 : percentage;
+        const goldSplit = isGoldPhase ? percentage - greenSplit : 0;
+
+        // 4. HTML
+        html += `
+            <button class="btn-apple"
+                ${isLocked ? 'disabled' : ''}
+                onclick="startStep('${lang}', ${i})"
+                style="display:block; text-align:left; padding:15px">
+
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%">
+                    <span>${label} ${isLocked ? '🔒' : ''}</span>
+                    ${(state.mode === 'user' && !isLocked)
+                        ? `<span style="font-size:12px; ${isGoldPhase ? 'color:#d4af37; font-weight:bold;' : 'opacity:0.6;'}">${displayCurrent}/${displayTotal}</span>`
+                        : ''}
+                </div>
+
+                ${(state.mode === 'user' && !isLocked)
+                    ? `<div class="progress-container" style="display:flex; overflow:hidden;">
+                           <div class="progress-bar-fill" style="width:${greenSplit}%; height:100%; border-radius:0;"></div>
+                           <div style="width:${goldSplit}%; background:linear-gradient(90deg, #ffd700, #ff8c00); height:100%; transition:0.5s"></div>
+                       </div>`
+                    : ''}
+            </button>`;
+    }
+
+    document.getElementById('content-area').innerHTML = html;
+}
+
+/*function showLevels(lang) {
+    localStorage.setItem('currentSection', 'levels');
+    history.pushState({ view: 'levels' }, '', `#levels-${lang}`);
     localStorage.setItem('currentSection', 'levels');
     localStorage.setItem('currentLang', lang);
 
@@ -863,7 +936,7 @@ function showLevels(lang) {
     }
 
     document.getElementById('content-area').innerHTML = html;
-}
+}*/
 
 function startStep(lang, lvl) {
     localStorage.setItem('currentSection', 'quiz');
