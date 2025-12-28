@@ -213,7 +213,15 @@ function initTheme() {
     // 1. Gestione Light/Dark standard
     const saved = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', saved);
-    if (state.currentPin !== testerUser.pin) {
+    if (!state.currentPin || state.currentPin.trim() === "") {
+        console.warn("initTheme: PIN non ancora disponibile, salto la chiamata cloud.");
+        return; 
+    }
+
+    // 3. LOGICA TESTER: Se è il tester, non facciamo la chiamata cloud (come nel tuo codice originale)
+    if (state.currentPin === testerUser.pin) {
+        return;
+    }
     db.collection('utenti').doc(state.currentPin).get().then(doc => {
         if (doc.exists && doc.data().goldMode) {
             document.body.classList.add('gold-theme');
