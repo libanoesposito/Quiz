@@ -706,6 +706,46 @@ async function showHome() {
     document.getElementById('content-area').innerHTML = html;
 }
 
+function handleBackButtonSPA() {
+  history.replaceState({ view: localStorage.getItem('currentSection') || 'home' }, '', window.location.href);
+
+  window.addEventListener('popstate', (event) => {
+    const lastView = event.state?.view || 'home';
+
+    switch (lastView) {
+      case 'home':
+        showHome();
+        break;
+      case 'levels':
+        const lang = localStorage.getItem('currentLang') || null;
+        showLevels(lang);
+        break;
+      case 'quiz':
+        const lvl = localStorage.getItem('quizLevel') || null;
+        const index = localStorage.getItem('quizIndex') || null;
+        startStep(localStorage.getItem('quizLang'), lvl);
+        if (index !== null) state.qIndex = index;
+        break;
+      case 'profile':
+        renderProfile();
+        break;
+      case 'ripasso':
+        renderRipasso();
+        break;
+      case 'admin':
+        renderAdminPanel();
+        break;
+      case 'classifica':
+        renderGlobalClassifica();
+        break;
+      default:
+        showHome();
+    }
+  });
+}
+
+// Chiamala subito dopo averla definita
+handleBackButtonSPA();
 
 function showLevels(lang) {
     localStorage.setItem('currentSection', 'levels');
