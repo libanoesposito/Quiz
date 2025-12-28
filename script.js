@@ -829,6 +829,17 @@ function showLevels(lang) {
     const percentage = (displayCurrent / displayTotal) * 100;
     const greenSplit = isGoldPhase ? (15 / totalExist) * 100 : percentage;
     const goldSplit = isGoldPhase ? percentage - greenSplit : 0;
+
+    let haFattoIlMassimo = (comp >= i);
+    let isGoldPhase = haFattoIlMassimo; 
+
+    // 4. Calcoli per le dimensioni delle barre
+    let displayTotal = isGoldPhase ? totalExist : 15;
+    let displayCurrent = isGoldPhase ? userCorrectUniques : currentIdx;
+    
+    const percentage = (displayCurrent / displayTotal) * 100;
+    const greenSplit = isGoldPhase ? (15 / displayTotal) * 100 : percentage;
+    const goldSplit = isGoldPhase ? percentage - greenSplit : 0;
         html += `
             <button class="btn-apple"
                 ${isLocked ? 'disabled' : ''}
