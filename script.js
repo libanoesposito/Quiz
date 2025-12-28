@@ -1271,15 +1271,25 @@ function calcStats() {
             if (h.ok) ok++;
         });
     });
+    // Calcoliamo quante domande esistono in TUTTO il database
+    let totalDomandeDatabase = 0;
+    // NOTA: Sostituisci 'domandeArchivio' con il nome della tua variabile che contiene tutte le categorie
+    Object.values(domandaRepo).forEach(categoria => {
+        totalDomandeDatabase += categoria.length;
+    });
+
     const stats = {
         total: tot,
         correct: ok,
         wrong: tot - ok,
         perc: tot ? Math.round((ok / tot) * 100) : 0
     };
+
     if (state.currentPin !== "1111") {
-        state.isPerfect = stats.total > 0 && stats.perc === 100;
+        // MODIFICA: l'utente è perfetto solo se le ha indovinate TUTTE quelle esistenti
+        state.isPerfect = ok === totalDomandeDatabase && stats.perc === 100;
     }
+
     return stats;
 }
 
