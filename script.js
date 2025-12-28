@@ -2635,31 +2635,38 @@ async function toggleDebugPerfect() {
 
     try {
         if (isAlreadyPerfect) {
+            // Disattiva modalità gold
             await docRef.set({
                 perfect: 0,
                 points: 10,
                 lastUpdate: new Date().getTime()
             }, { merge: true });
             
-            state.isPerfect = false; // AGGIORNAMENTO STATO LOCALE
+            state.isPerfect = false; // Aggiorna stato locale
             localStorage.setItem('debugPerfect', 'false');
-            alert("Modalità Perfetta DISATTIVATA");
+
         } else {
+            // Attiva modalità gold
             await docRef.set({
-                perfect: 20, 
+                perfect: 20,
                 points: 5000,
                 lastUpdate: new Date().getTime()
             }, { merge: true });
-            
-            state.isPerfect = true; // AGGIORNAMENTO STATO LOCALE
+
+            state.isPerfect = true; // Aggiorna stato locale
             localStorage.setItem('debugPerfect', 'true');
-            alert("Modalità Perfetta ATTIVATA");
         }
 
-        // --- QUESTA È LA PARTE CHIAVE ---
-        initTheme(); // Cambia il tema in TUTTO il sito istantaneamente
-        
-        // Ricarica la sezione attuale per vedere i cambiamenti grafici (Home o Classifica)
+        // --- SALVATAGGIO NEL CLOUD PER GLI UTENTI ---
+        // Salva il flag isPerfect anche nella collezione "utenti" così persiste su altri browser
+        await db.collection("utenti").doc(state.currentPin).set({
+            isPerfect: state.isPerfect
+        }, { merge: true });
+
+        // Applica immediatamente il tema
+        initTheme();
+
+        // Ricarica la sezione corrente
         const currentSection = localStorage.getItem('currentSection');
         if (currentSection === 'classifica') {
             renderGlobalClassifica();
@@ -2671,7 +2678,6 @@ async function toggleDebugPerfect() {
         console.error("Errore Debug:", e);
     }
 }
-
 async function adminResetSingleUser(userId) {
     const pin = Object.keys(dbUsers).find(key => dbUsers[key].userId == userId);
     const u = dbUsers[pin];
