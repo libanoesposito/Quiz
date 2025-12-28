@@ -795,6 +795,13 @@ function showLevels(lang) {
     const comp = state.progress[lang] || 0;
 
     for (let i = 1; i <= 5; i++) {
+        let label = (i === 5) ? "TEST OPERATIVO" : "Livello " + i;
+        let isLocked = false;
+
+        if (state.mode === 'user') {
+            if (i >= 4 && comp < 3 && state.currentPin !== "1111") isLocked = true;
+        }
+        if (state.mode === 'admin' || state.mode === 'guest') isLocked = false;
         let totalExist = 0;
         let userCorrectUniques = 0;
         if (domandaRepo[lang] && domandaRepo[lang]["L" + i]) {
