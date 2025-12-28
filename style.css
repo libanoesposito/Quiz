@@ -176,7 +176,24 @@
     }
 }
 
+/* --- SOLO LIGHT GOLD: NON TOCCA DARK, NON TOCCA BLUE --- */
+[data-theme-gold="true"]:not([data-theme="dark"]) .btn-apple,
+[data-theme-gold="true"]:not([data-theme="dark"]) .security-box {
+    background: #ffffff !important;
+    border: 1.5px solid rgba(189, 149, 63, 0.4) !important;
+    color: #1d1d1f !important;
+    box-shadow: 0 4px 12px rgba(189, 149, 63, 0.1) !important;
+}
 
+/* Colore freccina (chevron) in Light Gold */
+[data-theme-gold="true"]:not([data-theme="dark"]) .chevron {
+    color: #bf953f !important;
+}
+
+/* Forza testo nero dentro i bottoni bianchi */
+[data-theme-gold="true"]:not([data-theme="dark"]) .btn-apple * {
+    color: #1d1d1f !important;
+}
 
 body { 
     margin: 0; 
