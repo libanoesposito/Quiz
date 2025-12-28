@@ -177,7 +177,7 @@ if (lastSection === 'classifica') {
 
 // solo se NON esiste nulla da ripristinare
 showHome();
-            }
+            
         } else {
             // Se il PIN è nel localStorage ma non esiste su Firebase (es. database resettato)
             localStorage.removeItem('sessionPin');
