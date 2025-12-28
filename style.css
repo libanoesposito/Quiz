@@ -195,6 +195,33 @@
     color: #1d1d1f !important;
 }
 
+/*ULTIMO*/
+/* LIGHT GOLD: Interno pagina Profilo */
+[data-theme-gold="true"]:not([data-theme="dark"]) .security-box {
+    background: #ffffff !important;
+    border: 1.5px solid rgba(189, 149, 63, 0.4) !important;
+    box-shadow: 0 4px 12px rgba(189, 149, 63, 0.08) !important;
+}
+
+/* Header della sezione sicurezza (titolo cliccabile) */
+[data-theme-gold="true"]:not([data-theme="dark"]) .security-header {
+    color: #1d1d1f !important;
+    font-weight: 700 !important;
+}
+
+/* Testi descrittivi all'interno dei box del profilo */
+[data-theme-gold="true"]:not([data-theme="dark"]) .security-content,
+[data-theme-gold="true"]:not([data-theme="dark"]) .security-content p,
+[data-theme-gold="true"]:not([data-theme="dark"]) .security-content span {
+    color: #3a3a3c !important; /* Un grigio molto scuro leggibile */
+}
+
+/* Il tasto Logout o azioni distruttive nel profilo (manteniamo il rosso ma pulito) */
+[data-theme-gold="true"]:not([data-theme="dark"]) .logout-link {
+    color: #ff3b30 !important;
+    font-weight: 700 !important;
+}
+
 body { 
     margin: 0; 
     font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
