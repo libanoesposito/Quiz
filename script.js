@@ -153,13 +153,9 @@ if (savedPin === testerUser.pin) {
         state.theme = 'gold';
         document.body.classList.add('gold-theme');
     } else {
-        state.theme = 'normal'; // oppure 'light'/'dark' se vuoi distinguere
-        initTheme();
-       }
-    }else if{
-    state.theme = 'normal'; // o 'light'/'dark' se vuoi distinguere
-    initTheme();
-}
+        state.theme = 'normal'; // oppure 'light'/'dark'
+        initTheme(); // applica tema normale
+    }
 } else if (cloudUser.goldMode) {
     // Tema gold per utenti normali
     state.theme = 'gold';
@@ -168,7 +164,6 @@ if (savedPin === testerUser.pin) {
     // Tema normale per gli altri
     initTheme();
 }
-            }
             
             // 3. RIPRISTINO POSIZIONE (tua logica originale)
             const lastSection = localStorage.getItem('currentSection');
