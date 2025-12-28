@@ -219,16 +219,25 @@ function initTheme() {
     }
 
     // 3. Controllo Gold per il tester (1111)
-    if (state.currentPin === testerUser.pin) {
-        const testerGold = localStorage.getItem('testerGold') === 'true';
-        if (testerGold) {
-            document.body.classList.add('gold-theme');
-            document.documentElement.setAttribute('data-theme-gold', 'true');
-        } else {
-            document.body.classList.remove('gold-theme');
-            document.documentElement.removeAttribute('data-theme-gold');
-        }
+    // Gestione Gold unica per utenti perfetti e tester
+if (state.currentPin === testerUser.pin) {
+    // Gold per il tester
+    const testerGold = localStorage.getItem('testerGold') === 'true';
+    if (testerGold) {
+        document.body.classList.add('gold-theme');
+        document.documentElement.setAttribute('data-theme-gold', 'true');
+    } else {
+        document.body.classList.remove('gold-theme');
+        document.documentElement.removeAttribute('data-theme-gold');
     }
+} else if (state.isPerfect) {
+    // Gold per utenti perfetti
+    document.body.classList.add('gold-theme');
+    document.documentElement.setAttribute('data-theme-gold', 'true');
+} else {
+    // Rimuove gold
+    document.body.classList.remove('gold-theme');
+    document.documentElement.removeAttribute('data-theme-gold');
 }
 
 function toggleTheme() {
