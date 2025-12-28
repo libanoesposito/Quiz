@@ -143,12 +143,13 @@ window.onload = async () => {
                 state.history = cloudUser.history || {};
                 state.ripasso = cloudUser.ripasso || { wrong: [], notStudied: [] };
                 state.activeProgress = cloudUser.activeProgress || {};
-                if (savedPin === testerUser.pin && testerUser.goldMode) {
-    state.theme = 'gold';
-    document.body.classList.add('gold-theme');
-} else {
-    initTheme();
-}
+                // Se l'utente ha modalità gold attiva, applica subito il tema
+                if (cloudUser.goldMode) {
+                   state.theme = 'gold';
+                   document.body.classList.add('gold-theme');
+                } else {
+                   initTheme();
+                }
             }
             
             // 3. RIPRISTINO POSIZIONE (tua logica originale)
