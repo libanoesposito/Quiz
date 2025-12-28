@@ -195,6 +195,53 @@ showHome();
     }
 };
 
+// Funzione autonoma per gestire il tasto indietro della SPA
+function handleBackButtonInApp() {
+  // Aggiunge uno stato iniziale nella cronologia per intercettare popstate
+  history.replaceState({ view: localStorage.getItem('currentSection') || 'home' }, '', window.location.href);
+
+  // Listener per il tasto indietro
+  window.addEventListener('popstate', (event) => {
+    const lastView = event.state?.view || 'home';
+
+    // Ripristina la vista ricordata senza uscire dall'app
+    switch (lastView) {
+      case 'home':
+        showHome();
+        break;
+      case 'levels':
+        const lang = localStorage.getItem('currentLang') || null;
+        showLevels(lang);
+        break;
+      case 'quiz':
+        const lvl = localStorage.getItem('quizLevel') || null;
+        const index = localStorage.getItem('quizIndex') || null;
+        startStep(localStorage.getItem('quizLang'), lvl);
+        if (index !== null) state.qIndex = index;
+        break;
+      case 'profile':
+        renderProfile();
+        break;
+      case 'ripasso':
+        renderRipasso();
+        break;
+      case 'admin':
+        renderAdminPanel();
+        break;
+      case 'classifica':
+        renderGlobalClassifica();
+        break;
+      default:
+        showHome();
+    }
+
+    // Aggiorna lo stato nella cronologia così il back resta coerente
+    history.pushState({ view: lastView }, '', window.location.href);
+  });
+}
+
+// Chiamare subito dopo aver caricato lo script
+handleBackButtonInApp();
 
 function initTheme() {
     if (state.currentPin === "1111") state.isPerfect = localStorage.getItem('debugPerfect') === 'true';
