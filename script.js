@@ -239,23 +239,31 @@ async function toggleDebugPerfect() {
                     const domandeLista = domandaRepo[cat][livello];
                     
                     domandeLista.forEach((domString, index) => {
-                        // Trasformiamo la stringa "Domanda|Opz1|Opz2|..." in dati leggibili
-                        const parti = domString.split('|');
-                        const domandaTesto = parti[0];
-                        const rispostaCorrettaIndex = parseInt(parti[4]); // Il numero della risposta corretta
-                        const rispostaTesto = parti[rispostaCorrettaIndex + 1]; // Prende il testo della risposta corretta
+    const parti = domString.split('|');
+    const domandaTesto = parti[0];
+    const rispostaCorrettaIndex = parseInt(parti[4]);
+    const rispostaTesto = parti[rispostaCorrettaIndex + 1];
 
-                        state.history[cat].push({
-                            id: `${cat}-${livello}-${index}`,
-                            question: domandaTesto || "Domanda",
-                            answer: rispostaTesto || "Risposta",
-                            userAnswer: rispostaTesto || "Risposta",
-                            ok: true,
-                            timestamp: Date.now()
-                        });
-                    });
-                });
-            });
+    const entry = {
+        id: `${cat}-${livello}-${index}`,
+        q: domandaTesto || "Domanda",
+        question: domandaTesto || "Domanda",
+        answer: rispostaTesto || "Risposta",
+        userAnswer: rispostaTesto || "Risposta",
+        ok: true,
+        level: livello,
+        lvl: livello,
+        timestamp: Date.now()
+    };
+
+    // storico categoria
+    state.history[cat].push(entry);
+
+    // storico per livello (usato da showLevels)
+    const levelKey = `${cat}_${livello}`;
+    if (!state.history[levelKey]) state.history[levelKey] = [];
+    state.history[levelKey].push(entry);
+});
 
             state.isPerfect = true;
             localStorage.setItem('testerGold', 'true');
