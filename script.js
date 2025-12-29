@@ -260,16 +260,18 @@ async function toggleDebugPerfect() {
 };
 
 
-    // storico categoria
-    state.history[cat].push(entry);
+   
 
     // storico per livello (usato da showLevels)
     const levelKey = `${cat}_${livello}`;
     if (!state.history[levelKey]) state.history[levelKey] = [];
     state.history[levelKey].push(entry);
-});
+        });
      });
-    });          
+   });          
+            // storico categoria
+            state.history[cat].push(entry);
+          
           if (typeof refreshAllStats === 'function') refreshAllStats();
             state.isPerfect = true;
             localStorage.setItem('testerGold', 'true');
