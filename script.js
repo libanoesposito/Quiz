@@ -211,17 +211,17 @@ window.onload = async () => {
 
 async function toggleDebugPerfect() {
     if (state.currentPin !== "1111") return;
-
     const docRef = db.collection("classifica").doc("1111");
-    
+
     try {
         const doc = await docRef.get();
         const isAlreadyPerfect = doc.exists && doc.data().perfect >= 10;
-
         if (isAlreadyPerfect) {
+
             // --- RESET ---
             state.isPerfect = false;
             localStorage.setItem('testerGold', 'false');
+
             initTheme();
             state.history = {};
             if (state.user) state.user.progress = {}; 
@@ -232,13 +232,13 @@ async function toggleDebugPerfect() {
             await docRef.set({ perfect: 20, points: 5000, lastUpdate: Date.now() }, { merge: true });
 
             state.history = {};
-            
+
             Object.keys(domandaRepo).forEach(cat => {
                 state.history[cat] = [];
                 Object.keys(domandaRepo[cat]).forEach(livello => {
-                    const domandeLista = domandaRepo[cat][livello];
-                    
+                    const domandeLista = domandaRepo[cat][livello];    
                     domandeLista.forEach((domString, index) => {
+
     const parti = domString.split('|');
     const domandaTesto = parti[0];
     const rispostaCorrettaIndex = parseInt(parti[4]);
@@ -260,18 +260,16 @@ async function toggleDebugPerfect() {
 };
 
 
-   
+    // storico categoria
+    state.history[cat].push(entry);
 
     // storico per livello (usato da showLevels)
     const levelKey = `${cat}_${livello}`;
     if (!state.history[levelKey]) state.history[levelKey] = [];
     state.history[levelKey].push(entry);
-        });
+      });
      });
-   });          
-            // storico categoria
-            state.history[cat].push(entry);
-          
+    });          
           if (typeof refreshAllStats === 'function') refreshAllStats();
             state.isPerfect = true;
             localStorage.setItem('testerGold', 'true');
@@ -280,20 +278,18 @@ async function toggleDebugPerfect() {
             state.progress = {}; 
             if (!state.user) state.user = {};
             state.user.progress = {};
-
             Object.keys(domandaRepo).forEach(cat => {
-    const conteggioTotale = state.history[cat].length;
-    state.progress[cat] = conteggioTotale;
-    state.user.progress[cat] = conteggioTotale;
 
-    // Cicla tutti i livelli esistenti per quella categoria
-    Object.keys(domandaRepo[cat]).forEach(livello => {
-        const levelKey = `${cat}_${livello}`;
-        // Prende la lunghezza reale dal database per quel livello
-        state.progress[levelKey] = domandaRepo[cat][livello].length;
-            });
-          });
-          if (typeof refreshAllStats === 'function') refreshAllStats();
+    const conteggio = state.history[cat].length;
+    state.progress[cat] = conteggio;      // Per showLevels
+    state.user.progress[cat] = conteggio; // Per il database/profilo
+              Object.keys(domandaRepo[cat]).forEach(livello => {
+            const levelKey = `${cat}_${livello}`;
+            // Prende il numero reale di domande dal database
+            state.progress[levelKey] = domandaRepo[cat][livello].length;
+        });
+});
+
         }
 
         // SALVATAGGIO (Senza valori undefined)
@@ -304,7 +300,7 @@ async function toggleDebugPerfect() {
 
         calcStats();
         initTheme();
-        
+
         if (localStorage.getItem('currentSection') !== 'classifica') {
             showHome();
         } else {
