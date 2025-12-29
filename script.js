@@ -2886,7 +2886,8 @@ async function toggleDebugPerfect() {
             if (!state.user) state.user = {}; 
             state.user.progress = {}; 
             Object.keys(domandaRepo).forEach(cat => {
-            state.user.progress[cat] = 5; 
+                // Il progresso deve corrispondere al numero di risposte nella history
+                state.user.progress[cat] = state.history[cat].length;
             });
         }
 
