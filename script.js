@@ -213,22 +213,9 @@ function initTheme() {
     // 1. Gestione Light/Dark standard
     const saved = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', saved);
-   /* if (!state.currentPin || state.currentPin.trim() === "") {
-        console.warn("initTheme: PIN non ancora disponibile, salto la chiamata cloud.");
-        return; 
-    }
-
-    // 3. LOGICA TESTER: Se è il tester, non facciamo la chiamata cloud (come nel tuo codice originale)
-    if (state.currentPin === testerUser.pin) {
-        return;
-    }
-    db.collection('utenti').doc(state.currentPin).get().then(doc => {
-        if (doc.exists && doc.data().goldMode) {
-            document.body.classList.add('gold-theme');
-            document.documentElement.setAttribute('data-theme-gold', 'true');
-        }
-    });
-}*/
+  if (state.currentPin === testerUser.pin) {
+    state.isPerfect = localStorage.getItem('testerGold') === 'true';
+}
   if (state.currentPin && state.currentPin.trim() !== "" && state.currentPin !== testerUser.pin) {
         db.collection('utenti').doc(state.currentPin).get().then(doc => {
             if (doc.exists && doc.data().goldMode) {
@@ -236,6 +223,13 @@ function initTheme() {
                 document.documentElement.setAttribute('data-theme-gold', 'true');
             }
         });
+    if (state.isPerfect) {
+    document.documentElement.setAttribute('data-theme-gold', 'true');
+    document.body.classList.add('gold-theme');
+} else {
+    document.documentElement.removeAttribute('data-theme-gold');
+    document.body.classList.remove('gold-theme');
+}
     }
     // 2. Controllo Gold per utenti perfetti
     const stats = calcStats(); 
@@ -1404,7 +1398,8 @@ function calcStats() {
     };
 
     if (state.currentPin !== "1111") {
-        // MODIFICA: l'utente è perfetto solo se le ha indovinate TUTTE quelle esistenti
+       state.isPerfect = localStorage.getItem('testerGold') === 'true';
+    } else {
         state.isPerfect = ok === totalDomandeDatabase && stats.perc === 100;
     }
 
@@ -2863,8 +2858,8 @@ async function toggleDebugPerfect() {
             }, { merge: true });
             
             state.isPerfect = false; // Aggiorna stato locale
-            localStorage.setItem('debugPerfect', 'false');
-
+            localStorage.setItem('testerGold', 'false');
+            state.history = {};
         } else {
             // Attiva modalità gold
             await docRef.set({
@@ -2874,7 +2869,8 @@ async function toggleDebugPerfect() {
             }, { merge: true });
 
             state.isPerfect = true; // Aggiorna stato locale
-            localStorage.setItem('debugPerfect', 'true');
+            localStorage.setItem('testerGold', 'true');
+            state.history = { debug: Array(totalDomandeDatabase || 100).fill({ ok: true }) };
         }
 
         // --- SALVATAGGIO NEL CLOUD PER GLI UTENTI ---
