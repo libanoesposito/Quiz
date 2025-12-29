@@ -225,13 +225,6 @@ function initTheme() {
         document.body.classList.remove('gold-theme');
         document.documentElement.removeAttribute('data-theme-gold');
     }
-    if (state.isPerfect) {
-        document.documentElement.setAttribute('data-theme-gold', 'true');
-        document.body.classList.add('gold-theme');
-    } else {
-        document.documentElement.removeAttribute('data-theme-gold');
-        document.body.classList.remove('gold-theme');
-    }
     // 3. Controllo Gold per il tester (1111)
     // Gestione Gold unica per utenti perfetti e tester
 /*if (state.currentPin === testerUser.pin && localStorage.getItem('testerGold') !== null && !state.testerGoldChanged) {
