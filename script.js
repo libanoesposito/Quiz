@@ -269,7 +269,7 @@ async function toggleDebugPerfect() {
 });
      });
     });          
-
+          if (typeof refreshAllStats === 'function') refreshAllStats();
             state.isPerfect = true;
             localStorage.setItem('testerGold', 'true');
 
