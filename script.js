@@ -2854,7 +2854,8 @@ async function toggleDebugPerfect() {
             state.isPerfect = false;
             localStorage.setItem('testerGold', 'false'); // Deve essere false qui!
             state.history = {};
-            state.user.progress = {}; // Svuota progressi reali
+          
+            if (state.user) state.user.progress = {}; // Svuota progressi reali
             document.documentElement.removeAttribute('data-theme'); // Forza rimozione tema gold
 
             // Disattiva modalità gold
