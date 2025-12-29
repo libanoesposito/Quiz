@@ -273,11 +273,17 @@ async function toggleDebugPerfect() {
             state.isPerfect = true;
             localStorage.setItem('testerGold', 'true');
 
+            // Assicuriamoci che entrambi i puntatori siano aggiornati
+            state.progress = {}; 
             if (!state.user) state.user = {};
-state.user.progress = {};
+            state.user.progress = {};
+
             Object.keys(domandaRepo).forEach(cat => {
-                state.user.progress[cat] = state.history[cat].length;
-            });
+    const conteggio = state.history[cat].length;
+    state.progress[cat] = conteggio;      // Per showLevels
+    state.user.progress[cat] = conteggio; // Per il database/profilo
+});
+
         }
 
         // SALVATAGGIO (Senza valori undefined)
@@ -305,9 +311,11 @@ function initTheme() {
     const saved = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', saved);
     
-    let isGold = (state.currentPin === "1111") 
-                 ? localStorage.getItem('testerGold') === 'true' 
-                 : !!state.isPerfect;
+    // Controlliamo prima il localStorage: è la fonte più veloce all'avvio
+const testerForzato = localStorage.getItem('testerGold') === 'true';
+
+// È gold se: è un tester attivo OPPURE se l'utente ha il flag isPerfect nel database
+let isGold = testerForzato || !!state.isPerfect;
 
     if (isGold) {
         document.body.classList.add('gold-theme');
@@ -861,7 +869,7 @@ function showLevels(lang) {
     document.getElementById('app-title').innerText = lang;
 
     let html = "";
-    const comp = state.progress[lang] || 0;
+    const comp = (state.user && state.user.progress) ? (state.user.progress[lang] || 0) : (state.progress[lang] || 0);
 
     for (let i = 1; i <= 5; i++) {
         let label = (i === 5) ? "TEST OPERATIVO" : "Livello " + i;
@@ -883,7 +891,7 @@ function showLevels(lang) {
         let userCorrectUniques = 0;
         if (domandaRepo[lang] && domandaRepo[lang]["L" + i]) {
             totalExist = domandaRepo[lang]["L" + i].length;
-            const historyLivello = state.history ? state.history[`${lang}_${i}`] || [] : [];
+            const historyLivello = (state.history && state.history[{lang}_{i}]) ? state.history[{lang}_{i}] : (state.user && state.user.history ? state.user.history[{lang}_{i}] || [] : []);
             const uniqueCorrect = new Set(historyLivello.filter(h => h.ok).map(h => h.q));
             userCorrectUniques = uniqueCorrect.size;
         }
@@ -2327,7 +2335,7 @@ function renderAdminUsers() {
 function calcUserStats(user) {
     let tot = 0;
     let ok = 0;
-    Object.values(user.history || {}).forEach(arr => {
+    Object.values(state.history || user.history || {}).forEach(arr => {
         arr.forEach(h => {
             tot++;
             if (h.ok) ok++;
