@@ -360,7 +360,7 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
 .modal-content {
     width: 95%;
     max-width: 400px;
-    background: var(--card);       /* Usa il colore delle tue card */
+    background: rgba(255,255,255,0.12);       /* Usa il colore delle tue card */
     border-radius: 14px;
     padding: 20px;
     text-align: center;
