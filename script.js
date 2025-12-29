@@ -2857,12 +2857,9 @@ async function toggleDebugPerfect() {
                 lastUpdate: new Date().getTime()
             }, { merge: true });
             
-            state.isPerfect = false; // Aggiorna stato locale
-            localStorage.setItem('testerGold', 'false');
-            state.history = {}; 
-            Object.keys(domandaRepo).forEach(cat => {
-            state.history[cat] = domandaRepo[cat].map(() => ({ ok: true, timestamp: Date.now() }));
-            });
+            state.isPerfect = false;
+            localStorage.setItem('testerGold', 'false'); // Deve essere false qui!
+            state.history = {};
         } else {
             // Attiva modalità gold
             await docRef.set({
@@ -2871,9 +2868,15 @@ async function toggleDebugPerfect() {
                 lastUpdate: new Date().getTime()
             }, { merge: true });
 
-            state.isPerfect = true; // Aggiorna stato locale
+            // 1. Crea la storia per le categorie reali (Python, JS, ecc.)
+            state.history = {}; 
+            Object.keys(domandaRepo).forEach(cat => {
+                // Riempie la categoria con il numero esatto di domande esistenti
+                state.history[cat] = domandaRepo[cat].map(() => ({ ok: true, timestamp: Date.now() }));
+            });
+
+            state.isPerfect = true;
             localStorage.setItem('testerGold', 'true');
-            state.history = { debug: Array(totalDomandeDatabase || 100).fill({ ok: true }) };
         }
 
         // --- SALVATAGGIO NEL CLOUD PER GLI UTENTI ---
