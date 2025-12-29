@@ -2870,10 +2870,14 @@ async function toggleDebugPerfect() {
 
             // 1. Crea la storia per le categorie reali (Python, JS, ecc.)
             state.history = {}; 
-            Object.keys(domandaRepo).forEach(cat => {
-                // Riempie la categoria con il numero esatto di domande esistenti
-                state.history[cat] = domandaRepo[cat].map(() => ({ ok: true, timestamp: Date.now() }));
-            });
+Object.keys(domandaRepo).forEach(cat => {
+    // Prendiamo le chiavi di ogni singola domanda nella categoria
+    const domandeIds = Object.keys(domandaRepo[cat]); 
+    state.history[cat] = domandeIds.map(() => ({ 
+        ok: true, 
+        timestamp: Date.now() 
+    }));
+});
 
             state.isPerfect = true;
             localStorage.setItem('testerGold', 'true');
