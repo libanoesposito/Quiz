@@ -2883,8 +2883,9 @@ async function toggleDebugPerfect() {
 
             state.isPerfect = true;
             localStorage.setItem('testerGold', 'true');
-            if (!state.user) state.user = {}; // Protezione: assicura che user esista
-            state.user.progress = {}; // Reset pulito
+            // RIGA CHIAVE: Inizializza state.user se non esiste per evitare il crash
+            if (!state.user) state.user = {}; 
+            state.user.progress = {}; 
             Object.keys(domandaRepo).forEach(cat => {
                 state.user.progress[cat] = 5; 
             });
