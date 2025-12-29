@@ -2861,7 +2861,7 @@ async function toggleDebugPerfect() {
             await docRef.set({
                 perfect: 0,
                 points: 10,
-                lastUpdate: lastUpdate: Date.now() /*new Date().getTime()*/
+                lastUpdate: Date.now() /*lastUpdate: new Date().getTime()*/
             }, { merge: true });
           
         } else {
