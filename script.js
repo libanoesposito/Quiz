@@ -2898,6 +2898,7 @@ Object.keys(domandaRepo).forEach(cat => {
         } else {
         renderGlobalClassifica();
         }
+    }
         // Ricarica la sezione corrente
        /* const currentSection = localStorage.getItem('currentSection');
         if (currentSection === 'classifica') {
