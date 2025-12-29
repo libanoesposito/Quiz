@@ -2850,18 +2850,20 @@ async function toggleDebugPerfect() {
 
     try {
         if (isAlreadyPerfect) {
+      
+            state.isPerfect = false;
+            localStorage.setItem('testerGold', 'false'); // Deve essere false qui!
+            state.history = {};
+            state.user.progress = {}; // Svuota progressi reali
+            document.documentElement.removeAttribute('data-theme'); // Forza rimozione tema gold
+
             // Disattiva modalità gold
             await docRef.set({
                 perfect: 0,
                 points: 10,
-                lastUpdate: new Date().getTime()
+                lastUpdate: lastUpdate: Date.now() /*new Date().getTime()*/
             }, { merge: true });
-            
-            state.isPerfect = false;
-            localStorage.setItem('testerGold', 'false'); // Deve essere false qui!
-            document.documentElement.removeAttribute('data-theme'); // Forza rimozione tema gold
-            state.history = {};
-            state.user.progress = {}; // Svuota progressi reali
+          
         } else {
             // Attiva modalità gold
             await docRef.set({
@@ -2887,7 +2889,7 @@ async function toggleDebugPerfect() {
             if (!state.user) state.user = {}; 
             state.user.progress = {}; 
             Object.keys(domandaRepo).forEach(cat => {
-                state.user.progress[cat] = 5; 
+            state.user.progress[cat] = 5; 
             });
         }
 
