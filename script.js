@@ -2846,7 +2846,7 @@ async function toggleDebugPerfect() {
             // Disattiva modalità gold
             await docRef.set({
                 perfect: 0,
-                points: 10,
+                points: 0,
                 lastUpdate: Date.now() /*lastUpdate: new Date().getTime()*/
             }, { merge: true });
           
