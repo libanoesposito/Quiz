@@ -1474,7 +1474,10 @@ function calcStats() {
     } else {
         state.isPerfect = (totalDomandeDatabase > 0 && ok >= totalDomandeDatabase && stats.perc === 100);
     }
-
+  
+    stats.greenCorrect = Math.min(ok, totalDomandeDatabase);  // verde: fino al massimo normale
+    stats.goldCorrect  = Math.max(ok - totalDomandeDatabase, 0);  // oro: extra perfetto
+   
     return stats;
 }
 
