@@ -1634,8 +1634,8 @@ input, select, textarea { font-size: 16px !important; }
                     <div>
                         <div style="font-size:12px">Corrette: ${stats.correct}</div>
 <div style="height:8px; background:${appleGray}; border-radius:6px; display:flex; overflow:hidden;">
-    <div style="width:${(stats.greenCorrect / totalPotential) * 100}%; height:100%; background:#34c759;"></div>
-    <div style="width:${(stats.goldCorrect / totalPotential) * 100}%; height:100%; background:gold;"></div>
+    <div style="width:${(stats.greenCorrect / totalPotential) * 100}%; height:100%; background:#34c759; border-radius:6px"></div>
+    <div style="width:${(stats.goldCorrect / totalPotential) * 100}%; height:100%; background:gold; border-radius:6px"></div>
 </div>
                     <div>
                         <div style="font-size:12px">Non studiate: ${totalMarkedNotStudied}</div>
