@@ -1397,10 +1397,10 @@ function calcStats() {
         perc: tot ? Math.round((ok / tot) * 100) : 0
     };
 
-    if (state.currentPin !== "1111") {
-       state.isPerfect = localStorage.getItem('testerGold') === 'true';
+    if (state.currentPin === "1111") {
+        state.isPerfect = localStorage.getItem('testerGold') === 'true';
     } else {
-        state.isPerfect = ok === totalDomandeDatabase && stats.perc === 100;
+        state.isPerfect = (totalDomandeDatabase > 0 && ok >= totalDomandeDatabase && stats.perc === 100);
     }
 
     return stats;
@@ -2859,7 +2859,9 @@ async function toggleDebugPerfect() {
             
             state.isPerfect = false;
             localStorage.setItem('testerGold', 'false'); // Deve essere false qui!
+            document.documentElement.removeAttribute('data-theme'); // Forza rimozione tema gold
             state.history = {};
+            state.user.progress = {}; // Svuota progressi reali
         } else {
             // Attiva modalità gold
             await docRef.set({
@@ -2870,17 +2872,22 @@ async function toggleDebugPerfect() {
 
             // 1. Crea la storia per le categorie reali (Python, JS, ecc.)
             state.history = {}; 
-Object.keys(domandaRepo).forEach(cat => {
-    // Prendiamo le chiavi di ogni singola domanda nella categoria
-    const domandeIds = Object.keys(domandaRepo[cat]); 
-    state.history[cat] = domandeIds.map(() => ({ 
-        ok: true, 
-        timestamp: Date.now() 
-    }));
-});
+            Object.keys(domandaRepo).forEach(cat => {
+            // Prendiamo le chiavi di ogni singola domanda nella categoria
+             const domandeIds = Object.keys(domandaRepo[cat]); 
+            state.history[cat] = domandeIds.map(() => ({ 
+            ok: true, 
+            timestamp: Date.now() 
+              }));
+            });
 
             state.isPerfect = true;
             localStorage.setItem('testerGold', 'true');
+            if (!state.user) state.user = {}; // Protezione: assicura che user esista
+            state.user.progress = {}; // Reset pulito
+            Object.keys(domandaRepo).forEach(cat => {
+                state.user.progress[cat] = 5; 
+            });
         }
 
         // --- SALVATAGGIO NEL CLOUD PER GLI UTENTI ---
