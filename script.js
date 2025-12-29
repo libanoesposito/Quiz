@@ -2890,11 +2890,16 @@ Object.keys(domandaRepo).forEach(cat => {
         history: state.history // Aggiungi questa riga
         }, { merge: true });
 
-        // Applica immediatamente il tema
+        calcStats();
         initTheme();
 
+        if (localStorage.getItem('currentSection') !== 'classifica') {
+        showHome(); // Questo dovrebbe ridisegnare i cerchi con i nuovi dati di state.history
+        } else {
+        renderGlobalClassifica();
+        }
         // Ricarica la sezione corrente
-        const currentSection = localStorage.getItem('currentSection');
+       /* const currentSection = localStorage.getItem('currentSection');
         if (currentSection === 'classifica') {
             renderGlobalClassifica();
         } else {
@@ -2904,7 +2909,9 @@ Object.keys(domandaRepo).forEach(cat => {
     } catch (e) {
         console.error("Errore Debug:", e);
     }
-}
+}*/
+
+      
 async function adminResetSingleUser(userId) {
     const pin = Object.keys(dbUsers).find(key => dbUsers[key].userId == userId);
     const u = dbUsers[pin];
