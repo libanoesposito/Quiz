@@ -264,6 +264,8 @@ async function toggleDebugPerfect() {
     if (!state.history[levelKey]) state.history[levelKey] = [];
     state.history[levelKey].push(entry);
 });
+     });
+    });          
 
             state.isPerfect = true;
             localStorage.setItem('testerGold', 'true');
