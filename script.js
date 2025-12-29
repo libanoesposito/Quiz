@@ -245,16 +245,19 @@ async function toggleDebugPerfect() {
     const rispostaTesto = parti[rispostaCorrettaIndex + 1];
 
     const entry = {
-        id: `${cat}-${livello}-${index}`,
-        q: domandaTesto || "Domanda",
-        question: domandaTesto || "Domanda",
-        answer: rispostaTesto || "Risposta",
-        userAnswer: rispostaTesto || "Risposta",
-        ok: true,
-        level: livello,
-        lvl: livello,
-        timestamp: Date.now()
-    };
+    id: `${cat}-${livello}-${index}`,
+    q: domandaTesto || "Domanda",
+    question: domandaTesto || "Domanda",
+    answer: rispostaTesto || "Risposta",
+    userAnswer: rispostaTesto || "Risposta",
+    ok: true,
+    correct: true,
+    isNotStudied: false,
+    level: livello,
+    lvl: livello,
+    timestamp: Date.now()
+};
+
 
     // storico categoria
     state.history[cat].push(entry);
