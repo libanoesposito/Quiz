@@ -891,7 +891,11 @@ function showLevels(lang) {
         let userCorrectUniques = 0;
         if (domandaRepo[lang] && domandaRepo[lang]["L" + i]) {
             totalExist = domandaRepo[lang]["L" + i].length;
-            const historyLivello = (state.history && state.history[{lang}_{i}]) ? state.history[{lang}_{i}] : (state.user && state.user.history ? state.user.history[{lang}_{i}] || [] : []);
+            const key = `${lang}_${i}`;
+
+        const historyLivello = (state.history && state.history[key]) 
+        ? state.history[key] 
+        : (state.user && state.user.history ? state.user.history[key] || [] : []);
             const uniqueCorrect = new Set(historyLivello.filter(h => h.ok).map(h => h.q));
             userCorrectUniques = uniqueCorrect.size;
         }
