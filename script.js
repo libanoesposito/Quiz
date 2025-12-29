@@ -260,7 +260,8 @@ async function toggleDebugPerfect() {
             state.isPerfect = true;
             localStorage.setItem('testerGold', 'true');
 
-            if (!state.user) state.user = { progress: {} };
+            if (!state.user) state.user = {};
+state.user.progress = {};
             Object.keys(domandaRepo).forEach(cat => {
                 state.user.progress[cat] = state.history[cat].length;
             });
