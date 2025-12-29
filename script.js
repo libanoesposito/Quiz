@@ -2861,12 +2861,15 @@ async function toggleDebugPerfect() {
             // 1. Crea la storia per le categorie reali (Python, JS, ecc.)
             state.history = {}; 
             Object.keys(domandaRepo).forEach(cat => {
-            // Prendiamo le chiavi di ogni singola domanda nella categoria
-             const domandeIds = Object.keys(domandaRepo[cat]); 
-            state.history[cat] = domandeIds.map(() => ({ 
+            // Trasformiamo ogni domanda reale in una risposta corretta nel log
+            state.history[cat] = domandaRepo[cat].map((domanda) => ({ 
+            id: domanda.id,              // ID reale della domanda
+            question: domanda.question,  // Testo della domanda
+            answer: domanda.answer,      // Risposta corretta
+            userAnswer: domanda.answer,  // Risposta data dal tester (ovviamente corretta)
             ok: true, 
             timestamp: Date.now() 
-              }));
+                }));
             });
 
             state.isPerfect = true;
