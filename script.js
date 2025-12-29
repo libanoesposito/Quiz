@@ -1600,16 +1600,20 @@ input, select, textarea { font-size: 16px !important; }
                 });
             }
 
-            const wGreen = (correct / totalQuestionsPerLevel) * 100;
-            const wRed   = (wrong / totalQuestionsPerLevel) * 100;
-            const wBlue  = (markedNotStudied / totalQuestionsPerLevel) * 100;
-            const percent = Math.round((correct / totalQuestionsPerLevel) * 100);
+            const isGoldPhase = (correct >= totalQuestionsPerLevel);
+            const wGreen = isGoldPhase ? (totalQuestionsPerLevel / correct) * 100 : (correct / totalQuestionsPerLevel) * 100;
+            const wGold  = isGoldPhase ? ((correct - totalQuestionsPerLevel) / correct) * 100 : 0;
+            const wRed   = (wrong / (isGoldPhase ? correct : totalQuestionsPerLevel)) * 100;
+            const wBlue  = (markedNotStudied / (isGoldPhase ? correct : totalQuestionsPerLevel)) * 100;
+            const percent = Math.round((correct / (isGoldPhase ? correct : totalQuestionsPerLevel)) * 100);
+
 
             progHtml += `
             <div style="margin-bottom:10px">
                 <div style="font-size:13px">Livello ${i}</div>
                 <div style="height:10px; border-radius:6px; overflow:hidden; display:flex; background:${appleGray}; width:100%">
                     ${wGreen > 0 ? `<div style="width:${wGreen}%; background:#34c759; height:100%"></div>` : ''}
+                    ${wGold > 0 ? `<div style="width:${wGold}%; background:linear-gradient(90deg, #ffd700, #ff8c00); height:100%"></div>` : ''}
                     ${wRed > 0 ? `<div style="width:${wRed}%; background:#ff3b30; height:100%"></div>` : ''}
                     ${wBlue > 0 ? `<div style="width:${wBlue}%; background:#0a84ff; height:100%"></div>` : ''}
                 </div>
@@ -1634,9 +1638,11 @@ input, select, textarea { font-size: 16px !important; }
             <div style="margin-top:15px; display:flex; gap:20px; align-items:center">
                 <div style="position:relative; width:80px; height:80px">
                     <svg width="80" height="80" style="transform:rotate(-90deg)">
-                        <circle cx="40" cy="40" r="${radius}" stroke="${appleGray}" stroke-width="6" fill="none"/>
                         <circle cx="40" cy="40" r="${radius}" stroke="#34c759" stroke-width="6" fill="none"
-                            stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
+                stroke-dasharray="${circumference}" stroke-dashoffset="${circumference - (circumference * Math.min(stats.perc, 100) / 100)}" stroke-linecap="round"/>
+                <circle cx="40" cy="40" r="${radius}" stroke="url(#goldGrad)" stroke-width="6" fill="none"
+                stroke-dasharray="${circumference}" stroke-dashoffset="${circumference - (circumference * stats.percGold / 100)}" stroke-linecap="round"/>
+
                     </svg>
                     <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">${percentTotal}%</div>
                 </div>
@@ -1644,8 +1650,8 @@ input, select, textarea { font-size: 16px !important; }
                     <div>
                         <div style="font-size:12px">Corrette: ${stats.correct}</div>
   <div style="height:8px; background:${appleGray}; border-radius:6px; display:flex; overflow:hidden;">
-    <div style="width:${(stats.greenCorrect / totalPotential) * 100}%; height:100%; background:#34c759; border-radius:6px"></div>
-    <div style="width:${(stats.goldCorrect / totalPotential) * 100}%; height:100%; background:gold; border-radius:6px"></div>
+    <div style="width:${Math.min((stats.correct / totalPotential) * 100, 100)}%; height:100%; background:#34c759; border-radius:6px 0 0 6px"></div>
+    <div style="width:${stats.isPerfect ? 100 : 0}%; height:100%; background:linear-gradient(90deg, #ffd700, #ff8c00); transition:0.5s"></div>
   </div>
 </div>
                     <div>
