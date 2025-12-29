@@ -2859,7 +2859,10 @@ async function toggleDebugPerfect() {
             
             state.isPerfect = false; // Aggiorna stato locale
             localStorage.setItem('testerGold', 'false');
-            state.history = {};
+            state.history = {}; 
+            Object.keys(domandaRepo).forEach(cat => {
+            state.history[cat] = domandaRepo[cat].map(() => ({ ok: true, timestamp: Date.now() }));
+            });
         } else {
             // Attiva modalità gold
             await docRef.set({
@@ -2876,7 +2879,8 @@ async function toggleDebugPerfect() {
         // --- SALVATAGGIO NEL CLOUD PER GLI UTENTI ---
         // Salva il flag isPerfect anche nella collezione "utenti" così persiste su altri browser
         await db.collection("utenti").doc(state.currentPin).set({
-            isPerfect: state.isPerfect
+        isPerfect: state.isPerfect,
+        history: state.history // Aggiungi questa riga
         }, { merge: true });
 
         // Applica immediatamente il tema
