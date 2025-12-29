@@ -249,7 +249,7 @@ function initTheme() {
 
     // 3. Controllo Gold per il tester (1111)
     // Gestione Gold unica per utenti perfetti e tester
-if (state.currentPin === testerUser.pin && localStorage.getItem('testerGold') !== null) {
+if (state.currentPin === testerUser.pin && localStorage.getItem('testerGold') !== null && !state.testerGoldChanged) {
     // Gold per il tester
     const testerGold = localStorage.getItem('testerGold') === 'true';
     if (testerGold) {
