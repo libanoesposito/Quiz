@@ -209,6 +209,83 @@ window.onload = async () => {
     }
 };
 
+async function toggleDebugPerfect() {
+    if (state.currentPin !== "1111") return;
+
+    const docRef = db.collection("classifica").doc("1111");
+    
+    try {
+        const doc = await docRef.get();
+        const isAlreadyPerfect = doc.exists && doc.data().perfect >= 10;
+
+        if (isAlreadyPerfect) {
+            // --- RESET ---
+            state.isPerfect = false;
+            localStorage.setItem('testerGold', 'false');
+            initTheme();
+            state.history = {};
+            if (state.user) state.user.progress = {}; 
+
+            await docRef.set({ perfect: 0, points: 0, lastUpdate: Date.now() }, { merge: true });
+        } else {
+            // --- ATTIVA GOLD ---
+            await docRef.set({ perfect: 20, points: 5000, lastUpdate: Date.now() }, { merge: true });
+
+            state.history = {};
+            
+            Object.keys(domandaRepo).forEach(cat => {
+                state.history[cat] = [];
+                Object.keys(domandaRepo[cat]).forEach(livello => {
+                    const domandeLista = domandaRepo[cat][livello];
+                    
+                    domandeLista.forEach((domString, index) => {
+                        // Trasformiamo la stringa "Domanda|Opz1|Opz2|..." in dati leggibili
+                        const parti = domString.split('|');
+                        const domandaTesto = parti[0];
+                        const rispostaCorrettaIndex = parseInt(parti[4]); // Il numero della risposta corretta
+                        const rispostaTesto = parti[rispostaCorrettaIndex + 1]; // Prende il testo della risposta corretta
+
+                        state.history[cat].push({
+                            id: `${cat}-${livello}-${index}`,
+                            question: domandaTesto || "Domanda",
+                            answer: rispostaTesto || "Risposta",
+                            userAnswer: rispostaTesto || "Risposta",
+                            ok: true,
+                            timestamp: Date.now()
+                        });
+                    });
+                });
+            });
+
+            state.isPerfect = true;
+            localStorage.setItem('testerGold', 'true');
+
+            if (!state.user) state.user = { progress: {} };
+            Object.keys(domandaRepo).forEach(cat => {
+                state.user.progress[cat] = state.history[cat].length;
+            });
+        }
+
+        // SALVATAGGIO (Senza valori undefined)
+        await db.collection("utenti").doc(state.currentPin).set({
+            isPerfect: state.isPerfect,
+            history: state.history
+        }, { merge: true });
+
+        calcStats();
+        initTheme();
+        
+        if (localStorage.getItem('currentSection') !== 'classifica') {
+            showHome();
+        } else {
+            renderGlobalClassifica();
+        }
+
+    } catch (e) {
+        console.error("Errore Debug:", e);
+    }
+}
+
 function initTheme() {
     // 1. Gestione Light/Dark standard
     const saved = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -2825,7 +2902,7 @@ function renderTesterDebug() {
     }
 }
 
-async function toggleDebugPerfect() {
+/*async function toggleDebugPerfect() {
     if (state.currentPin !== "1111") return;
 
     const docRef = db.collection("classifica").doc("1111");
@@ -2847,7 +2924,7 @@ async function toggleDebugPerfect() {
             await docRef.set({
                 perfect: 0,
                 points: 0,
-                lastUpdate: Date.now() /*lastUpdate: new Date().getTime()*/
+                lastUpdate: Date.now() //lastUpdate: new Date().getTime()
             }, { merge: true });
           
         } else {
@@ -2909,7 +2986,9 @@ async function toggleDebugPerfect() {
       } catch (e) {
         console.error("Errore Debug:", e);
     }
-}
+}*/    //Fine
+
+
         // Ricarica la sezione corrente
        /* const currentSection = localStorage.getItem('currentSection');
         if (currentSection === 'classifica') {
