@@ -213,26 +213,18 @@ function initTheme() {
     // 1. Gestione Light/Dark standard
     const saved = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', saved);
-  if (state.currentPin === testerUser.pin) {
-    state.isPerfect = localStorage.getItem('testerGold') === 'true';
-}
-  if (state.currentPin && state.currentPin.trim() !== "" && state.currentPin !== testerUser.pin) {
-        db.collection('utenti').doc(state.currentPin).get().then(doc => {
-            if (doc.exists && doc.data().goldMode) {
-                document.body.classList.add('gold-theme');
-                document.documentElement.setAttribute('data-theme-gold', 'true');
-            }
-        });
-    if (state.isPerfect) {
-    document.documentElement.setAttribute('data-theme-gold', 'true');
-    document.body.classList.add('gold-theme');
-} else {
-    document.documentElement.removeAttribute('data-theme-gold');
-    document.body.classList.remove('gold-theme');
-}
+    
+    let isGold = (state.currentPin === "1111") 
+                 ? localStorage.getItem('testerGold') === 'true' 
+                 : !!state.isPerfect;
+
+    if (isGold) {
+        document.body.classList.add('gold-theme');
+        document.documentElement.setAttribute('data-theme-gold', 'true');
+    } else {
+        document.body.classList.remove('gold-theme');
+        document.documentElement.removeAttribute('data-theme-gold');
     }
-    // 2. Controllo Gold per utenti perfetti
-    const stats = calcStats(); 
     if (state.isPerfect) {
         document.documentElement.setAttribute('data-theme-gold', 'true');
         document.body.classList.add('gold-theme');
@@ -240,10 +232,9 @@ function initTheme() {
         document.documentElement.removeAttribute('data-theme-gold');
         document.body.classList.remove('gold-theme');
     }
-
     // 3. Controllo Gold per il tester (1111)
     // Gestione Gold unica per utenti perfetti e tester
-if (state.currentPin === testerUser.pin && localStorage.getItem('testerGold') !== null && !state.testerGoldChanged) {
+/*if (state.currentPin === testerUser.pin && localStorage.getItem('testerGold') !== null && !state.testerGoldChanged) {
     // Gold per il tester
     const testerGold = localStorage.getItem('testerGold') === 'true';
     if (testerGold) {
@@ -264,7 +255,7 @@ if (state.currentPin === testerUser.pin && localStorage.getItem('testerGold') !=
     // Rimuove gold
     document.body.classList.remove('gold-theme');
     document.documentElement.removeAttribute('data-theme-gold');
-    }
+    }*/
 }
 
 
