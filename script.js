@@ -2898,7 +2898,10 @@ Object.keys(domandaRepo).forEach(cat => {
         } else {
         renderGlobalClassifica();
         }
+      } catch (e) {
+        console.error("Errore Debug:", e);
     }
+}
         // Ricarica la sezione corrente
        /* const currentSection = localStorage.getItem('currentSection');
         if (currentSection === 'classifica') {
