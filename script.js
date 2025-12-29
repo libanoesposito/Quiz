@@ -2624,6 +2624,13 @@ async function userResetStats() {
 
         // 3. Sincronizzazione con Google (Firebase)
         // Usiamo await per essere sicuri che i dati siano cancellati sul server
+        // reset gold su Firebase
+        if (state.currentPin !== testerUser.pin) {
+           await db.collection("utenti").doc(state.currentPin).set(
+            { goldMode: false },
+            { merge: true }
+            );
+        }
         await saveMasterDB(); 
         
         // 4. Rimuovi l'utente dalla classifica globale (opzionale, ma consigliato)
@@ -2901,11 +2908,13 @@ async function adminResetSingleUser(userId) {
         async () => {
             try {
                 const updateData = {
-                    progress: {},
-                    history: {},
-                    activeProgress: {},
-                    ripasso: { wrong: [], notStudied: [] }
+                progress: {},
+                history: {},
+                activeProgress: {},
+                ripasso: { wrong: [], notStudied: [] },
+                goldMode: false
                 };
+                
                 // Aggiorna Firebase
                 await db.collection("utenti").doc(pin).update(updateData);
                 // Aggiorna Locale
