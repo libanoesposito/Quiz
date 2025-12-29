@@ -310,6 +310,7 @@ if (state.currentPin === testerUser.pin) {
     
     // Salva anche su Firebase
     db.collection('utenti').doc(state.currentPin).set({ testerGold: isGoldActive }, { merge: true });
+    state.testerGoldChanged = true; // blocca initTheme dal sovrascrivere il gold
 }
 }
 
