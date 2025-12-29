@@ -2859,17 +2859,25 @@ async function toggleDebugPerfect() {
             }, { merge: true });
 
             // 1. Crea la storia per le categorie reali (Python, JS, ecc.)
-            state.history = {}; 
             Object.keys(domandaRepo).forEach(cat => {
-            // Trasformiamo ogni domanda reale in una risposta corretta nel log
-            state.history[cat] = domandaRepo[cat].map((domanda) => ({ 
-            id: domanda.id,              // ID reale della domanda
-            question: domanda.question,  // Testo della domanda
-            answer: domanda.answer,      // Risposta corretta
-            userAnswer: domanda.answer,  // Risposta data dal tester (ovviamente corretta)
-            ok: true, 
-            timestamp: Date.now() 
-                }));
+                state.history[cat] = [];
+                
+                // Cicliamo sui livelli (L1, L2, L3, L4)
+                Object.keys(domandaRepo[cat]).forEach(livello => {
+                    const domandeDelLivello = domandaRepo[cat][livello];
+                    
+                    domandeDelLivello.forEach(dom => {
+                        state.history[cat].push({
+                            id: dom.id,
+                            level: livello, // Aggiungiamo il livello se serve alla tua UI
+                            question: dom.question,
+                            answer: dom.answer,
+                            userAnswer: dom.answer,
+                            ok: true,
+                            timestamp: Date.now()
+                        });
+                    });
+                });
             });
 
             state.isPerfect = true;
