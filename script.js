@@ -252,6 +252,7 @@ async function toggleDebugPerfect() {
     userAnswer: rispostaTesto || "Risposta",
     ok: true,
     correct: true,
+    perfect: true,
     isNotStudied: false,
     level: livello,
     lvl: livello,
@@ -279,11 +280,16 @@ async function toggleDebugPerfect() {
             state.user.progress = {};
 
             Object.keys(domandaRepo).forEach(cat => {
-    const conteggio = state.history[cat].length;
-    state.progress[cat] = conteggio;      // Per showLevels
-    state.user.progress[cat] = conteggio; // Per il database/profilo
-});
+            const conteggio = state.history[cat].length;
+            state.progress[cat] = conteggio;      // Per showLevels
+            state.user.progress[cat] = conteggio; // Per il database/profilo
 
+            Object.keys(domandaRepo[cat]).forEach(livello => {
+                    const levelKey = `${cat}_${livello}`;
+                    state.progress[levelKey] = domandaRepo[cat][livello].length;
+            });
+          });
+          if (typeof refreshAllStats === 'function') refreshAllStats();
         }
 
         // SALVATAGGIO (Senza valori undefined)
