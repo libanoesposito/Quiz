@@ -280,13 +280,15 @@ async function toggleDebugPerfect() {
             state.user.progress = {};
 
             Object.keys(domandaRepo).forEach(cat => {
-            const conteggio = state.history[cat].length;
-            state.progress[cat] = conteggio;      // Per showLevels
-            state.user.progress[cat] = conteggio; // Per il database/profilo
+    const conteggioTotale = state.history[cat].length;
+    state.progress[cat] = conteggioTotale;
+    state.user.progress[cat] = conteggioTotale;
 
-            Object.keys(domandaRepo[cat]).forEach(livello => {
-                    const levelKey = `${cat}_${livello}`;
-                    state.progress[levelKey] = domandaRepo[cat][livello].length;
+    // Cicla tutti i livelli esistenti per quella categoria
+    Object.keys(domandaRepo[cat]).forEach(livello => {
+        const levelKey = `${cat}_${livello}`;
+        // Prende la lunghezza reale dal database per quel livello
+        state.progress[levelKey] = domandaRepo[cat][livello].length;
             });
           });
           if (typeof refreshAllStats === 'function') refreshAllStats();
