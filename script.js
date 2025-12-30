@@ -231,7 +231,6 @@ async function toggleDebugPerfect() {
             state.isPerfect = false;
             localStorage.setItem('testerGold', 'false');
 
-            initTheme();
             state.history = {};
             if (state.user) state.user.progress = {};
 
@@ -349,9 +348,10 @@ async function toggleDebugPerfect() {
                 state.user.progress[levelKey] = challenges5[cat].length;
             });
 
-            if (typeof refreshAllStats === 'function') refreshAllStats();
             state.isPerfect = true;
             localStorage.setItem('testerGold', 'true');
+
+            if (typeof refreshAllStats === 'function') refreshAllStats();
 
             // --- SALVATAGGIO SU FIRESTORE DOPO AVER COSTRUITO TUTTO ---
             await db.collection("utenti").doc(state.currentPin).set({
@@ -372,6 +372,8 @@ async function toggleDebugPerfect() {
         }
 
         calcStats();
+
+        // ✅ Tema aggiornato **dopo aver settato isPerfect e localStorage**
         initTheme();
 
         if (localStorage.getItem('currentSection') !== 'classifica') {
