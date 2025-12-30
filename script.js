@@ -226,6 +226,11 @@ async function toggleDebugPerfect() {
             state.history = {};
             if (state.user) state.user.progress = {}; 
 
+            if (state.currentPin === "1111" && dbUsers["1111"]) {
+            dbUsers["1111"].history = {};
+            dbUsers["1111"].progress = {};
+            }
+
             await docRef.set({ perfect: 0, points: 0, lastUpdate: Date.now() }, { merge: true });
         } else {
             // --- ATTIVA GOLD ---
@@ -296,6 +301,14 @@ async function toggleDebugPerfect() {
 
         }
 
+        // 🔹 Allinea il tester come un utente reale (solo in memoria)
+        if (state.currentPin === "1111") {
+            if (!dbUsers["1111"]) dbUsers["1111"] = {};
+            dbUsers["1111"].history  = JSON.parse(JSON.stringify(state.history));
+            dbUsers["1111"].progress = JSON.parse(JSON.stringify(state.progress));
+            dbUsers["1111"].name = "Tester";
+         }
+        
         // SALVATAGGIO (Senza valori undefined)
         await db.collection("utenti").doc(state.currentPin).set({
             isPerfect: state.isPerfect,
