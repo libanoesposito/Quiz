@@ -263,20 +263,20 @@ async function toggleDebugPerfect() {
                         const rispostaTesto = parti[rispostaCorrettaIndex + 1];
 
                         const entry = {
-    id: `${cat}_challenges5_${index}`,
-    q: sfida.task,
-    question: sfida.task,
-    answer: sfida.output || "Risposta",
-    userAnswer: sfida.output || "Risposta",
-    correctAnswer: sfida.output || "Risposta", // <-- aggiungi questa riga
-    ok: true,
-    correct: true,
-    perfect: true,
-    isNotStudied: false,
-    level: 'challenges5',
-    lvl: 'challenges5',
-    timestamp: Date.now()
-};
+                            id: `${cat}-${livello}-${index}`,
+                            q: domandaTesto || "Domanda",
+                            question: domandaTesto || "Domanda",
+                            answer: rispostaTesto || "Risposta",
+                            userAnswer: rispostaTesto || "Risposta",
+                            correctAnswer: rispostaTesto || "Risposta",
+                            ok: true,
+                            correct: true,
+                            perfect: true,
+                            isNotStudied: false,
+                            level: livello,
+                            lvl: livello,
+                            timestamp: Date.now()
+                        };
 
                         // storico categoria
                         state.history[cat].push(entry);
@@ -293,9 +293,9 @@ async function toggleDebugPerfect() {
                         if (!state.history[levelKey]) state.history[levelKey] = [];
                         state.history[levelKey].push(entry);
 
-                    }); // chiude domandeLista.forEach
-                }); // chiude livello.forEach
-            }); // chiude cat.forEach
+                    });
+                });
+            });
 
             // --- POPOLA ANCHE CHALLENGE5 ---
             Object.keys(challenges5).forEach(cat => {
@@ -308,6 +308,7 @@ async function toggleDebugPerfect() {
                         question: sfida.task,
                         answer: sfida.output || "Risposta",
                         userAnswer: sfida.output || "Risposta",
+                        correctAnswer: sfida.output || "Risposta",
                         ok: true,
                         correct: true,
                         perfect: true,
@@ -360,7 +361,7 @@ async function toggleDebugPerfect() {
                 user: state.user
             }, { merge: true });
 
-        } // <-- CHIUSURA CORRETTA DELL'ELSE
+        }
 
         // 🔹 Allinea il tester come un utente reale
         if (state.currentPin === "1111") {
