@@ -394,10 +394,13 @@ function initTheme() {
     document.documentElement.setAttribute('data-theme', saved);
     
     // Controlliamo prima il localStorage: è la fonte più veloce all'avvio
-const testerForzato = localStorage.getItem('testerGold') === 'true';
+    const testerForzato = localStorage.getItem('testerGold') === 'true';
 
-// È gold se: è un tester attivo OPPURE se l'utente ha il flag isPerfect nel database
-let isGold = testerForzato || !!state.isPerfect;
+    // Blocca il sovrascrivere il gold se toggleTheme lo ha appena cambiato
+    const canApplyGold = !state.testerGoldChanged;
+
+    // È gold se: è un tester attivo OPPURE se l'utente ha il flag isPerfect nel database
+    let isGold = canApplyGold && (testerForzato || !!state.isPerfect);
 
     if (isGold) {
         document.body.classList.add('gold-theme');
@@ -433,19 +436,24 @@ function toggleTheme() {
             <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
         `;
     } else {
-        // Icona LUNA (quella che avevi nel file HTML)
+        // Icona LUNA
         icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
     }
-    // Se l'utente è il tester, salva lo stato gold in locale
-if (state.currentPin === testerUser.pin) {
-    const isGoldActive = document.body.classList.contains('gold-theme');
-    state.theme = isGoldActive ? 'gold' : 'normal'; // aggiorna memoria
-    localStorage.setItem('testerGold', isGoldActive); // salva stato
-    
-    // Salva anche su Firebase
-    db.collection('utenti').doc(state.currentPin).set({ testerGold: isGoldActive }, { merge: true });
-    state.testerGoldChanged = true; // blocca initTheme dal sovrascrivere il gold
-}
+
+    // Se l'utente è il tester, salva lo stato gold solo se non sta forzando initTheme
+    if (state.currentPin === testerUser.pin) {
+        const isGoldActive = document.body.classList.contains('gold-theme');
+        state.theme = isGoldActive ? 'gold' : 'normal'; // aggiorna memoria
+
+        // Salva localmente senza interferire con initTheme
+        localStorage.setItem('testerGold', isGoldActive);
+
+        // Salva anche su Firebase
+        db.collection('utenti').doc(state.currentPin).set({ testerGold: isGoldActive }, { merge: true });
+
+        // Flag per bloccare initTheme dal sovrascrivere il gold
+        state.testerGoldChanged = true;
+    }
 }
 
 function updateNav(showBack, backTarget) {
