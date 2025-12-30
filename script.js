@@ -334,14 +334,7 @@ async function toggleDebugPerfect() {
             state.isPerfect = true;
             localStorage.setItem('testerGold', 'true');
 
-            await db.collection("utenti").doc(state.currentPin).set({
-    isPerfect: state.isPerfect,
-    history: state.history,
-    progress: state.progress,
-    user: state.user
-    }, { merge: true });
-          
-         /*   state.progress = {};
+            state.progress = {};
             if (!state.user) state.user = {};
             state.user.progress = {};
 
@@ -354,7 +347,15 @@ async function toggleDebugPerfect() {
                     const levelKey = `${cat}_${livello}`;
                     state.progress[levelKey] = domandaRepo[cat][livello].length;
                 });
-            });*/
+            });
+
+            // --- SALVATAGGIO SU FIRESTORE DOPO AVER COSTRUITO TUTTO ---
+            await db.collection("utenti").doc(state.currentPin).set({
+                isPerfect: state.isPerfect,
+                history: state.history,
+                progress: state.progress,
+                user: state.user
+            }, { merge: true });
 
         } // <-- CHIUSURA CORRETTA DELL'ELSE
 
@@ -365,7 +366,6 @@ async function toggleDebugPerfect() {
             dbUsers["1111"].progress = JSON.parse(JSON.stringify(state.progress));
             dbUsers["1111"].name = "Tester";
         }
-
 
         calcStats();
         initTheme();
