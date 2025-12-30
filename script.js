@@ -393,6 +393,7 @@ let isGold = testerForzato || !!state.isPerfect;
         document.body.classList.remove('gold-theme');
         document.documentElement.removeAttribute('data-theme-gold');
     }
+}
     // 3. Controllo Gold per il tester (1111)
     // Gestione Gold unica per utenti perfetti e tester
 /*if (state.currentPin === testerUser.pin && localStorage.getItem('testerGold') !== null && !state.testerGoldChanged) {
