@@ -156,19 +156,20 @@ window.onload = async () => {
                 state.ripasso = cloudUser.ripasso || { wrong: [], notStudied: [] };
                 state.activeProgress = cloudUser.activeProgress || {};
 
-                // Gestione tema: tester o utente normale
-                if (savedPin === testerUser.pin) {
-                    // Se gold salvato in locale, applica gold
+                               state.activeProgress = cloudUser.activeProgress || {};
 
-                // Gold tester da cloud
-                const testerGold = cloudUser.testerGold === true;
-                if (testerGold) {
-                state.theme = 'gold';
-                document.body.classList.add('gold-theme');
+                // --- NUOVA GESTIONE TEMA UNIFICATA ---
+                const stats = calcStats(); 
+                state.isPerfect = stats.isPerfect; 
+
+                if ((savedPin === testerUser.pin && cloudUser.testerGold) || state.isPerfect) {
+                    state.theme = 'gold';
+                    document.body.classList.add('perfect-gold-theme'); 
                 } else {
-                state.theme = 'normal';
-                initTheme();
+                    state.theme = 'normal';
+                    initTheme();
                 }
+
                 } else if (cloudUser.goldMode) {
                     // Tema gold per utenti normali
                     state.theme = 'gold';
