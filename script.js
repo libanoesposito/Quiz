@@ -283,6 +283,42 @@ state.history[levelKey].push(entry);
       });
      });
     });          
+
+          // --- POPOLA ANCHE CHALLENGE5 ---
+Object.keys(challenges5).forEach(cat => {
+    if (!state.history[cat]) state.history[cat] = [];
+    if (!state.progress) state.progress = {};
+    if (!state.user) state.user = {};
+    if (!state.user.progress) state.user.progress = {};
+
+    challenges5[cat].forEach((sfida, index) => {
+        const entry = {
+            id: `${cat}_challenges5_${index}`,
+            q: sfida.task,
+            question: sfida.task,
+            answer: sfida.expected || "Risposta",
+            userAnswer: sfida.expected || "Risposta",
+            ok: true,
+            correct: true,
+            perfect: true,
+            isNotStudied: false,
+            level: 'challenges5',
+            lvl: 'challenges5',
+            timestamp: Date.now()
+        };
+
+        state.history[cat].push(entry);
+
+        const levelKey = `${cat}_challenges5`;
+        if (!state.history[levelKey]) state.history[levelKey] = [];
+        state.history[levelKey].push(entry);
+    });
+
+    // Aggiorna progress
+    state.progress[`${cat}_challenges5`] = challenges5[cat].length;
+    state.user.progress[`${cat}_challenges5`] = challenges5[cat].length;
+});
+          
           if (typeof refreshAllStats === 'function') refreshAllStats();
             state.isPerfect = true;
             localStorage.setItem('testerGold', 'true');
