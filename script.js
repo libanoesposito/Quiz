@@ -291,7 +291,7 @@ state.history[levelKey].push(entry);
       });
      });
     });          
-
+}
           // --- POPOLA ANCHE CHALLENGE5 ---
 Object.keys(challenges5).forEach(cat => {
     if (!state.history[cat]) state.history[cat] = [];
