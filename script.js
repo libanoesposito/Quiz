@@ -269,13 +269,17 @@ async function toggleDebugPerfect() {
     state.history[cat].push(entry);
 
     // storico per livello (usato da showLevels)
-   /* const levelKey = `${cat}_${livello}`;*/
-    // Estraiamo solo il numero finale (che sia L1 o challenges5)
-    const numLivello = livello.match(/\d+/)[0]; 
-    const levelKey = `${cat}_${numLivello}`;
-                  
-    if (!state.history[levelKey]) state.history[levelKey] = [];
-    state.history[levelKey].push(entry);
+   // Estraiamo numero finale o usiamo direttamente challenges5
+   let numLivello = livello.match(/\d+/);
+   if (numLivello) {
+    numLivello = numLivello[0];
+    } else {
+    numLivello = livello; // ad esempio "challenges5"
+}
+const levelKey = `${cat}_${numLivello}`;
+
+if (!state.history[levelKey]) state.history[levelKey] = [];
+state.history[levelKey].push(entry);
       });
      });
     });          
