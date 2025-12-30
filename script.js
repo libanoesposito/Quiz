@@ -224,6 +224,7 @@ async function toggleDebugPerfect() {
     try {
         const doc = await docRef.get();
         const isAlreadyPerfect = doc.exists && doc.data().perfect >= 10;
+
         if (isAlreadyPerfect) {
 
             // --- RESET ---
@@ -232,15 +233,17 @@ async function toggleDebugPerfect() {
 
             initTheme();
             state.history = {};
-            if (state.user) state.user.progress = {}; 
+            if (state.user) state.user.progress = {};
 
             if (state.currentPin === "1111" && dbUsers["1111"]) {
-            dbUsers["1111"].history = {};
-            dbUsers["1111"].progress = {};
+                dbUsers["1111"].history = {};
+                dbUsers["1111"].progress = {};
             }
 
             await docRef.set({ perfect: 0, points: 0, lastUpdate: Date.now() }, { merge: true });
+
         } else {
+
             // --- ATTIVA GOLD ---
             await docRef.set({ perfect: 20, points: 5000, lastUpdate: Date.now() }, { merge: true });
 
@@ -248,116 +251,114 @@ async function toggleDebugPerfect() {
 
             Object.keys(domandaRepo).forEach(cat => {
                 state.history[cat] = [];
+
                 Object.keys(domandaRepo[cat]).forEach(livello => {
-                    const domandeLista = domandaRepo[cat][livello];    
+                    const domandeLista = domandaRepo[cat][livello];
+
                     domandeLista.forEach((domString, index) => {
 
-    const parti = domString.split('|');
-    const domandaTesto = parti[0];
-    const rispostaCorrettaIndex = parseInt(parti[4]);
-    const rispostaTesto = parti[rispostaCorrettaIndex + 1];
+                        const parti = domString.split('|');
+                        const domandaTesto = parti[0];
+                        const rispostaCorrettaIndex = parseInt(parti[4]);
+                        const rispostaTesto = parti[rispostaCorrettaIndex + 1];
 
-    const entry = {
-    id: `${cat}-${livello}-${index}`,
-    q: domandaTesto || "Domanda",
-    question: domandaTesto || "Domanda",
-    answer: rispostaTesto || "Risposta",
-    userAnswer: rispostaTesto || "Risposta",
-    ok: true,
-    correct: true,
-    perfect: true,
-    isNotStudied: false,
-    level: livello,
-    lvl: livello,
-    timestamp: Date.now()
-};
+                        const entry = {
+                            id: `${cat}-${livello}-${index}`,
+                            q: domandaTesto || "Domanda",
+                            question: domandaTesto || "Domanda",
+                            answer: rispostaTesto || "Risposta",
+                            userAnswer: rispostaTesto || "Risposta",
+                            ok: true,
+                            correct: true,
+                            perfect: true,
+                            isNotStudied: false,
+                            level: livello,
+                            lvl: livello,
+                            timestamp: Date.now()
+                        };
 
+                        // storico categoria
+                        state.history[cat].push(entry);
 
-    // storico categoria
-    state.history[cat].push(entry);
+                        // storico per livello
+                        let numLivello = livello.match(/\d+/);
+                        if (numLivello) {
+                            numLivello = numLivello[0];
+                        } else {
+                            numLivello = livello;
+                        }
 
-    // storico per livello (usato da showLevels)
-   // Estraiamo numero finale o usiamo direttamente challenges5
-   let numLivello = livello.match(/\d+/);
-   if (numLivello) {
-    numLivello = numLivello[0];
-    } else {
-    numLivello = livello; // ad esempio "challenges5"
-}
-const levelKey = `${cat}_${numLivello}`;
+                        const levelKey = `${cat}_${numLivello}`;
+                        if (!state.history[levelKey]) state.history[levelKey] = [];
+                        state.history[levelKey].push(entry);
 
-if (!state.history[levelKey]) state.history[levelKey] = [];
-state.history[levelKey].push(entry);
-      });
-     });
-    });          
-}
-          // --- POPOLA ANCHE CHALLENGE5 ---
-Object.keys(challenges5).forEach(cat => {
-    if (!state.history[cat]) state.history[cat] = [];
-    if (!state.progress) state.progress = {};
-    if (!state.user) state.user = {};
-    if (!state.user.progress) state.user.progress = {};
+                    }); // chiude domandeLista.forEach
+                }); // chiude livello.forEach
+            }); // chiude cat.forEach
 
-    challenges5[cat].forEach((sfida, index) => {
-        const entry = {
-            id: `${cat}_challenges5_${index}`,
-            q: sfida.task,
-            question: sfida.task,
-            answer: sfida.expected || "Risposta",
-            userAnswer: sfida.expected || "Risposta",
-            ok: true,
-            correct: true,
-            perfect: true,
-            isNotStudied: false,
-            level: 'challenges5',
-            lvl: 'challenges5',
-            timestamp: Date.now()
-        };
+            // --- POPOLA ANCHE CHALLENGE5 ---
+            Object.keys(challenges5).forEach(cat => {
+                if (!state.history[cat]) state.history[cat] = [];
+                if (!state.progress) state.progress = {};
+                if (!state.user) state.user = {};
+                if (!state.user.progress) state.user.progress = {};
 
-        state.history[cat].push(entry);
+                challenges5[cat].forEach((sfida, index) => {
+                    const entry = {
+                        id: `${cat}_challenges5_${index}`,
+                        q: sfida.task,
+                        question: sfida.task,
+                        answer: sfida.expected || "Risposta",
+                        userAnswer: sfida.expected || "Risposta",
+                        ok: true,
+                        correct: true,
+                        perfect: true,
+                        isNotStudied: false,
+                        level: 'challenges5',
+                        lvl: 'challenges5',
+                        timestamp: Date.now()
+                    };
 
-        const levelKey = `${cat}_challenges5`;
-        if (!state.history[levelKey]) state.history[levelKey] = [];
-        state.history[levelKey].push(entry);
-    });
+                    state.history[cat].push(entry);
 
-    // Aggiorna progress
-    state.progress[`${cat}_challenges5`] = challenges5[cat].length;
-    state.user.progress[`${cat}_challenges5`] = challenges5[cat].length;
-});
-          
-          if (typeof refreshAllStats === 'function') refreshAllStats();
+                    const levelKey = `${cat}_challenges5`;
+                    if (!state.history[levelKey]) state.history[levelKey] = [];
+                    state.history[levelKey].push(entry);
+                });
+
+                state.progress[`${cat}_challenges5`] = challenges5[cat].length;
+                state.user.progress[`${cat}_challenges5`] = challenges5[cat].length;
+            });
+
+            if (typeof refreshAllStats === 'function') refreshAllStats();
             state.isPerfect = true;
             localStorage.setItem('testerGold', 'true');
 
-            // Assicuriamoci che entrambi i puntatori siano aggiornati
-            state.progress = {}; 
+            state.progress = {};
             if (!state.user) state.user = {};
             state.user.progress = {};
+
             Object.keys(domandaRepo).forEach(cat => {
+                const conteggio = state.history[cat].length;
+                state.progress[cat] = conteggio;
+                state.user.progress[cat] = conteggio;
 
-    const conteggio = state.history[cat].length;
-    state.progress[cat] = conteggio;      // Per showLevels
-    state.user.progress[cat] = conteggio; // Per il database/profilo
-              Object.keys(domandaRepo[cat]).forEach(livello => {
-            const levelKey = `${cat}_${livello}`;
-            // Prende il numero reale di domande dal database
-            state.progress[levelKey] = domandaRepo[cat][livello].length;
-        });
-});
+                Object.keys(domandaRepo[cat]).forEach(livello => {
+                    const levelKey = `${cat}_${livello}`;
+                    state.progress[levelKey] = domandaRepo[cat][livello].length;
+                });
+            });
 
-        }
+        } // <-- CHIUSURA CORRETTA DELL'ELSE
 
-        // 🔹 Allinea il tester come un utente reale (solo in memoria)
+        // 🔹 Allinea il tester come un utente reale
         if (state.currentPin === "1111") {
             if (!dbUsers["1111"]) dbUsers["1111"] = {};
-            dbUsers["1111"].history  = JSON.parse(JSON.stringify(state.history));
+            dbUsers["1111"].history = JSON.parse(JSON.stringify(state.history));
             dbUsers["1111"].progress = JSON.parse(JSON.stringify(state.progress));
             dbUsers["1111"].name = "Tester";
-         }
-        
-        // SALVATAGGIO (Senza valori undefined)
+        }
+
         await db.collection("utenti").doc(state.currentPin).set({
             isPerfect: state.isPerfect,
             history: state.history
@@ -376,6 +377,7 @@ Object.keys(challenges5).forEach(cat => {
         console.error("Errore Debug:", e);
     }
 }
+
 
 function initTheme() {
     // 1. Gestione Light/Dark standard
