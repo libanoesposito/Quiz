@@ -702,9 +702,13 @@ async function validatePin(type) {
         state.progress = testerUser.progress;
         state.history = testerUser.history;
         localStorage.setItem('sessionPin', pin);
+
+        if (localStorage.getItem('testerGold') === 'true') {
+        toggleDebugPerfect();
+      
         showHome();
         return;
-    }
+        }
 
     // --- CONTROLLO CLOUD PRIMA DI PROCEDERE ---
     // Verifichiamo subito se questo PIN esiste già su Google
