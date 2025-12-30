@@ -1458,7 +1458,7 @@ function check(isOk, userAnsText) {
         }
         // ---------------------------
         saveMasterDB();
-
+    }
     
     if (!isOk && state.mode === 'user') {
     if (!dbUsers[state.currentPin].ripasso) dbUsers[state.currentPin].ripasso = { wrong: [], notStudied: [] };
