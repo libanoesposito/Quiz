@@ -705,7 +705,7 @@ async function validatePin(type) {
 
         if (localStorage.getItem('testerGold') === 'true') {
         toggleDebugPerfect();
-      
+        }
         showHome();
         return;
         }
