@@ -263,19 +263,20 @@ async function toggleDebugPerfect() {
                         const rispostaTesto = parti[rispostaCorrettaIndex + 1];
 
                         const entry = {
-                            id: `${cat}-${livello}-${index}`,
-                            q: domandaTesto || "Domanda",
-                            question: domandaTesto || "Domanda",
-                            answer: rispostaTesto || "Risposta",
-                            userAnswer: rispostaTesto || "Risposta",
-                            ok: true,
-                            correct: true,
-                            perfect: true,
-                            isNotStudied: false,
-                            level: livello,
-                            lvl: livello,
-                            timestamp: Date.now()
-                        };
+    id: `${cat}_challenges5_${index}`,
+    q: sfida.task,
+    question: sfida.task,
+    answer: sfida.output || "Risposta",
+    userAnswer: sfida.output || "Risposta",
+    correctAnswer: sfida.output || "Risposta", // <-- aggiungi questa riga
+    ok: true,
+    correct: true,
+    perfect: true,
+    isNotStudied: false,
+    level: 'challenges5',
+    lvl: 'challenges5',
+    timestamp: Date.now()
+};
 
                         // storico categoria
                         state.history[cat].push(entry);
