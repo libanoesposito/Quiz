@@ -418,7 +418,6 @@ let isGold = testerForzato || !!state.isPerfect;
     document.body.classList.remove('gold-theme');
     document.documentElement.removeAttribute('data-theme-gold');
     }*/
-}
 
 
 function toggleTheme() {
