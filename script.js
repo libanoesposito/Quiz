@@ -305,19 +305,20 @@ async function toggleDebugPerfect() {
 
                 challenges5[cat].forEach((sfida, index) => {
                     const entry = {
-                        id: `${cat}_challenges5_${index}`,
-                        q: sfida.task,
-                        question: sfida.task,
-                        answer: sfida.expected || "Risposta",
-                        userAnswer: sfida.expected || "Risposta",
-                        ok: true,
-                        correct: true,
-                        perfect: true,
-                        isNotStudied: false,
-                        level: 'challenges5',
-                        lvl: 'challenges5',
-                        timestamp: Date.now()
-                    };
+    id: `${cat}_challenges5_${index}`,
+    q: sfida.task,
+    question: sfida.task,
+    // usare output come risposta invece di logica/tag HTML
+    answer: sfida.output || "Risposta",
+    userAnswer: sfida.output || "Risposta",
+    ok: true,
+    correct: true,
+    perfect: true,
+    isNotStudied: false,
+    level: 'challenges5',
+    lvl: 'challenges5',
+    timestamp: Date.now()
+};
 
                     state.history[cat].push(entry);
 
@@ -329,6 +330,15 @@ async function toggleDebugPerfect() {
                 state.progress[`${cat}_challenges5`] = challenges5[cat].length;
                 state.user.progress[`${cat}_challenges5`] = challenges5[cat].length;
             });
+
+            state.progress = {};
+            if (!state.user) state.user = {};
+            state.user.progress = {};
+
+            Object.keys(state.history).forEach(cat => {
+            state.progress[cat] = state.history[cat].length;
+            state.user.progress[cat] = state.history[cat].length;
+            })
 
             if (typeof refreshAllStats === 'function') refreshAllStats();
             state.isPerfect = true;
