@@ -16,6 +16,8 @@ let dbUsers = JSON.parse(localStorage.getItem('quiz_master-db')) || {};
    /* ============================================================
    TRUE APPLE ALERT SYSTEM (Glassmorphism Edition)
    ============================================================ */
+
+
 window.alert = function(message) {
     const existing = document.getElementById('apple-alert-overlay');
     if (existing) existing.remove();
