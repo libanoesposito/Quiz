@@ -1189,6 +1189,12 @@ function renderL5(lang, index = null) {
     const container = document.getElementById('content-area');
     const sfide = challenges5[lang];
 
+    // Se è il tester e perfetto, impostiamo l'indice in base allo storico
+if (state.currentPin === "1111" && state.isPerfect) {
+    const historyL5 = state.history?.[`${lang}_challenges5`] || [];
+    index = historyL5.length; // Se vuota parte da 0, se completa va oltre
+}
+
     if (!sfide || index >= sfide.length) {
         // Se finisce le sfide, mostra schermata finale
         container.innerHTML = `
