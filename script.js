@@ -299,26 +299,22 @@ async function toggleDebugPerfect() {
             // --- POPOLA ANCHE CHALLENGE5 ---
             Object.keys(challenges5).forEach(cat => {
                 if (!state.history[cat]) state.history[cat] = [];
-                if (!state.progress) state.progress = {};
-                if (!state.user) state.user = {};
-                if (!state.user.progress) state.user.progress = {};
 
                 challenges5[cat].forEach((sfida, index) => {
                     const entry = {
-    id: `${cat}_challenges5_${index}`,
-    q: sfida.task,
-    question: sfida.task,
-    // usare output come risposta invece di logica/tag HTML
-    answer: sfida.output || "Risposta",
-    userAnswer: sfida.output || "Risposta",
-    ok: true,
-    correct: true,
-    perfect: true,
-    isNotStudied: false,
-    level: 'challenges5',
-    lvl: 'challenges5',
-    timestamp: Date.now()
-};
+                        id: `${cat}_challenges5_${index}`,
+                        q: sfida.task,
+                        question: sfida.task,
+                        answer: sfida.output || "Risposta",
+                        userAnswer: sfida.output || "Risposta",
+                        ok: true,
+                        correct: true,
+                        perfect: true,
+                        isNotStudied: false,
+                        level: 'challenges5',
+                        lvl: 'challenges5',
+                        timestamp: Date.now()
+                    };
 
                     state.history[cat].push(entry);
 
@@ -326,38 +322,34 @@ async function toggleDebugPerfect() {
                     if (!state.history[levelKey]) state.history[levelKey] = [];
                     state.history[levelKey].push(entry);
                 });
-
-                state.progress[`${cat}_challenges5`] = challenges5[cat].length;
-                state.user.progress[`${cat}_challenges5`] = challenges5[cat].length;
             });
 
+            // --- COSTRUZIONE PROGRESSI UNA VOLTA ---
             state.progress = {};
             if (!state.user) state.user = {};
             state.user.progress = {};
 
             Object.keys(state.history).forEach(cat => {
-            state.progress[cat] = state.history[cat].length;
-            state.user.progress[cat] = state.history[cat].length;
-            })
-
-            if (typeof refreshAllStats === 'function') refreshAllStats();
-            state.isPerfect = true;
-            localStorage.setItem('testerGold', 'true');
-
-            state.progress = {};
-            if (!state.user) state.user = {};
-            state.user.progress = {};
+                state.progress[cat] = state.history[cat].length;
+                state.user.progress[cat] = state.history[cat].length;
+            });
 
             Object.keys(domandaRepo).forEach(cat => {
-                const conteggio = state.history[cat].length;
-                state.progress[cat] = conteggio;
-                state.user.progress[cat] = conteggio;
-
                 Object.keys(domandaRepo[cat]).forEach(livello => {
                     const levelKey = `${cat}_${livello}`;
                     state.progress[levelKey] = domandaRepo[cat][livello].length;
                 });
             });
+
+            Object.keys(challenges5).forEach(cat => {
+                const levelKey = `${cat}_challenges5`;
+                state.progress[levelKey] = challenges5[cat].length;
+                state.user.progress[levelKey] = challenges5[cat].length;
+            });
+
+            if (typeof refreshAllStats === 'function') refreshAllStats();
+            state.isPerfect = true;
+            localStorage.setItem('testerGold', 'true');
 
             // --- SALVATAGGIO SU FIRESTORE DOPO AVER COSTRUITO TUTTO ---
             await db.collection("utenti").doc(state.currentPin).set({
