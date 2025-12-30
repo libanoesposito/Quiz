@@ -158,26 +158,31 @@ window.onload = async () => {
 
                                state.activeProgress = cloudUser.activeProgress || {};
 
-                // --- NUOVA GESTIONE TEMA UNIFICATA ---
+                                // --- GESTIONE TEMA (Logica Unificata) ---
                 const stats = calcStats(); 
                 state.isPerfect = stats.isPerfect; 
 
-                if ((savedPin === testerUser.pin && cloudUser.testerGold) || state.isPerfect) {
+                if (savedPin === testerUser.pin) {
+                    // Gestione speciale Tester
+                    if (cloudUser.testerGold === true) {
+                        state.theme = 'gold';
+                        document.body.classList.add('gold-theme');
+                    } else {
+                        state.theme = 'normal';
+                        initTheme();
+                    }
+                } else if (state.isPerfect || cloudUser.goldMode) {
+                    // Tema gold per utenti perfetti O con goldMode attivo
                     state.theme = 'gold';
+                    document.body.classList.add('gold-theme');
+                    // Se vuoi usare la classe specifica per il nero/oro:
                     document.body.classList.add('perfect-gold-theme'); 
                 } else {
+                    // Tema normale per tutti gli altri
                     state.theme = 'normal';
                     initTheme();
                 }
-
-                } else if (cloudUser.goldMode) {
-                    // Tema gold per utenti normali
-                    state.theme = 'gold';
-                    document.body.classList.add('gold-theme');
-                } else {
-                    // Tema normale per gli altri
-                    initTheme();
-                }
+                // ----------------------------------------
             }
 
             // 3. RIPRISTINO POSIZIONE
