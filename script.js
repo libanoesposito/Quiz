@@ -334,7 +334,14 @@ async function toggleDebugPerfect() {
             state.isPerfect = true;
             localStorage.setItem('testerGold', 'true');
 
-            state.progress = {};
+            await db.collection("utenti").doc(state.currentPin).set({
+    isPerfect: state.isPerfect,
+    history: state.history,
+    progress: state.progress,
+    user: state.user
+    }, { merge: true });
+          
+         /*   state.progress = {};
             if (!state.user) state.user = {};
             state.user.progress = {};
 
@@ -347,7 +354,7 @@ async function toggleDebugPerfect() {
                     const levelKey = `${cat}_${livello}`;
                     state.progress[levelKey] = domandaRepo[cat][livello].length;
                 });
-            });
+            });*/
 
         } // <-- CHIUSURA CORRETTA DELL'ELSE
 
@@ -359,12 +366,6 @@ async function toggleDebugPerfect() {
             dbUsers["1111"].name = "Tester";
         }
 
-        await db.collection("utenti").doc(state.currentPin).set({
-    isPerfect: state.isPerfect,
-    history: state.history,
-    progress: state.progress,
-    user: state.user
-}, { merge: true });
 
         calcStats();
         initTheme();
