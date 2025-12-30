@@ -360,9 +360,11 @@ async function toggleDebugPerfect() {
         }
 
         await db.collection("utenti").doc(state.currentPin).set({
-            isPerfect: state.isPerfect,
-            history: state.history
-        }, { merge: true });
+    isPerfect: state.isPerfect,
+    history: state.history,
+    progress: state.progress,
+    user: state.user
+}, { merge: true });
 
         calcStats();
         initTheme();
