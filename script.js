@@ -474,7 +474,14 @@ async function saveMasterDB() {
             // Usiamo 'set' con 'merge: true' per non sovrascrivere accidentalmente tutto il profilo
             await db.collection("utenti").doc(state.currentPin).set(dbUsers[state.currentPin], { merge: true });
             console.log("Sincronizzazione Cloud completata per:", state.currentPin);
-            
+                        // Sincronizzazione esplicita stato Gold per classifica
+            const stats = calcStats();
+            await db.collection("classifica").doc(state.currentPin).set({
+                perfect: stats.isPerfect ? 1 : 0,
+                points: stats.correct,
+                name: dbUsers[state.currentPin].name
+            }, { merge: true });
+
             // Aggiorniamo anche la classifica globale ogni volta che salviamo i progressi
             await updateGlobalLeaderboard();
         } catch (error) {
@@ -1453,10 +1460,16 @@ function check(isOk, userAnsText) {
             level: session.lvl // <--- AGGIUNGI QUESTA RIGA
         });
         
-        if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
-        dbUsers[state.currentPin].activeProgress[`${session.lang}_${session.lvl}`] = session.idx + 1;
+                // --- AGGIUNTA LOGICA GOLD ---
+        const stats = calcStats(); 
+        if (stats.isPerfect) {
+            state.isPerfect = true;
+            initTheme(); 
+        }
+        // ---------------------------
         saveMasterDB();
-    }
+
+    
     if (!isOk && state.mode === 'user') {
     if (!dbUsers[state.currentPin].ripasso) dbUsers[state.currentPin].ripasso = { wrong: [], notStudied: [] };
     if (!dbUsers[state.currentPin].ripasso.wrong.some(d => d.q === data.q)) {
