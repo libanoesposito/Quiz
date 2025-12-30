@@ -926,7 +926,9 @@ function showLevels(lang) {
     document.getElementById('app-title').innerText = lang;
 
     let html = "";
-    const comp = (state.user && state.user.progress) ? (state.user.progress[lang] || 0) : (state.progress[lang] || 0);
+    const comp = (state.user && state.user.progress)
+        ? (state.user.progress[lang] || 0)
+        : (state.progress[lang] || 0);
 
     for (let i = 1; i <= 5; i++) {
         let label = (i === 5) ? "TEST OPERATIVO" : "Livello " + i;
@@ -946,23 +948,25 @@ function showLevels(lang) {
 
         let totalExist = 0;
         let userCorrectUniques = 0;
+
         if (domandaRepo[lang] && domandaRepo[lang]["L" + i]) {
             totalExist = domandaRepo[lang]["L" + i].length;
             const key = `${lang}_${i}`;
 
-        const historyLivello = (state.history && state.history[key]) 
-        ? state.history[key] 
-        : (state.user && state.user.history ? state.user.history[key] || [] : []);
+            const historyLivello = (state.history && state.history[key])
+                ? state.history[key]
+                : (state.user && state.user.history ? state.user.history[key] || [] : []);
+
             const uniqueCorrect = new Set(historyLivello.filter(h => h.ok).map(h => h.q));
             userCorrectUniques = uniqueCorrect.size;
         }
 
         // 3. LOGICA ORO (Attiva solo se ha completato le 15)
-        let isGoldPhase = (comp >= i); 
-        
+        let isGoldPhase = (comp >= i);
+
         let displayTotal = isGoldPhase ? totalExist : 15;
         let displayCurrent = isGoldPhase ? userCorrectUniques : currentIdx;
-        
+
         // Calcolo percentuali per le barre
         const percentage = (displayCurrent / displayTotal) * 100;
         const greenSplit = isGoldPhase ? (15 / displayTotal) * 100 : percentage;
@@ -993,6 +997,7 @@ function showLevels(lang) {
 
     document.getElementById('content-area').innerHTML = html;
 }
+
 
 /*function showLevels(lang) {
     localStorage.setItem('currentSection', 'levels');
