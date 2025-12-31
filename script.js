@@ -2340,32 +2340,27 @@ function showUserHistory(userId) {
 }
 
 
-function generateHistoryHTML(data) {
+function generateHistoryHTML(u) {
     let html = "";
-    // Se passiamo l'intero oggetto utente prendiamo .history, altrimenti usiamo data
-    const historyData = data.history ? data.history : data;
-
-    Object.keys(historyData || {}).forEach(lang => {
-        html += `<div style="margin-bottom:10px; border-bottom:1px solid rgba(120,120,120,0.1); padding-bottom:5px"><strong>${lang}</strong></div>`;
-        if (Array.isArray(historyData[lang])) {
-            historyData[lang].forEach((h, idx) => {
-    const status = h.ok ? "✅" : (h.isNotStudied ? "🟦" : "❌");
-    
-    // Creiamo la riga della risposta solo se NON è "non studiato"
-    let rispostaUtenteHtml = "";
-    if (!h.isNotStudied) {
-        rispostaUtenteHtml = `<br><span style="color:${h.ok ? '#34c759' : '#ff3b30'}">Tua: ${h.userAnswer || '—'}</span>`;
-    }
-
-    html += `<div style="font-size:12px; margin-bottom:6px">
-                ${status} Q${idx + 1}: ${h.question}
-                ${rispostaUtenteHtml}
-                ${!h.ok ? `<br><em style="opacity:0.6">Corretta: ${h.correctAnswer || '—'}</em>` : ''}
-             </div>`;
-});
-        }
+    Object.keys(u.history || {}).forEach(lang => {
+        html += `<div style="margin-bottom:10px"><strong>${lang}</strong></div>`;
+        u.history[lang].forEach((h, idx) => {
+            const status = h.ok ? "✅" : "❌";
+            html += `<div style="font-size:12px; margin-bottom:6px">
+                        ${status} Q${idx + 1}: ${h.question}<br>
+                        <em style="opacity:0.6">Risposta corretta: ${h.correctAnswer}</em>
+                     </div>`;
+        });
     });
-    return html || "<div style='font-size:12px; opacity:0.6'>Nessun Storico</div>";
+    return html || "<div style='font-size:12px; opacity:0.6'>Nessuna domanda fatta</div>";
+}
+
+// Toggle per linguaggio
+function toggleLangDetails(el){
+    const content = el.nextElementSibling;
+    if(content) content.style.display = content.style.display==='none'?'block':'none';
+    const chevron = el.querySelector('.chevron');
+    if(chevron) chevron.style.transform = content.style.display==='block'?'rotate(90deg)':'rotate(0deg)';
 }
 
 
