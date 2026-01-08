@@ -239,7 +239,7 @@ function viewDebugLogs() { return; }
 function renderDebugWidget() { return; }
 
 // Hash SHA-256 dei PIN speciali (Admin: 3473, Tester: 1111)
-const ADMIN_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
+const ADMIN_HASH = "b03ddf3ca2e714a6548e7495e2a03f5e824eaac983717e563a66f5261e454e81";
 const TESTER_HASH = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
 
 
