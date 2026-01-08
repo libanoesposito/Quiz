@@ -10,8 +10,91 @@ const firebaseConfig = {
 // Inizializzazione Firebase (Assicurati di aver caricato gli script SDK nell'HTML)
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+
+// Funzione di hashing per sicurezza PIN (SHA-256)
+async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // Database globale degli utenti (caricato da memoria locale)
-let dbUsers = JSON.parse(localStorage.getItem('quiz_master-db')) || {};
+// Nota: standardizziamo la chiave su 'quiz_master_db' usata altrove
+let dbUsers = JSON.parse(localStorage.getItem('quiz_master_db')) || {};
+
+// Risolutore domanda breve -> testo completo usando `domandaRepo`
+function resolveQuestionFromRepo(h, base, lvl) {
+    if (!h) return '';
+    if (h.question && String(h.question).trim()) return String(h.question);
+    const qRaw = String(h.q || h.question || '').trim();
+    // Se è del tipo Q<number> cerchiamo per indice nel repo (1-based)
+    const m = qRaw.match(/^Q(\d+)$/i);
+    if (m && base && lvl) {
+        const idx = parseInt(m[1], 10) - 1;
+        try {
+            const arr = (domandaRepo && domandaRepo[base] && domandaRepo[base][`L${lvl}`]) ? domandaRepo[base][`L${lvl}`] : null;
+            if (Array.isArray(arr) && arr[idx]) {
+                const parts = String(arr[idx]).split('|');
+                return parts[0] || qRaw;
+            }
+        } catch (e) { /* ignore */ }
+    }
+    // Se qRaw corrisponde esattamente al campo parts[0] di qualche domanda, restituisci quel testo
+    if (domandaRepo) {
+        for (const lang of Object.keys(domandaRepo)) {
+            for (const livKey of Object.keys(domandaRepo[lang] || {})) {
+                const list = domandaRepo[lang][livKey] || [];
+                for (let i = 0; i < list.length; i++) {
+                    const parts = String(list[i]).split('|');
+                    if (parts[0] && parts[0] === qRaw) return parts[0];
+                }
+            }
+        }
+    }
+    // fallback: ritorna qRaw
+    return qRaw;
+}
+
+// Migrazione in memoria: arricchisce le voci storiche già presenti con `question` e `userAnswer` leggibili
+function migrateHistoryInMemory() {
+    if (!dbUsers || typeof domandaRepo === 'undefined') return;
+    Object.keys(dbUsers).forEach(pin => {
+        const u = dbUsers[pin];
+        if (!u || !u.history) return;
+        Object.keys(u.history).forEach(key => {
+            // key può essere lingua (e.g. CODING) o perLevel (e.g. CODING_1)
+            const arr = u.history[key];
+            if (!Array.isArray(arr)) return;
+            // infer base and lvl from key when possibile
+            let base = null, lvl = null;
+            const lvlMatch = key.match(/^(.*)_(\d+)$/);
+            if (lvlMatch) { base = lvlMatch[1]; lvl = Number(lvlMatch[2]); }
+            for (let i = 0; i < arr.length; i++) {
+                const h = arr[i] || {};
+                try {
+                    if (!h.question || String(h.question).trim().length < 3) {
+                        const resolved = resolveQuestionFromRepo(h, base, lvl);
+                        if (resolved && resolved !== h.question) h.question = resolved;
+                    }
+                    // se manca userAnswer ma esiste una shorthand `a` o `ans`, proviamo a usarla
+                    if ((!h.userAnswer || String(h.userAnswer).trim() === '') && (h.a || h.ans)) {
+                        h.userAnswer = String(h.a || h.ans || '');
+                    }
+                    // assicuriamoci ci siano campi coerenti
+                    if (!h.correctAnswer && h.correct) h.correctAnswer = h.correct;
+                    if (h.lvl === undefined && h.level !== undefined) h.lvl = h.level;
+                    arr[i] = h;
+                } catch (e) { /* ignore per sicurezza */ }
+            }
+        });
+    });
+    // risalviamo localmente la versione arricchita
+    try { localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers)); } catch(e){}
+}
+
+// Esegui migrazione iniziale appena caricato dbUsers
+migrateHistoryInMemory();
    
    /* ============================================================
    TRUE APPLE ALERT SYSTEM (Glassmorphism Edition)
@@ -77,34 +160,87 @@ let state = {
     history: {},
     ripasso: { wrong: [], notStudied: [] }, 
     activeProgress: {},                      
-    isPerfectGold: false
+    isTester: false, // Flag per identificare il tester senza esporre il PIN
+    // isPerfectGold rimossa: usiamo `state.isPerfect` nel codice
 };
+
+// Escapa stringhe per prevenire XSS quando inseriamo valori in innerHTML
+function escapeHtml(input) {
+    if (input === undefined || input === null) return '';
+    return String(input)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// Aggiorna la classifica globale basandosi sullo storico locale dell'utente
+async function updateGlobalLeaderboard() {
+    if (!state.currentPin) return;
+    const u = dbUsers[state.currentPin];
+    if (!u) return;
+
+    let pts = 0;
+    let perfects = 0;
+
+    Object.keys(domandaRepo).forEach(lang => {
+        for (let lvl = 1; lvl <= 5; lvl++) {
+            const key = `${lang}_${lvl}`;
+            const historyLevel = (u.history && (u.history[key] || u.history[lang])) ? (u.history[key] || (Array.isArray(u.history[lang]) ? u.history[lang].filter(h => Number(h.lvl||h.level) === lvl) : [])) : [];
+            const uniqueCorrect = new Set(historyLevel.filter(h => h.ok).map(h => h.q));
+
+            const totalExist = (lvl === 5)
+                ? ((challenges5 && challenges5[lang] && Array.isArray(challenges5[lang])) ? challenges5[lang].length : (domandaRepo[lang] && domandaRepo[lang][`L${lvl}`] ? domandaRepo[lang][`L${lvl}`].length : 0))
+                : ((domandaRepo[lang] && domandaRepo[lang][`L${lvl}`]) ? domandaRepo[lang][`L${lvl}`].length : 0);
+
+            pts += uniqueCorrect.size * 10;
+            if (totalExist > 0 && uniqueCorrect.size >= totalExist) perfects++;
+        }
+    });
+
+    try {
+        await db.collection("classifica").doc(state.currentPin).set({
+            name: u.name,
+            points: pts,
+            perfect: perfects,
+            lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+    } catch (e) {
+        console.error('Errore aggiornamento classifica:', e);
+    }
+}
 
 
 let session = null;
 let globalClassifica = []; // Conterrà i dati presi da Firebase
+// Interaction logging (per debug): registra azioni utente in dbUsers[PIN].debugLogs e opzionalmente su Firestore
+let interactionLogging = false;
+let _interactionListener = null;
 
-const ADMIN_PIN = "3473";
-const TESTER_PIN = "1111"; 
-
-// Definiamo l'oggetto tester COMPLETO (così non crasha il profilo)
-const testerUser = {
-    name: "Tester Pro",
-    progress: {},      // Vuoto per testare da zero
-    history: {},       // Necessario per il profilo
-    activeProgress: {}, // Necessario per il profilo
-    ripasso: {         // Necessario per la pagina Ripasso
-        wrong: [], 
-        notStudied: [] 
-    },
-    isTester: true     // Il nostro "marchio" per sbloccare i livelli
-};
-
-// Ora lo iniettiamo nel database se non esiste
-if (!dbUsers[TESTER_PIN]) {
-    dbUsers[TESTER_PIN] = testerUser;
-    localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
+function trackAction(action, details) {
+    // debug tracing removed — no-op in production
+    return;
 }
+
+// Registra uno snapshot più completo dello stato corrente (utile per debug di refresh/visualizzazione)
+function trackSnapshot(name, extra) {
+    // snapshot debug removed — no-op
+    return;
+}
+
+// Removed debug unload/visibility listeners
+
+function enableInteractionLogging() { return; }
+function disableInteractionLogging() { return; }
+
+function viewDebugLogs() { return; }
+
+function renderDebugWidget() { return; }
+
+// Hash SHA-256 dei PIN speciali (Admin: 3473, Tester: 1111)
+const ADMIN_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
+const TESTER_HASH = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
 
 
 window.onload = async () => {
@@ -117,7 +253,7 @@ window.onload = async () => {
 
     // Se il PIN è nullo, vuoto o solo spazi, abortiamo subito verso il login
     if (!savedPin || savedPin === "" || savedPin === "null" || savedPin === "undefined") {
-        console.warn("Path non valido intercettato, redirect al login");
+        // Input salvato non valido: reindirizza al login (silenzioso)
         localStorage.removeItem('sessionPin');
         renderLogin();
         return;
@@ -130,6 +266,9 @@ window.onload = async () => {
         renderLogin();
         return;
         }
+        
+        const hashedSaved = await sha256(savedPin);
+
         // 1. CHIAMATA AL CLOUD: Cerchiamo l'utente su Firebase
         const doc = await db.collection("utenti").doc(savedPin).get();
 
@@ -149,7 +288,7 @@ window.onload = async () => {
             state.currentPin = savedPin;
             state.currentUser = cloudUser.name;
             
-            if (savedPin === ADMIN_PIN) {
+            if (hashedSaved === ADMIN_HASH) {
                 state.mode = 'admin';
             } else {
                 state.mode = 'user';
@@ -164,30 +303,20 @@ window.onload = async () => {
                 const stats = calcStats(); 
                 state.isPerfect = stats.isPerfect; 
 
-                if (savedPin === testerUser.pin) {
-                    // Gestione speciale Tester
-                    if (cloudUser.testerGold === true) {
-                        state.theme = 'gold';
-                        document.body.classList.add('gold-theme');
-                    } else {
-                        state.theme = 'normal';
-                        initTheme();
-                    }
-                } else if (state.isPerfect || cloudUser.goldMode) {
-                    // Tema gold per utenti perfetti O con goldMode attivo
-                    state.theme = 'gold';
-                    document.body.classList.add('gold-theme');
-                    // Se vuoi usare la classe specifica per il nero/oro:
-                    document.body.classList.add('perfect-gold-theme'); 
-                } else {
-                    // Tema normale per tutti gli altri
-                    state.theme = 'normal';
-                    initTheme();
-                }
-                // ----------------------------------------
+                // gestione tema rimandata: verrà inizializzata dopo il caricamento dello stato gold
             }
 
-            // 3. RIPRISTINO POSIZIONE
+            // 3. CARICA STATO GOLD DA FIREBASE
+            const goldModeCloud = cloudUser.goldMode || cloudUser.testerGold || false;
+
+            // Salva negli state globali
+            state.isPerfect = goldModeCloud || state.isPerfect;
+            if (hashedSaved === TESTER_HASH) {
+                state.isTester = true;
+                localStorage.setItem('testerGold', (cloudUser.testerGold || cloudUser.goldMode) ? 'true' : 'false');
+            }
+
+            // 4. RIPRISTINO POSIZIONE
             const lastSection = localStorage.getItem('currentSection');
             const lastLang = localStorage.getItem('currentLang');
 
@@ -199,6 +328,11 @@ window.onload = async () => {
 
             // Solo se NON esiste nulla da ripristinare
             showHome();
+
+            // Mostra/nascondi il toggle tester (fulmine) se necessario
+            try { renderTesterToggle(); } catch(e) {}
+
+            // debug instrumentation removed
 
         } else {
             // PIN nel localStorage ma non esiste su Firebase
@@ -217,170 +351,169 @@ window.onload = async () => {
     }
 };
 
+// Ripristina toggleDebugPerfect per il tester (PIN 1111)
 async function toggleDebugPerfect() {
-    if (state.currentPin !== "1111") return;
-    const docRef = db.collection("classifica").doc("1111");
+    if (!state.isTester) return;
+
+    const docRef = db.collection("classifica").doc(state.currentPin);
+    let doc;
+    try { doc = await docRef.get(); } catch(e){ console.error('Errore lettura classifica:', e); doc = { exists: false }; }
+
+    const isAlreadyPerfect = doc.exists && (doc.data().perfect || doc.data().perfect === 20);
 
     try {
-        const doc = await docRef.get();
-        const isAlreadyPerfect = doc.exists && doc.data().perfect >= 10;
-
         if (isAlreadyPerfect) {
-
-            // --- RESET ---
+            // Disattiva modalità gold per il tester
             state.isPerfect = false;
             localStorage.setItem('testerGold', 'false');
 
+            // Pulisce history/progress locali del tester per simulazione off
             state.history = {};
-            if (state.user) state.user.progress = {};
-
-            if (state.currentPin === "1111" && dbUsers["1111"]) {
-                dbUsers["1111"].history = {};
-                dbUsers["1111"].progress = {};
+            state.progress = {};
+            state.activeProgress = {};
+            state.ripasso = { wrong: [], notStudied: [] };
+            if (dbUsers[state.currentPin]) {
+                dbUsers[state.currentPin].progress = {};
+                dbUsers[state.currentPin].history = {};
+                dbUsers[state.currentPin].testerGold = false;
             }
 
             await docRef.set({ perfect: 0, points: 0, lastUpdate: Date.now() }, { merge: true });
+            await db.collection('utenti').doc(state.currentPin).set({ testerGold: false, goldMode: false, history: {} }, { merge: true });
 
         } else {
+            // Attiva modalità gold: impostiamo immediatamente lo stato GOLD per aggiornare l'UI
+            // prima di costruire lo storico completo (operazione più lenta).
+            state.isPerfect = true;
+            localStorage.setItem('testerGold', 'true');
+            try { initTheme(); } catch(e) {}
+            try { renderTesterToggle(); } catch(e) {}
+            try { showHome(); } catch(e) {}
 
-            // --- ATTIVA GOLD ---
-            await docRef.set({ perfect: 20, points: 5000, lastUpdate: Date.now() }, { merge: true });
-
+            // Costruzione dello storico perfetto (continua normalmente)
             state.history = {};
 
-            Object.keys(domandaRepo).forEach(cat => {
-                state.history[cat] = [];
+            Object.keys(domandaRepo).forEach(lang => {
+                state.history[lang] = [];
+                // prepara struttura per dbUsers.history
+                if (!dbUsers[state.currentPin]) dbUsers[state.currentPin] = {};
+                if (!dbUsers[state.currentPin].history) dbUsers[state.currentPin].history = {};
+                if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
+                if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
 
-                Object.keys(domandaRepo[cat]).forEach(livello => {
-                    const domandeLista = domandaRepo[cat][livello];
+                Object.keys(domandaRepo[lang]).forEach(liv => {
+                    const arr = domandaRepo[lang][liv] || [];
+                    const lvlNum = Number((liv+'').replace(/[^0-9]/g, '')) || 0;
+                    // crea array per livello
+                    const perLevelKey = `${lang}_${lvlNum}`;
+                    dbUsers[state.currentPin].history[perLevelKey] = [];
 
-                    domandeLista.forEach((domString, index) => {
+                    arr.forEach((entry, idx) => {
+                        const parts = String(entry).split('|');
+                        const q = parts[0] || (`Q_${lang}_${liv}_${idx}`);
 
-                        const parti = domString.split('|');
-                        const domandaTesto = parti[0];
-                        const rispostaCorrettaIndex = parseInt(parti[4]);
-                        const rispostaTesto = parti[rispostaCorrettaIndex + 1];
+                        // Determina l'indice dell'opzione corretta (campo 4 nella stringa)
+                        let correctAnswer = '';
+                        try {
+                            const rawIndex = parts[4];
+                            const optionIndex = (rawIndex !== undefined && rawIndex !== '') ? parseInt(rawIndex, 10) : 0;
+                            const optionPos = 1 + (isNaN(optionIndex) ? 0 : optionIndex);
+                            correctAnswer = parts[optionPos] || parts[1] || '';
+                        } catch (e) {
+                            correctAnswer = parts[1] || '';
+                        }
 
-                        const entry = {
-                            id: `${cat}-${livello}-${index}`,
-                            q: domandaTesto || "Domanda",
-                            question: domandaTesto || "Domanda",
-                            answer: rispostaTesto || "Risposta",
-                            userAnswer: rispostaTesto || "Risposta",
-                            correctAnswer: rispostaTesto || "Risposta",
+                        const histEntry = {
+                            id: `${lang}_${lvlNum}_${idx}`,
+                            q: q,
+                            question: q,
+                            userAnswer: correctAnswer,
+                            correctAnswer: correctAnswer,
                             ok: true,
-                            correct: true,
-                            perfect: true,
-                            isNotStudied: false,
-                            level: livello,
-                            lvl: livello,
+                            level: lvlNum,
+                            lvl: lvlNum,
                             timestamp: Date.now()
                         };
 
-                        // storico categoria
-                        state.history[cat].push(entry);
-
-                        // storico per livello
-                        let numLivello = livello.match(/\d+/);
-                        if (numLivello) {
-                            numLivello = numLivello[0];
-                        } else {
-                            numLivello = livello;
-                        }
-
-                        const levelKey = `${cat}_${numLivello}`;
-                        if (!state.history[levelKey]) state.history[levelKey] = [];
-                        state.history[levelKey].push(entry);
-
+                        state.history[lang].push(histEntry);
+                        dbUsers[state.currentPin].history[perLevelKey].push(histEntry);
                     });
+
+                    // imposta activeProgress a 0 (completato) e rimuove savedQuiz per questo livello
+                    dbUsers[state.currentPin].activeProgress[perLevelKey] = 0;
+                    if (dbUsers[state.currentPin].savedQuizzes && dbUsers[state.currentPin].savedQuizzes[perLevelKey]) delete dbUsers[state.currentPin].savedQuizzes[perLevelKey];
                 });
-            });
 
-            // --- POPOLA ANCHE CHALLENGE5 ---
-            Object.keys(challenges5).forEach(cat => {
-                if (!state.history[cat]) state.history[cat] = [];
+                // Aggiungi livello 5 (L5) se sono presenti challenges5 per la lingua
+                if (typeof challenges5 !== 'undefined' && challenges5[lang] && Array.isArray(challenges5[lang])) {
+                    const perLevelKey5 = `${lang}_5`;
+                    dbUsers[state.currentPin].history[perLevelKey5] = [];
+                    challenges5[lang].forEach((c, idx) => {
+                        const q = c.task || (`L5_${lang}_${idx}`);
+                        const correctAnswer = c.output || '';
+                        const histEntry = {
+                            id: `${lang}_5_${idx}`,
+                            q: q,
+                            question: q,
+                            userAnswer: correctAnswer,
+                            correctAnswer: correctAnswer,
+                            ok: true,
+                            level: 5,
+                            lvl: 5,
+                            timestamp: Date.now()
+                        };
+                        state.history[lang].push(histEntry);
+                        dbUsers[state.currentPin].history[perLevelKey5].push(histEntry);
+                    });
+                    // mark activeProgress for L5 as completed (0)
+                    dbUsers[state.currentPin].activeProgress[perLevelKey5] = 0;
+                    if (dbUsers[state.currentPin].savedQuizzes && dbUsers[state.currentPin].savedQuizzes[perLevelKey5]) delete dbUsers[state.currentPin].savedQuizzes[perLevelKey5];
+                }
 
-                challenges5[cat].forEach((sfida, index) => {
-                    const entry = {
-                        id: `${cat}_challenges5_${index}`,
-                        q: sfida.task,
-                        question: sfida.task,
-                        answer: sfida.output || "Risposta",
-                        userAnswer: sfida.output || "Risposta",
-                        correctAnswer: sfida.output || "Risposta",
-                        ok: true,
-                        correct: true,
-                        perfect: true,
-                        isNotStudied: false,
-                        level: 'challenges5',
-                        lvl: 'challenges5',
-                        timestamp: Date.now()
-                    };
+                // duplica anche la history per lingua (array completo)
+                dbUsers[state.currentPin].history[lang] = state.history[lang].slice();
 
-                    state.history[cat].push(entry);
-
-                    const levelKey = `${cat}_challenges5`;
-                    if (!state.history[levelKey]) state.history[levelKey] = [];
-                    state.history[levelKey].push(entry);
-                });
-            });
-
-            // --- COSTRUZIONE PROGRESSI UNA VOLTA ---
-            state.progress = {};
-            if (!state.user) state.user = {};
-            state.user.progress = {};
-
-            Object.keys(state.history).forEach(cat => {
-                state.progress[cat] = state.history[cat].length;
-                state.user.progress[cat] = state.history[cat].length;
-            });
-
-            Object.keys(domandaRepo).forEach(cat => {
-                Object.keys(domandaRepo[cat]).forEach(livello => {
-                    const levelKey = `${cat}_${livello}`;
-                    state.progress[levelKey] = domandaRepo[cat][livello].length;
-                });
-            });
-
-            Object.keys(challenges5).forEach(cat => {
-                const levelKey = `${cat}_challenges5`;
-                state.progress[levelKey] = challenges5[cat].length;
-                state.user.progress[levelKey] = challenges5[cat].length;
+                // Imposta progress come completato (5) per la lingua
+                if (!dbUsers[state.currentPin].progress) dbUsers[state.currentPin].progress = {};
+                dbUsers[state.currentPin].progress[lang] = 5;
             });
 
             state.isPerfect = true;
             localStorage.setItem('testerGold', 'true');
 
-            if (typeof refreshAllStats === 'function') refreshAllStats();
+            // Garantisce presenza profilo tester in locale
+            if (!dbUsers[state.currentPin]) dbUsers[state.currentPin] = { name: 'Tester', progress: {}, history: {}, activeProgress: {}, ripasso: { wrong: [], notStudied: [] } };
 
-            // --- SALVATAGGIO SU FIRESTORE DOPO AVER COSTRUITO TUTTO ---
-            await db.collection("utenti").doc(state.currentPin).set({
-                isPerfect: state.isPerfect,
-                history: state.history,
-                progress: state.progress,
-                user: state.user
-            }, { merge: true });
+            // Imposta progress come "completato" per ogni lingua (5 livelli)
+            Object.keys(domandaRepo).forEach(lang => {
+                dbUsers[state.currentPin].progress[lang] = 5;
+            });
 
+            // Merge per-lingua `state.history` con eventuali chiavi per-livello già presenti
+            const pinKey = state.currentPin;
+            if (!dbUsers[pinKey].history) dbUsers[pinKey].history = {};
+            Object.keys(state.history || {}).forEach(lang => {
+                dbUsers[pinKey].history[lang] = Array.isArray(state.history[lang]) ? state.history[lang].slice() : [];
+            });
+
+            // Aggiorna anche lo state in memoria per mantenere UI coerente
+            state.history = dbUsers[pinKey].history;
+            state.progress = dbUsers[pinKey].progress || {};
+
+            await docRef.set({ perfect: 20, points: 5000, lastUpdate: new Date().getTime() }, { merge: true });
+            await db.collection('utenti').doc(pinKey).set({ testerGold: true, goldMode: true, history: dbUsers[pinKey].history, progress: dbUsers[pinKey].progress }, { merge: true });
         }
 
-        // 🔹 Allinea il tester come un utente reale
-        if (state.currentPin === "1111") {
-            if (!dbUsers["1111"]) dbUsers["1111"] = {};
-            dbUsers["1111"].history = JSON.parse(JSON.stringify(state.history));
-            dbUsers["1111"].progress = JSON.parse(JSON.stringify(state.progress));
-            dbUsers["1111"].name = "Tester";
-        }
+        // Persistiamo anche in locale e aggiorniamo la classifica
+        try { await saveMasterDB(); } catch(e) { console.warn('saveMasterDB after tester gold failed', e); }
 
+        // Aggiorna UI e tema
         calcStats();
-
-        // ✅ Tema aggiornato **dopo aver settato isPerfect e localStorage**
         initTheme();
 
-        if (localStorage.getItem('currentSection') !== 'classifica') {
-            showHome();
-        } else {
-            renderGlobalClassifica();
-        }
+        // Ridisegna la sezione corrente
+        if (localStorage.getItem('currentSection') === 'classifica') renderGlobalClassifica();
+        else showHome();
 
     } catch (e) {
         console.error("Errore Debug:", e);
@@ -393,14 +526,12 @@ function initTheme() {
     const saved = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', saved);
     
-    // Controlliamo prima il localStorage: è la fonte più veloce all'avvio
-    const testerForzato = localStorage.getItem('testerGold') === 'true';
-
-    // Blocca il sovrascrivere il gold se toggleTheme lo ha appena cambiato
-    const canApplyGold = !state.testerGoldChanged;
-
-    // È gold se: è un tester attivo OPPURE se l'utente ha il flag isPerfect nel database
-    let isGold = canApplyGold && (testerForzato || !!state.isPerfect);
+    // 2. Gestione Gold: leggi da state.isPerfect (caricato in window.onload da Firebase)
+    // Per tester: localStorage sincronizzato con Firebase in window.onload
+    // Per utenti normali: state.isPerfect è il flag di goldMode da Firebase
+    const userGold = !!state.isPerfect;
+    // È gold se: l'utente è nel goldMode
+    let isGold = userGold;
 
     if (isGold) {
         document.body.classList.add('gold-theme');
@@ -436,24 +567,19 @@ function toggleTheme() {
             <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
         `;
     } else {
-        // Icona LUNA
+        // Icona LUNA (quella che avevi nel file HTML)
         icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
     }
-
-    // Se l'utente è il tester, salva lo stato gold solo se non sta forzando initTheme
-    if (state.currentPin === testerUser.pin) {
-        const isGoldActive = document.body.classList.contains('gold-theme');
-        state.theme = isGoldActive ? 'gold' : 'normal'; // aggiorna memoria
-
-        // Salva localmente senza interferire con initTheme
-        localStorage.setItem('testerGold', isGoldActive);
-
-        // Salva anche su Firebase
-        db.collection('utenti').doc(state.currentPin).set({ testerGold: isGoldActive }, { merge: true });
-
-        // Flag per bloccare initTheme dal sovrascrivere il gold
-        state.testerGoldChanged = true;
-    }
+    // Se l'utente è il tester, salva lo stato gold in locale
+    if (state.isTester) {
+    const isGoldActive = document.body.classList.contains('gold-theme');
+    state.theme = isGoldActive ? 'gold' : 'normal'; // aggiorna memoria
+    localStorage.setItem('testerGold', isGoldActive); // salva stato
+    
+    // Salva anche su Firebase
+    db.collection('utenti').doc(state.currentPin).set({ testerGold: isGoldActive }, { merge: true });
+    state.testerGoldChanged = true; // blocca initTheme dal sovrascrivere il gold
+}
 }
 
 function updateNav(showBack, backTarget) {
@@ -461,6 +587,9 @@ function updateNav(showBack, backTarget) {
     const r = document.getElementById('right-nav');
     b.innerHTML = showBack ? `<span class="back-link" onclick="${backTarget}">\u2039 Indietro</span>` : "";
     r.innerHTML = state.mode ? `<span class="logout-link" onclick="logout()">Esci</span>` : "";
+
+    // Mantieni il tester toggle flottante aggiornato
+    try { renderTesterToggle(); } catch(e) {}
 }
 
 async function saveMasterDB() {
@@ -471,11 +600,14 @@ async function saveMasterDB() {
         dbUsers[state.currentPin].ripasso = state.ripasso || { wrong: [], notStudied: [] };
         dbUsers[state.currentPin].activeProgress = state.activeProgress || {};
         
+        // 🏆 SALVA STATO GOLD PER UTENTI NORMALI
+        dbUsers[state.currentPin].goldMode = state.isPerfect || false;
+        
         // --- SALVATAGGIO SU GOOGLE (CLOUDFLARE) ---
         try {
             // Usiamo 'set' con 'merge: true' per non sovrascrivere accidentalmente tutto il profilo
             await db.collection("utenti").doc(state.currentPin).set(dbUsers[state.currentPin], { merge: true });
-            console.log("Sincronizzazione Cloud completata per:", state.currentPin);
+            if (interactionLogging) console.log("Sincronizzazione Cloud completata per:", state.currentPin);
                         // Sincronizzazione esplicita stato Gold per classifica
             const stats = calcStats();
             await db.collection("classifica").doc(state.currentPin).set({
@@ -486,71 +618,18 @@ async function saveMasterDB() {
 
             // Aggiorniamo anche la classifica globale ogni volta che salviamo i progressi
             await updateGlobalLeaderboard();
-        } catch (error) {
+            } catch (error) {
             console.error("Errore durante il salvataggio Cloud:", error);
         }
+
+    // Persistiamo sempre anche la copia locale per resilienza offline
+    try { localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers)); } catch(e) { console.warn('local persistence failed', e); }
+
     }
-    
-    // 2. Salvataggio locale (Backup immediato sul dispositivo)
-    localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
+
 }
 
-// Funzione di supporto per la classifica (da aggiungere in fondo allo script)
-async function updateGlobalLeaderboard() {
-    if (state.mode !== 'user' || !state.currentPin || state.currentPin === "1111") return;
-    if (state.mode !== 'user' || !state.currentPin) return;
-    
-    const u = dbUsers[state.currentPin];
-    let pts = 0;
-    let perfects = 0;
-
-    Object.entries(u.progress || {}).forEach(([levelId, correctCount]) => {
-    pts += (correctCount * 10);
-    
-    // Recuperiamo il totale delle domande esistenti per quel livello specifico
-    const totalQuestionsInLevel = dbQuiz[levelId]?.length || 40; 
-    
-    // È PERFETTO solo se le risposte corrette coincidono con il totale delle domande
-    if (correctCount >= totalQuestionsInLevel) perfects++;
-    });
-
-    try {
-        await db.collection("classifica").doc(state.currentPin).set({
-            name: u.name,
-            points: pts,
-            perfect: perfects,
-            lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-    } catch (e) {
-        console.error("Errore aggiornamento classifica:", e);
-    }
-}
-
-
-// Nuova funzione di supporto (da mettere in fondo al file)
-async function syncToFirebase(pin, userData) {
-    if (!db || pin === "1111") return; // Non sincronizzare il tester
-    
-    // Calcoliamo i punti per la classifica
-    let pts = 0;
-    let perfetti = 0;
-    Object.entries(userData.history || {}).forEach(([levelId, historyArray]) => {
-    const correctInLevel = historyArray.filter(h => h.ok).length;
-    pts += (correctInLevel * 10);
-    const totalQuestionsInLevel = dbQuiz[levelId]?.length || 40;
-    // Se ha indovinato TUTTE le domande disponibili nel database per quel livello
-    if (correctInLevel >= totalQuestionsInLevel) perfetti++;
-});
-
-    try {
-        await db.collection("classifica").doc(pin).set({
-            name: userData.name,
-            points: pts,
-            perfect: perfetti,
-            lastUpdate: new Date().getTime()
-        }, { merge: true });
-    } catch (e) { console.error("Errore cloud:", e); }
-}
+// La funzione `syncToFirebase` rimossa: non veniva usata.
 
 
 function renderLogin() {
@@ -582,16 +661,18 @@ function uiPin(type) {
         <div style="display:flex; flex-direction:column; align-items:center; width:100%">
             <h3 style="margin-bottom:20px">${title}</h3>
             <div id="pin-error" style="color:#ff3b30; font-size:13px; margin-bottom:10px; display:none; padding:0 20px"></div>
-            
-            ${nameField}
-            
-            <input type="password" id="reg-pin" class="btn-apple" 
-    style="text-align:center; font-size:24px; letter-spacing:8px; width:100%; box-sizing:border-box; border:none; outline:none; display:block;" 
-    maxlength="4" inputmode="numeric" placeholder="PIN">
-            
-            <button class="btn-apple btn-primary" style="margin-top:20px" onclick="${action}">
-                Conferma
-            </button>
+
+            <form id="pin-form" onsubmit="event.preventDefault(); ${action}" style="width:100%; display:flex; flex-direction:column; gap:10px; align-items:center">
+                ${nameField}
+
+                <input type="password" id="reg-pin" class="btn-apple" 
+                    style="text-align:center; font-size:24px; letter-spacing:8px; width:100%; box-sizing:border-box; border:none; outline:none; display:block;" 
+                    maxlength="4" inputmode="numeric" placeholder="PIN" autocomplete="one-time-code">
+
+                <button type="submit" class="btn-apple btn-primary" style="margin-top:6px; width:100%;">
+                    Conferma
+                </button>
+            </form>
         </div>`;
       // Focus automatico: se c'è il campo nome punta lì, altrimenti sul PIN
     const focusTarget = document.getElementById('reg-name') || document.getElementById('reg-pin');
@@ -615,9 +696,6 @@ function uiPin(type) {
 function isWeakPin(pin) {
     // Convertiamo in stringa per sicurezza
     const sPin = String(pin);
-
-    // 1. ECCEZIONE: Se è il PIN Admin o Tester, NON è debole
-    if (sPin === "3473" || sPin === "1111") return false;
 
     // 2. TUTTI UGUALI (es: 0000, 1111...)
     if (/^(\d)\1{3}$/.test(sPin)) return true;
@@ -695,7 +773,8 @@ async function registerUser() {
         state.currentPin = pin;        // Associa il pin allo stato globale
         state.progress = {};           // Reset progressi locale per nuovo utente
         
-        localStorage.setItem('currentUserPin', pin);
+        // Imposta il PIN di sessione in modo coerente con il caricamento (usato in window.onload)
+        localStorage.setItem('sessionPin', pin);
 
         await db.collection("classifica").doc(pin).set({ 
             name: name, 
@@ -730,8 +809,10 @@ async function validatePin(type) {
         return;
     }
 
+    const hashedInput = await sha256(pin);
+
     // 1. ACCESSO ADMIN (Locale + Cloud Sync)
-    if (pin === ADMIN_PIN) {
+    if (hashedInput === ADMIN_HASH) {
         state.mode = 'admin';
         state.currentUser = "Creatore";
         state.currentPin = pin; 
@@ -743,21 +824,36 @@ async function validatePin(type) {
         return;
     }
 
-    // 2. ACCESSO TESTER
-    if (pin === TESTER_PIN) {
+    // ACCESSO TESTER (non distruttivo)
+    if (hashedInput === TESTER_HASH) {
         state.currentPin = pin;
-        state.currentUser = testerUser.name;
+        state.currentUser = 'Tester';
         state.mode = 'user';
-        state.progress = testerUser.progress;
-        state.history = testerUser.history;
-        localStorage.setItem('sessionPin', pin);
-
-        if (localStorage.getItem('testerGold') === 'true') {
-        toggleDebugPerfect();
+        state.isTester = true;
+        // assicurati che esista un profilo locale minimo
+        if (!dbUsers[pin]) {
+            dbUsers[pin] = { name: 'Tester', progress: {}, history: {}, activeProgress: {}, ripasso: { wrong: [], notStudied: [] } };
+            localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
         }
+        // tenta di leggere lo stato gold dal cloud se presente
+        try {
+            const doc = await db.collection('utenti').doc(pin).get();
+            if (doc.exists) {
+                const cloudUser = doc.data();
+                // non sovrascrivere history/progress locale: unisci campi non distruttivi
+                dbUsers[pin] = Object.assign({}, dbUsers[pin], cloudUser);
+                state.progress = dbUsers[pin].progress || {};
+                state.history = dbUsers[pin].history || {};
+                state.ripasso = dbUsers[pin].ripasso || { wrong: [], notStudied: [] };
+                state.activeProgress = dbUsers[pin].activeProgress || {};
+                state.isPerfect = !!(cloudUser.goldMode || cloudUser.testerGold);
+            }
+        } catch (e) { console.warn('tester cloud read failed', e); }
+
+        localStorage.setItem('sessionPin', pin);
         showHome();
         return;
-        }
+    }
 
     // --- CONTROLLO CLOUD PRIMA DI PROCEDERE ---
     // Verifichiamo subito se questo PIN esiste già su Google
@@ -843,13 +939,9 @@ function setGuest() {
 async function showHome() {
     localStorage.setItem('currentSection', 'home');
     history.pushState({ view: 'home' }, '', window.location.href);
-    renderTesterDebug(); // Fa apparire il fulmine se sei il tester
     calcStats(); // Aggiorna state.isPerfect basandosi sulla history attuale
-    // Recupera stato gold dal Cloud per il tester/utente
-    if(state.currentPin === "1111") {
-        const doc = await db.collection("classifica").doc("1111").get();
-        state.isPerfect = doc.exists && doc.data().perfect >= 10;
-    }
+    // mostra icona tester se sei il tester
+    try { renderTesterDebug(); } catch(e) {}
     initTheme();
     localStorage.setItem('currentSection', 'home');
     updateNav(false);
@@ -942,12 +1034,17 @@ function showLevels(lang) {
     localStorage.setItem('currentLang', lang);
 
     updateNav(true, "showHome()");
+    try {
+        // snapshot pre-render per debugging: calcola i segmenti attuali per il livello
+        const segs = [];
+        for (let s = 1; s <= 5; s++) segs.push(computeProgressSegments(lang, s));
+        trackSnapshot('enter_levels', { lang, segs });
+    } catch (e) { console.warn('enter_levels snapshot failed', e); }
     document.getElementById('app-title').innerText = lang;
 
     let html = "";
-    const comp = (state.user && state.user.progress)
-        ? (state.user.progress[lang] || 0)
-        : (state.progress[lang] || 0);
+    // Fonte di verità: `state.progress` (evitiamo l'oggetto `state.user` non necessario)
+    const comp = state.progress[lang] || 0;
 
     for (let i = 1; i <= 5; i++) {
         let label = (i === 5) ? "TEST OPERATIVO" : "Livello " + i;
@@ -955,7 +1052,7 @@ function showLevels(lang) {
 
         // 1. LOGICA BLOCCO
         if (state.mode === 'user') {
-            if (i >= 4 && comp < 3 && state.currentPin !== "1111") isLocked = true;
+            if (i >= 4 && comp < 3 && !state.isTester) isLocked = true;
         }
         if (state.mode === 'admin' || state.mode === 'guest') isLocked = false;
 
@@ -972,24 +1069,25 @@ function showLevels(lang) {
             totalExist = domandaRepo[lang]["L" + i].length;
             const key = `${lang}_${i}`;
 
-            const historyLivello = (state.history && state.history[key])
-                ? state.history[key]
-                : (state.user && state.user.history ? state.user.history[key] || [] : []);
-
-            const uniqueCorrect = new Set(historyLivello.filter(h => h.ok).map(h => h.q));
+            const u = dbUsers[state.currentPin];
+            // Aggrega storico sia dalle chiavi per-livello che dallo storico per lingua (utile per L5)
+            let historyAgg = [];
+            if (u && u.history) {
+                if (Array.isArray(u.history[key])) historyAgg = historyAgg.concat(u.history[key]);
+                if (Array.isArray(u.history[lang])) historyAgg = historyAgg.concat(u.history[lang].filter(h => Number(h.lvl || h.level || 0) === i));
+            }
+            const uniqueCorrect = new Set(historyAgg.filter(h => h && h.ok).map(h => h.q));
             userCorrectUniques = uniqueCorrect.size;
         }
 
-        // 3. LOGICA ORO (Attiva solo se ha completato le 15)
-        let isGoldPhase = (comp >= i);
+        // 3. LOGICA ORO (Attiva se il livello è stato superato oppure l'utente è globale GOLD)
+        let isGoldPhase = (comp >= i) || !!state.isPerfect;
 
         let displayTotal = isGoldPhase ? totalExist : 15;
         let displayCurrent = isGoldPhase ? userCorrectUniques : currentIdx;
 
-        // Calcolo percentuali per le barre
-        const percentage = (displayCurrent / displayTotal) * 100;
-        const greenSplit = isGoldPhase ? (15 / displayTotal) * 100 : percentage;
-        const goldSplit = isGoldPhase ? percentage - greenSplit : 0;
+        // Calcolo percentuali per i segmenti (verde / oro)
+        const seg = computeProgressSegments(lang, i);
 
         // 4. HTML
         html += `
@@ -1001,15 +1099,31 @@ function showLevels(lang) {
                 <div style="display:flex; justify-content:space-between; align-items:center; width:100%">
                     <span>${label} ${isLocked ? '🔒' : ''}</span>
                     ${(state.mode === 'user' && !isLocked)
-                        ? `<span style="font-size:12px; ${isGoldPhase ? 'color:#d4af37; font-weight:bold;' : 'opacity:0.6;'}">${displayCurrent}/${displayTotal}</span>`
+                        ? `<span style="font-size:12px; ${seg.isGoldPhase ? 'color:#d4af37; font-weight:bold;' : 'opacity:0.6;'}">${seg.displayCurrent}/${seg.displayTotal}</span>`
                         : ''}
                 </div>
 
                 ${(state.mode === 'user' && !isLocked)
-                    ? `<div class="progress-container" style="display:flex; overflow:hidden;">
-                           <div class="progress-bar-fill" style="width:${greenSplit}%; height:100%; border-radius:0;"></div>
-                           <div style="width:${goldSplit}%; background:linear-gradient(90deg, #ffd700, #ff8c00); height:100%; transition:0.5s"></div>
-                       </div>`
+                                ? (seg.isGoldPhase
+                                    ? (() => {
+                                        const g = (typeof seg.greenPct === 'number' && isFinite(seg.greenPct)) ? Math.max(0, Math.min(100, seg.greenPct)) : 0;
+                                        const o = (typeof seg.goldPct === 'number' && isFinite(seg.goldPct)) ? Math.max(0, Math.min(100, seg.goldPct)) : 0;
+                                        return `<div class="progress-split" aria-hidden="true" style="height:6px;">
+                                                   <div class="progress-seg-green" style="width:${g}%; border-radius:6px 0 0 6px"></div>
+                                                   ${(() => {
+                                                       const goldActive = (typeof seg.goldCount === 'number' && seg.goldCount > 0) && (seg.greenCount >= 15 || state.isPerfect);
+                                                       const goldClass = 'progress-seg-gold ' + (goldActive ? 'glow active' : 'inactive');
+                                                       return `<div class="${goldClass}" style="width:${o}%; border-radius:0 6px 6px 0"></div>`;
+                                                   })()}
+                                               </div>`
+                                      })()
+                                    : (() => {
+                                        const denom = (seg.displayTotal && seg.displayTotal > 0) ? seg.displayTotal : 15;
+                                        const pct = (seg.displayCurrent && denom) ? Math.round((seg.displayCurrent / denom) * 100) : 0;
+                                        return `<div style="width:100%; height:4px; background:rgba(120,120,128,0.1); border-radius:10px; overflow:hidden">
+                                                   <div style="width:${pct}%; height:100%; background:var(--accent); border-radius:10px; transition:width 0.3s"></div>
+                                               </div>`
+                                      })())
                     : ''}
             </button>`;
     }
@@ -1018,88 +1132,7 @@ function showLevels(lang) {
 }
 
 
-/*function showLevels(lang) {
-    localStorage.setItem('currentSection', 'levels');
-    history.pushState({ view: 'levels' }, '', `#levels-${lang}`);
-    localStorage.setItem('currentSection', 'levels');
-    localStorage.setItem('currentLang', lang);
-
-    updateNav(true, "showHome()");
-    document.getElementById('app-title').innerText = lang;
-
-    let html = "";
-    const comp = state.progress[lang] || 0;
-
-    for (let i = 1; i <= 5; i++) {
-    let label = (i === 5) ? "TEST OPERATIVO" : "Livello " + i;
-    let isLocked = false;
-
-    // 1. LOGICA BLOCCO (Tua originale)
-    if (state.mode === 'user') {
-        if (i >= 4 && comp < 3 && state.currentPin !== "1111") isLocked = true;
-    }
-    if (state.mode === 'admin' || state.mode === 'guest') isLocked = false;
-
-    // 2. LOGICA PROGRESSO ATTUALE (Tua originale che gestisce i quiz a metà)
-    let currentIdx = 0;
-    if (state.mode === 'user' && dbUsers[state.currentPin]?.activeProgress) {
-        currentIdx = dbUsers[state.currentPin].activeProgress[`${lang}_${i}`] || 0;
-    }
-    if (comp >= i) currentIdx = 15;
-
-    // 3. LOGICA ORO (Nuova espansione)
-    let totalExist = 0;
-    let userCorrectUniques = 0;
-    if (domandaRepo[lang] && domandaRepo[lang]["L" + i]) {
-        totalExist = domandaRepo[lang]["L" + i].length;
-        const historyLivello = state.history ? state.history[`${lang}_${i}`] || [] : [];
-        const uniqueCorrect = new Set(historyLivello.filter(h => h.ok).map(h => h.q));
-        userCorrectUniques = uniqueCorrect.size;
-    }
-
-    // Calcolo lunghezze barre
-    let isGoldPhase = comp >= i; // Entra in fase oro solo se il livello è già stato superato
-    let displayTotal = isGoldPhase ? totalExist : 15;
-    let displayCurrent = isGoldPhase ? Math.max(15, userCorrectUniques) : currentIdx;
-    
-    const percentage = (displayCurrent / displayTotal) * 100;
-    const greenSplit = isGoldPhase ? (15 / totalExist) * 100 : percentage;
-    const goldSplit = isGoldPhase ? percentage - greenSplit : 0;
-
-    let haFattoIlMassimo = (comp >= i);
-    let isGoldPhase = haFattoIlMassimo; 
-
-    // 4. Calcoli per le dimensioni delle barre
-    let displayTotal = isGoldPhase ? totalExist : 15;
-    let displayCurrent = isGoldPhase ? userCorrectUniques : currentIdx;
-    
-    const percentage = (displayCurrent / displayTotal) * 100;
-    const greenSplit = isGoldPhase ? (15 / displayTotal) * 100 : percentage;
-    const goldSplit = isGoldPhase ? percentage - greenSplit : 0;
-        html += `
-            <button class="btn-apple"
-                ${isLocked ? 'disabled' : ''}
-                onclick="startStep('${lang}', ${i})"
-                style="display:block; text-align:left; padding:15px">
-
-                <div style="display:flex; justify-content:space-between; align-items:center; width:100%">
-                    <span>${label} ${isLocked ? '🔒' : ''}</span>
-                    ${(state.mode === 'user' && !isLocked)
-                        ? `<span style="font-size:12px; opacity:0.6; ${isGoldPhase ? 'color:#d4af37; opacity:1;' : ''}">${displayCurrent}/${displayTotal}</span>`
-                        : ''}
-                </div>
-
-                ${(state.mode === 'user' && !isLocked)
-                    ? `<div class="progress-container" style="display:flex; overflow:hidden;">
-                           <div class="progress-bar-fill" style="width:${greenSplit}%; height:100%; border-radius:0;"></div>
-                           <div style="width:${goldSplit}%; background:linear-gradient(90deg, #ffd700, #ff8c00); height:100%; transition:0.5s"></div>
-                       </div>`
-                    : ''}
-            </button>`;
-    }
-
-    document.getElementById('content-area').innerHTML = html;
-}*/
+/* Rimosso: versione vecchia/commentata di showLevels() per pulizia; la funzione attiva è mantenuta sopra. */
 
 function startStep(lang, lvl) {
     localStorage.setItem('currentSection', 'quiz');
@@ -1108,15 +1141,16 @@ function startStep(lang, lvl) {
     updateNav(true, "showLevels('" + lang + "')");
 
     // Controllo livello 5 utente
-    if(lvl === 5 && state.mode === 'user' && (state.progress[lang] || 0) < 3 && state.currentPin !== "1111") return;
+    if(lvl === 5 && state.mode === 'user' && (state.progress[lang] || 0) < 3 && !state.isTester) return;
     if(lvl === 5) { renderL5(lang); return; }
     
     const key = "L" + lvl;
     const stringhe = domandaRepo[lang][key];
     const storageKey = `${lang}_${lvl}`;
+    let isGoldRound = false;
 
     let selezione;
-    if (state.mode === 'user' && dbUsers[state.currentPin].savedQuizzes?.[storageKey]) {
+    if (state.mode === 'user' && dbUsers[state.currentPin].savedQuizzes?.[storageKey] && Array.isArray(dbUsers[state.currentPin].savedQuizzes[storageKey]) && dbUsers[state.currentPin].savedQuizzes[storageKey].length > 0) {
         selezione = dbUsers[state.currentPin].savedQuizzes[storageKey];
     } else {
         // 1. Identifichiamo le domande già indovinate per non ripeterle nella fase Oro
@@ -1128,7 +1162,11 @@ function startStep(lang, lvl) {
         let sorgente = [...stringhe];
         if (comp >= lvl) {
             const rimanenti = stringhe.filter(s => !giaIndovinate.has(s.split("|")[0]));
-            if (rimanenti.length > 0) sorgente = rimanenti;
+            if (rimanenti.length > 0) {
+                sorgente = rimanenti;
+                // Se stiamo caricando domande rimanenti e il totale supera 15, siamo nel round Gold
+                if (stringhe.length > 15) isGoldRound = true;
+            }
         }
 
         // 3. Mescoliamo e creiamo la selezione (massimo 15)
@@ -1159,7 +1197,7 @@ function startStep(lang, lvl) {
         savedIdx = dbUsers[state.currentPin].activeProgress?.[storageKey] || 0;
     }
 
-    session = { lang: lang, lvl: lvl, q: selezione, idx: savedIdx };
+    session = { lang: lang, lvl: lvl, q: selezione, idx: savedIdx, correctCount: 0, isGoldRound: isGoldRound };
     saveMasterDB();
     renderQ();
 }
@@ -1204,10 +1242,7 @@ function renderL5(lang, index = null) {
     const sfide = challenges5[lang];
 
     // Se è il tester e perfetto, impostiamo l'indice in base allo storico
-if (state.currentPin === "1111" && state.isPerfect) {
-    const historyL5 = state.history?.[`${lang}_challenges5`] || [];
-    index = historyL5.length; // Se vuota parte da 0, se completa va oltre
-}
+// tester-specific L5 handling removed
 
     if (!sfide || index >= sfide.length) {
         // Se finisce le sfide, mostra schermata finale
@@ -1221,18 +1256,67 @@ if (state.currentPin === "1111" && state.isPerfect) {
     }
 
     const sfida = sfide[index];
-    const percentL5 = (index / sfide.length) * 100;
+    
+    // --- NUOVA LOGICA BARRA (Coerente con renderQ) ---
+    let displayIndex = index + 1;
+    if (state.isTester && state.isPerfect) {
+        displayIndex = sfide.length;
+    }
+
+    let htmlBar = '';
+    const totalExist = sfide.length;
+    const baseline = 15;
+    const isGoldPhase = (index >= baseline) || state.isPerfect;
+
+    if (totalExist > 15 && isGoldPhase) {
+        const extra = totalExist - baseline;
+        const greenSegWidth = (baseline / totalExist) * 100;
+        const goldSegWidth = (extra / totalExist) * 100;
+        
+        let greenFill = 0;
+        let goldFill = 0;
+        
+        if (state.isTester && state.isPerfect) {
+            greenFill = 100;
+            goldFill = 100;
+        } else {
+            if (index < baseline) {
+                greenFill = (index / baseline) * 100;
+                goldFill = 0;
+            } else {
+                greenFill = 100;
+                goldFill = ((index - baseline) / extra) * 100;
+            }
+        }
+        
+        htmlBar = `
+        <div class="progress-split" style="height:8px; margin-bottom:20px; background:rgba(120,120,128,0.1); border-radius:8px; overflow:hidden;">
+            <div style="width:${greenSegWidth}%; height:100%; display:flex; border-right:1px solid rgba(255,255,255,0.2)">
+                 <div style="width:${greenFill}%; background:var(--apple-green); height:100%; transition:width 0.3s;"></div>
+            </div>
+            <div style="width:${goldSegWidth}%; height:100%; display:flex;">
+                 <div class="progress-seg-gold ${goldFill>0?'glow active':''}" style="width:${goldFill}%; height:100%; transition:width 0.3s;"></div>
+            </div>
+        </div>`;
+    } else {
+        let percentL5 = (index / totalExist) * 100;
+        if (state.isTester && state.isPerfect) percentL5 = 100;
+        const barColor = (totalExist > 15) ? 'var(--apple-green)' : 'var(--accent)';
+        
+        htmlBar = `
+        <div style="width:100%; height:6px; background:rgba(255,255,255,0.1); border-radius:10px; margin-bottom:20px; overflow:hidden">
+            <div style="width:${percentL5}%; height:100%; background:${barColor}; transition:width 0.3s ease"></div>
+        </div>`;
+    }
 
     container.innerHTML = `
         <div class="glass-card" style="padding: 20px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
     <h2 style="font-size:18px; margin:0">ESAME ${lang.toUpperCase()}</h2>
-    <span style="font-size:12px; opacity:0.7">${index}/${sfide.length}</span>
+    <span style="font-size:12px; opacity:0.7">${displayIndex}/${sfide.length}</span>
 </div>
 
-<div style="width:100%; height:6px; background:rgba(255,255,255,0.1); border-radius:10px; margin-bottom:20px; overflow:hidden">
-    <div style="width:${percentL5}%; height:100%; background:#34c759; transition:width 0.3s ease"></div>
-</div>
+${htmlBar}
 
             
             <p style="font-size:15px; margin-bottom:20px; color:#fff;"><b>Sfida:</b> ${sfida.task}</p>
@@ -1283,36 +1367,61 @@ function checkL5(lang, index) {
         // AGGIUNGI QUESTO BLOCCO PER IL SALVATAGGIO PARZIALE
         if (state.mode === 'user') {
             const storageKey = `${lang}_5`;
-            if (!dbUsers[state.currentPin].activeProgress) {
-                dbUsers[state.currentPin].activeProgress = {};
-            }
+            if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
             // Salviamo che l'utente deve riprendere dalla sfida successiva
             dbUsers[state.currentPin].activeProgress[storageKey] = index + 1;
-            
-            // Se è l'ultima sfida, allora abbiamo completato il livello 5
+
+            // Se è l'ultima sfida, allora abbiamo completato il livello 5: persistiamo sia in state che in dbUsers
             if (index === challenges5[lang].length - 1) {
                 state.progress[lang] = 5;
+                if (!dbUsers[state.currentPin].progress) dbUsers[state.currentPin].progress = {};
+                dbUsers[state.currentPin].progress[lang] = 5;
+                // azzeriamo activeProgress per L5 (completato)
+                dbUsers[state.currentPin].activeProgress[storageKey] = 0;
+                if (dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[storageKey];
             }
-            
-            saveMasterDB(); 
+
+            saveMasterDB();
         }
         // ... resto del codice (tasto per andare avanti) ...
         // Aggiorna statistiche e progressi
-        if (state.mode === 'user') {
+            if (state.mode === 'user') {
             if (index === challenges5[lang].length - 1) {
                 state.progress[lang] = 5;
             }
             const u = dbUsers[state.currentPin];
-            if (u && u.history) {
+            if (u) {
+                if (!u.history) u.history = {};
                 if (!u.history[lang]) u.history[lang] = [];
-                u.history[lang].push({ 
-                    lvl: 5, 
-                    task: sfida.task, 
-                    ok: true, 
-                    date: new Date().toLocaleDateString() 
-                });
-            }
-            saveMasterDB();
+                if (!u.history[`${lang}_5`]) u.history[`${lang}_5`] = [];
+
+                const histEntry = {
+                    id: `${lang}_5_${index}`,
+                    q: sfida.task,
+                    question: sfida.task,
+                    userAnswer: sfida.output || null,
+                    correctAnswer: sfida.output || null,
+                    ok: true,
+                    level: 5,
+                    lvl: 5,
+                    timestamp: Date.now()
+                };
+
+                    // evita duplicati identici (stesso q e userAnswer)
+                    if (!u.history[lang].some(h => h.q === histEntry.q && h.userAnswer === histEntry.userAnswer)) u.history[lang].push(histEntry);
+                    if (!u.history[`${lang}_5`].some(h => h.q === histEntry.q && h.userAnswer === histEntry.userAnswer)) u.history[`${lang}_5`].push(histEntry);
+
+                    // se abbiamo appena completato il livello, assicuriamoci di persistere il progresso
+                    if (state.progress[lang] === 5) {
+                        if (!u.progress) u.progress = {};
+                        u.progress[lang] = 5;
+                        // azzeriamo activeProgress per L5
+                        if (!u.activeProgress) u.activeProgress = {};
+                        u.activeProgress[`${lang}_5`] = 0;
+                        if (u.savedQuizzes) delete u.savedQuizzes[`${lang}_5`];
+                    }
+                }
+                saveMasterDB();
         }
 
         // Tasto per andare avanti
@@ -1384,19 +1493,75 @@ function handleSpecialKeys(e) {
 function renderQ() {
     updateNav(true, `showLevels('${session.lang}')`);
     const data = session.q[session.idx];
-    const progress = (session.idx / session.q.length) * 100;
+    
+    // Calcolo Totale Domande Esistenti per questo livello
+    let totalExist = 15;
+    if (domandaRepo[session.lang] && domandaRepo[session.lang][`L${session.lvl}`]) {
+        totalExist = domandaRepo[session.lang][`L${session.lvl}`].length;
+    }
+
+    let htmlBar = '';
+
+    // Se ci sono domande extra (Gold) E (siamo nella fase Gold O l'utente è perfetto), usiamo la barra segmentata
+    if (totalExist > 15 && (session.isGoldRound || state.isPerfect)) {
+        const baseline = 15;
+        const extra = totalExist - baseline;
+        
+        // Percentuali di larghezza dei due contenitori (Verde vs Oro)
+        const greenSegWidth = (baseline / totalExist) * 100;
+        const goldSegWidth = (extra / totalExist) * 100;
+        
+        // Percentuali di riempimento interno
+        let greenFill = 0;
+        let goldFill = 0;
+
+        // Fase Oro: Verde pieno, Oro avanza
+        greenFill = 100;
+        goldFill = (state.isTester && state.isPerfect) ? 100 : (session.idx / session.q.length) * 100; 
+
+        htmlBar = `
+        <div class="progress-split" style="height:8px; margin-bottom:15px; background:rgba(120,120,128,0.1); border-radius:8px; overflow:hidden;">
+            <div style="width:${greenSegWidth}%; height:100%; display:flex; border-right:1px solid rgba(255,255,255,0.2)">
+                 <div style="width:${greenFill}%; background:var(--apple-green); height:100%; transition:width 0.3s;"></div>
+            </div>
+            <div style="width:${goldSegWidth}%; height:100%; display:flex;">
+                 <div class="progress-seg-gold ${goldFill>0?'glow active':''}" style="width:${goldFill}%; height:100%; transition:width 0.3s;"></div>
+            </div>
+        </div>`;
+    } else {
+        // Barra classica per livelli standard o fase normale di livelli Gold
+        const progress = (session.idx / session.q.length) * 100;
+        // Se è un livello Gold in fase normale, usiamo il verde per coerenza, altrimenti l'accento
+        const barColor = (totalExist > 15) ? 'var(--apple-green)' : 'var(--accent)';
+        htmlBar = `
+        <div style="width:100%; height:4px; background:rgba(120,120,128,0.1); border-radius:10px; margin-bottom:15px">
+            <div style="width:${progress}%; height:100%; background:${barColor}; border-radius:10px; transition:0.3s"></div>
+        </div>`;
+    }
 
     const container = document.getElementById('content-area');
     if (!container) return;
 
+     // Calcolo testo contatore dinamico
+    let textCurrent = session.idx + 1;
+    let textTotal = session.q.length;
+
+    if (session.isGoldRound) {
+        // Fase Gold: siamo oltre le 15, quindi sommiamo la base (15) all'indice corrente
+        textCurrent = 15 + session.idx + 1;
+        textTotal = totalExist;
+    } else if (state.isTester && state.isPerfect) {
+        // Se Tester Perfetto, mostra sempre il totale assoluto del livello (es. 20/20)
+        textCurrent = totalExist;
+        textTotal = totalExist;
+    }
+
     container.innerHTML = `
         <div style="width:100%; margin-bottom:15px">
             <div style="display:flex; justify-content:space-between; font-size:11px; opacity:0.5; margin-bottom:5px">
-                <span>DOMANDA ${session.idx + 1}/${session.q.length}</span>
+                <span>DOMANDA ${textCurrent}/${textTotal}</span>
             </div>
-            <div style="width:100%; height:4px; background:rgba(120,120,128,0.1); border-radius:10px">
-                <div style="width:${progress}%; height:100%; background:var(--accent); border-radius:10px; transition:0.3s"></div>
-            </div>
+            ${htmlBar}
         </div>
         <h2 style="font-size:18px; margin-bottom:20px">${data.q}</h2>
         <div id="opts" style="width:100%">
@@ -1435,12 +1600,16 @@ function markNotStudied(idx) {
     // 2. NUOVO: Salva nello storico (per colorare la barra di BLU nel profilo)
     if (!state.history[session.lang]) state.history[session.lang] = [];
     state.history[session.lang].push({
+        q: data.q,
         question: data.q,
+        userAnswer: null,
         correctAnswer: data.options[data.correct],
+        ok: false,
         isNotStudied: true, // Questo attiva il blu nel renderProfile
         level: session.lvl,  // Indica a quale barra aggiungere il blu
         lvl: session.lvl,     // Doppia sicurezza
-        exp: data.exp
+        exp: data.exp,
+        timestamp: Date.now()
     });
 
     // 3. NUOVO: Avanza l'indice del progresso attivo
@@ -1458,22 +1627,45 @@ function check(isOk, userAnsText) {
     const data = session.q[session.idx];
     if(state.mode === 'user') {
         if(!state.history[session.lang]) state.history[session.lang] = [];
-        state.history[session.lang].push({
+        const historyEntry = {
+            q: data.q,
             question: data.q,
             userAnswer: userAnsText || (isOk ? data.options[data.correct] : 'Sbagliata'),
             correctAnswer: data.options[data.correct],
             ok: isOk,
             exp: data.exp,
-            level: session.lvl // <--- AGGIUNGI QUESTA RIGA
-        });
-        
-                // --- AGGIUNTA LOGICA GOLD ---
-        const stats = calcStats(); 
-        if (stats.isPerfect) {
-            state.isPerfect = true;
-            initTheme(); 
+            level: session.lvl,
+            lvl: session.lvl,
+            isNotStudied: false
+        };
+        state.history[session.lang].push(historyEntry);
+        // aggiorna contatore sessione per capire se l'utente ha fatto 15/15
+        if (session && typeof session.correctCount === 'number') {
+            if (isOk) session.correctCount = (session.correctCount || 0) + 1;
         }
+        
+        // --- LOGICA GOLD ---
+        // Se l'utente non è ancora gold, controlla se lo diventa
+        if (!state.isPerfect) {
+            const stats = calcStats(); 
+            if (stats.isPerfect) {
+                state.isPerfect = true;
+                // 🏆 SALVA STATO GOLD SU FIREBASE IMMEDIATAMENTE (PERMANENTE)
+                db.collection("utenti").doc(state.currentPin).set({
+                    goldMode: true
+                }, { merge: true }).catch(e => console.error("Errore salvataggio goldMode:", e));
+                initTheme(); 
+            }
+        }
+        // Se è già gold, non fare nulla (rimane gold per sempre)
         // ---------------------------
+        // Aggiorna progresso attivo (salva indice successivo) così la barra resta nello stato corretto
+        try {
+            const storageKey = `${session.lang}_${session.lvl}`;
+            if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
+            dbUsers[state.currentPin].activeProgress[storageKey] = session.idx + 1;
+        } catch (e) { /* ignore */ }
+
         saveMasterDB();
     }
     
@@ -1504,10 +1696,65 @@ function next() {
         renderQ(); 
     } else { 
         if (state.mode === 'user') {
-            state.progress[session.lang] = Math.max(state.progress[session.lang]||0, session.lvl); 
-            const sk = `${session.lang}_${session.lvl}`;
+            const lang = session.lang;
+            const lvl = session.lvl;
+            const sk = `${lang}_${lvl}`;
+
+            // Calcola quante risposte corrette uniche abbiamo per questo livello
+            const u = dbUsers[state.currentPin];
+            // Aggrega storico per livello: voci sia sotto la chiave per-livello sia nello storico per lingua
+            let historyAgg = [];
+            if (u && u.history) {
+                if (Array.isArray(u.history[sk])) historyAgg = historyAgg.concat(u.history[sk]);
+                if (Array.isArray(u.history[lang])) historyAgg = historyAgg.concat(u.history[lang].filter(h => Number(h.lvl || h.level || 0) === Number(lvl)));
+            }
+            const uniqueCorrect = new Set(historyAgg.filter(h => h && h.ok).map(h => h.q));
+            // numero totale esistente per il livello
+            let totalExist = 15;
+            if (domandaRepo[lang] && domandaRepo[lang][`L${lvl}`]) totalExist = domandaRepo[lang][`L${lvl}`].length;
+
+            // Se la sessione appena finita era la baseline (15 domande) e l'utente ha risposto correttamente a tutte,
+            // e ci sono domande rimanenti, allora carichiamo le rimanenti (fase oro) e proseguiamo.
+            const wasBaseline = session.q && session.q.length === 15;
+            if (wasBaseline && session.correctCount === session.q.length && uniqueCorrect.size < totalExist) {
+                // costruiamo lista rimanenti (escludendo quelle già corrette)
+                const allStrings = domandaRepo[lang][`L${lvl}`] || [];
+                const remaining = allStrings.filter(s => !uniqueCorrect.has(s.split('|')[0]));
+                // mescoliamo e trasformiamo in oggetti domanda
+                const rimescolate = remaining.sort(() => 0.5 - Math.random());
+                const selezioneRestante = rimescolate.map(r => {
+                    const p = r.split('|');
+                    let opts = [{ t: p[1], id: 0 }, { t: p[2], id: 1 }, { t: p[3], id: 2 }];
+                    opts.sort(() => 0.5 - Math.random());
+                    return { q: p[0], options: opts.map(o => o.t), correct: opts.findIndex(o => o.id === 0), exp: p[5] };
+                });
+
+                if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
+                // sovrascriviamo savedQuizzes con le restanti domande
+                dbUsers[state.currentPin].savedQuizzes[sk] = selezioneRestante;
+                session.q = selezioneRestante;
+                session.idx = 0;
+                session.correctCount = 0;
+                session.isGoldRound = true;
+                saveMasterDB();
+                renderQ();
+                return;
+            }
+
+            // Altrimenti: se l'utente ha completato tutte le domande del livello (uniqueCorrect -> totalExist),
+            // allora consideriamo il livello completato e aggiorniamo progress.
+            if (uniqueCorrect.size >= totalExist) {
+                state.progress[lang] = Math.max(state.progress[lang]||0, lvl);
+                // Persistiamo anche nella copia locale dell'utente per coerenza immediata
+                if (!dbUsers[state.currentPin].progress) dbUsers[state.currentPin].progress = {};
+                dbUsers[state.currentPin].progress[lang] = state.progress[lang];
+            }
+
+            // Ripristina stato di activeProgress e savedQuizzes per questo livello
+            if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
             dbUsers[state.currentPin].activeProgress[sk] = 0;
-            delete dbUsers[state.currentPin].savedQuizzes[sk];
+            if (dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[sk];
+            // Salva lo stato aggiornato (progress, history, activeProgress)
             saveMasterDB();
         }
         showLevels(session.lang); 
@@ -1528,6 +1775,9 @@ function logout() {
     
     // 3. Torna alla schermata di login
     renderLogin();
+
+    // Rimuovi il toggle tester se presente
+    try { renderTesterToggle(); } catch(e) {}
 }
 
 /* =========================
@@ -1567,7 +1817,10 @@ function calcStats() {
     let totalDomandeDatabase = 0;
     // NOTA: Sostituisci 'domandeArchivio' con il nome della tua variabile che contiene tutte le categorie
     Object.values(domandaRepo).forEach(categoria => {
-        totalDomandeDatabase += categoria.length;
+        // categoria è un oggetto con livelli (es. L1,L2,...), sommiamo le lunghezze degli array
+        Object.values(categoria).forEach(liv => {
+            if (Array.isArray(liv)) totalDomandeDatabase += liv.length;
+        });
     });
 
     const stats = {
@@ -1577,16 +1830,75 @@ function calcStats() {
         perc: tot ? Math.round((ok / tot) * 100) : 0
     };
 
-    if (state.currentPin === "1111") {
-        state.isPerfect = localStorage.getItem('testerGold') === 'true';
+    // 🏆 UNA VOLTA RAGGIUNTO IL GOLD, NON SI PERDE PIÙ
+    // Se l'utente è già in goldMode (salvato su Firebase), rimane gold
+    // Il gold è permanente e non si può perdere
+    if (state.isPerfect) {
+        // Rimane gold: non ricalcolare come false
+        stats.isPerfect = true;
     } else {
-        state.isPerfect = (totalDomandeDatabase > 0 && ok >= totalDomandeDatabase && stats.perc === 100);
+        // Non è ancora gold: controlla se ora lo raggiunge (100% di tutte le domande)
+        stats.isPerfect = (totalDomandeDatabase > 0 && ok >= totalDomandeDatabase && stats.perc === 100);
     }
   
     stats.greenCorrect = Math.min(ok, totalDomandeDatabase);  // verde: fino al massimo normale
     stats.goldCorrect  = Math.max(ok - totalDomandeDatabase, 0);  // oro: extra perfetto
    
     return stats;
+}
+
+// Restituisce le percentuali per i segmenti della barra (verde = baseline, oro = extra)
+function computeProgressSegments(lang, level) {
+    const key = `${lang}_${level}`;
+    // Leggi da dbUsers per data persistence, non da state.history (sessione temporanea)
+    const u = dbUsers[state.currentPin];
+    // Aggrega le voci dallo storico sia per-key livello (es. CODING_5) sia dallo storico per lingua (es. CODING)
+    let historyLevel = [];
+    if (u && u.history) {
+        if (Array.isArray(u.history[key])) historyLevel = historyLevel.concat(u.history[key]);
+        if (Array.isArray(u.history[lang])) {
+            historyLevel = historyLevel.concat(u.history[lang].filter(h => Number(h.lvl || h.level || 0) === Number(level)));
+        }
+    }
+    const uniqueCorrect = new Set(historyLevel.filter(h => h && h.ok).map(h => h.q));
+    const userCorrect = uniqueCorrect.size;
+
+    let totalExist = 15;
+    if (level === 5) {
+        if (challenges5 && challenges5[lang] && Array.isArray(challenges5[lang])) {
+            totalExist = challenges5[lang].length;
+        } else if (domandaRepo[lang] && domandaRepo[lang][`L${level}`]) {
+            totalExist = domandaRepo[lang][`L${level}`].length;
+        }
+    } else {
+        if (domandaRepo[lang] && domandaRepo[lang][`L${level}`]) totalExist = domandaRepo[lang][`L${level}`].length;
+    }
+    const baseline = 15;
+
+    // comp indica quanti livelli completati per la lingua
+    const comp = state.progress[lang] || 0;
+    // Considera il livello in Gold se lo stato lo indica, se l'utente è globalmente gold,
+    // oppure se ha già risposto correttamente a tutte le domande esistenti per quel livello.
+    const isGoldPhase = (comp >= level) || !!state.isPerfect || (totalExist > 0 && userCorrect >= totalExist);
+
+    if (!isGoldPhase) {
+        const greenCount = Math.min(userCorrect, baseline);
+        const greenPct = greenCount / baseline * 100;
+        return { isGoldPhase: false, greenPct: greenPct, goldPct: 0, displayCurrent: userCorrect, displayTotal: baseline, greenCount: greenCount, goldCount: 0, totalExist: totalExist };
+    }
+
+    // Gold phase: container represents `totalExist` questions
+    // In modalità gold consideriamo come "verde" fino al baseline e "oro" l'eccedenza;
+    // ma se il totale esistente è minore del baseline (es. L5 con poche sfide) adattiamo il calcolo
+    // Calcolo robusto dei conteggi: verde è al massimo il baseline o il totale esistente,
+    // l'oro è l'eccedenza rispetto al baseline (se presente).
+    const greenCount = Math.min(userCorrect, Math.min(baseline, totalExist));
+    const goldCount = Math.max(userCorrect - baseline, 0);
+
+    const greenPct = totalExist > 0 ? (greenCount / totalExist) * 100 : 0;
+    const goldPct = totalExist > 0 ? (goldCount / totalExist) * 100 : 0;
+
+    return { isGoldPhase: true, greenPct: greenPct, goldPct: goldPct, displayCurrent: userCorrect, displayTotal: totalExist, greenCount: greenCount, goldCount: goldCount, totalExist: totalExist };
 }
 
 function toggleSecurity(el) {
@@ -1614,8 +1926,30 @@ function renderProfile() {
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (percentTotal / 100) * circumference;
 
-    const isDark = document.body.classList.contains('dark-mode');
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const appleGray = isDark ? '#2c2c2e' : '#e5e5ea';
+
+    // Calcolo aggregato per profilo: sommiamo green/gold su tutti i livelli/lingue
+    let aggGreen = 0, aggGold = 0, aggTotal = 0;
+    totalLevels.forEach(lang => {
+        for (let i = 1; i <= 5; i++) {
+            const seg = computeProgressSegments(lang, i) || {};
+            aggGreen += seg.greenCount || 0;
+            aggGold += seg.goldCount || 0;
+            aggTotal += seg.totalExist || 0;
+        }
+    });
+    const aggPercent = aggTotal ? Math.round(((aggGreen + aggGold) / aggTotal) * 100) : 0;
+    const greenLen = aggTotal ? (circumference * (aggGreen / aggTotal)) : 0;
+    const goldLen = aggTotal ? (circumference * (aggGold / aggTotal)) : 0;
+    // small separator length (in px) to create a visible gap between green and gold arcs
+    const sep = Math.max(2, Math.round(circumference * 0.02));
+    const goldLenAdj = Math.max(0, goldLen - sep);
+
+    // No animated marker: we only render a simple static separator between green and gold.
+    // (Previously there was a pulsing ring and burst here; removed per user request.)
+
+    try { trackSnapshot('render_profile', { aggGreen, aggGold, aggTotal, aggPercent }); } catch(e) { console.warn('profile snapshot failed', e); }
 
 
 const noScrollStyle = `
@@ -1640,10 +1974,40 @@ const noScrollStyle = `
 .scrollable-content {
     max-height: 300px;
     overflow-y: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    /* Scrollbar a pillola mini-invasiva */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(120, 120, 128, 0.3) transparent;
+    padding-right: 0;
 }
-.scrollable-content::-webkit-scrollbar { display: none; }
+/* Webkit (Chrome, Safari) */
+.scrollable-content::-webkit-scrollbar { width: 4px; }
+.scrollable-content::-webkit-scrollbar-track { background: transparent; }
+.scrollable-content::-webkit-scrollbar-thumb { background-color: rgba(120, 120, 128, 0.3); border-radius: 10px; }
+.scrollable-content::-webkit-scrollbar-button { display: none; }
+
+/* Stile Pillola Flottante "Vai a..." */
+.history-jump-pill {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%) scale(0.9);
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px; font-weight: 700;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    opacity: 0; pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 20; white-space: nowrap;
+}
+.history-jump-pill.visible {
+    opacity: 1; pointer-events: auto;
+    transform: translateX(-50%) scale(1);
+}
 
 #profile-scroll .glass-card {
     /* Cambiato da var(--card-bg) a quello dei percorsi */
@@ -1684,12 +2048,13 @@ input, select, textarea { font-size: 16px !important; }
         for (let i = 1; i <= 5; i++) {
             let correct = 0, wrong = 0, markedNotStudied = 0;
             
-            if (u.history && u.history[lang]) {
+            // Leggi sempre da dbUsers per dati persistenti
+            if (u && u.history && u.history[lang]) {
                 u.history[lang].forEach(h => {
                     if (Number(h.lvl || h.level) == i) { 
                         if (h.isNotStudied) {
                             markedNotStudied++;
-                            totalMarkedNotStudied++; // Accumulo per la card generale
+                            totalMarkedNotStudied++;
                         }
                         else if (h.ok) correct++;
                         else wrong++;
@@ -1697,23 +2062,29 @@ input, select, textarea { font-size: 16px !important; }
                 });
             }
 
-            const isGoldPhase = (correct >= totalQuestionsPerLevel);
-            const wGreen = isGoldPhase ? (totalQuestionsPerLevel / correct) * 100 : (correct / totalQuestionsPerLevel) * 100;
-            const wGold  = isGoldPhase ? ((correct - totalQuestionsPerLevel) / correct) * 100 : 0;
-            const wRed   = (wrong / (isGoldPhase ? correct : totalQuestionsPerLevel)) * 100;
-            const wBlue  = (markedNotStudied / (isGoldPhase ? correct : totalQuestionsPerLevel)) * 100;
-            const percent = Math.round((correct / (isGoldPhase ? correct : totalQuestionsPerLevel)) * 100);
-
+            const seg = computeProgressSegments(lang, i);
+            const totalForBar = seg.displayTotal || totalQuestionsPerLevel;
+            const wGreen = seg.greenPct;
+            const wGold = seg.goldPct;
+            const wRed = totalForBar ? (wrong / totalForBar) * 100 : 0;
+            const wBlue = totalForBar ? (markedNotStudied / totalForBar) * 100 : 0;
+            const percent = Math.round((seg.displayCurrent / (seg.displayTotal || totalQuestionsPerLevel)) * 100);
 
             progHtml += `
             <div style="margin-bottom:10px">
                 <div style="font-size:13px">Livello ${i}</div>
-                <div style="height:10px; border-radius:6px; overflow:hidden; display:flex; background:${appleGray}; width:100%">
-                    ${wGreen > 0 ? `<div style="width:${wGreen}%; background:#34c759; height:100%"></div>` : ''}
-                    ${wGold > 0 ? `<div style="width:${wGold}%; background:linear-gradient(90deg, #ffd700, #ff8c00); height:100%"></div>` : ''}
-                    ${wRed > 0 ? `<div style="width:${wRed}%; background:#ff3b30; height:100%"></div>` : ''}
-                    ${wBlue > 0 ? `<div style="width:${wBlue}%; background:#0a84ff; height:100%"></div>` : ''}
-                </div>
+                ${(seg.isGoldPhase)
+                    ? `<div class="progress-split" style="height:8px; border-radius:8px; overflow:hidden">
+                           <div class="progress-seg-green" style="width:${seg.greenPct}%; border-radius:8px 0 0 8px"></div>
+                           ${(() => {
+                                const goldActive = (typeof seg.goldCount === 'number' && seg.goldCount > 0) && (seg.greenCount >= 15 || state.isPerfect);
+                                const goldClass = 'progress-seg-gold ' + (goldActive ? 'glow active' : 'inactive');
+                                return `<div class="${goldClass}" style="width:${seg.goldPct}%; border-radius:0 8px 8px 0"></div>`;
+                           })()}
+                       </div>`
+                    : `<div style="width:100%; height:4px; background:rgba(120,120,128,0.1); border-radius:6px; overflow:hidden">
+                           <div style="width:${percent}%; height:100%; border-radius:6px; transition:width 0.3s; background:var(--accent);"></div>
+                       </div>`}
                 <div style="font-size:11px; text-align:right; margin-top:2px; opacity:0.8">${percent}% progresso</div>
             </div>`;
         }
@@ -1725,31 +2096,60 @@ input, select, textarea { font-size: 16px !important; }
 
     document.getElementById('content-area').innerHTML = noScrollStyle + `
 <div id="profile-scroll">
-    <div class="profile-container">
-            <div><strong>Nome:</strong> ${u.name}</div>
-            <div><strong>ID Utente:</strong> ${u.userId}</div>
+        <div class="profile-container">
+            <div><strong>Nome:</strong> ${escapeHtml(u.name)}</div>
+            <div><strong>ID Utente:</strong> ${escapeHtml(u.userId)}</div>
         </div>
 
         <div class="glass-card">
             <strong>Statistiche</strong>
             <div style="margin-top:15px; display:flex; gap:20px; align-items:center">
                 <div style="position:relative; width:80px; height:80px">
-                    <svg width="80" height="80" style="transform:rotate(-90deg)">
-                        <circle cx="40" cy="40" r="${radius}" stroke="#34c759" stroke-width="6" fill="none"
-                stroke-dasharray="${circumference}" stroke-dashoffset="${circumference - (circumference * Math.min(stats.perc, 100) / 100)}" stroke-linecap="round"/>
-                <circle cx="40" cy="40" r="${radius}" stroke="url(#goldGrad)" stroke-width="6" fill="none"
-                stroke-dasharray="${circumference}" stroke-dashoffset="${circumference - (circumference * stats.percGold / 100)}" stroke-linecap="round"/>
-
+                    <svg width="80" height="80" style="transform:rotate(-90deg); color:var(--apple-green)">
+                        <defs>
+                            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <!-- Gradiente oro: parte scura per profondità, poi dorato brillante -->
+                                <stop offset="0%" style="stop-color:#7a5310;stop-opacity:1" />
+                                <stop offset="45%" style="stop-color:#d4af37;stop-opacity:1" />
+                                <stop offset="75%" style="stop-color:#ffd966;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#fff5d0;stop-opacity:1" />
+                            </linearGradient>
+                            <filter id="goldGlow" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur stdDeviation="2" result="glow" />
+                                <feMerge>
+                                    <feMergeNode in="glow" />
+                                    <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <!-- background ring -->
+                        <circle cx="40" cy="40" r="${radius}" stroke="${appleGray}" stroke-width="6" fill="none" opacity="0.14" />
+                        <!-- green arc (uso currentColor che è impostato su --apple-green) -->
+                        ${greenLen > 0 ? `<circle cx="40" cy="40" r="${radius}" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="${greenLen} ${circumference - greenLen}" stroke-dashoffset="0" filter="none" style="filter:none;" stroke-opacity="1" />` : ''}
+                        <!-- gold arc starting after green (with small gap): uso gradient dorato compatto + glow -->
+                        ${goldLen > 0 ? `<circle cx="40" cy="40" r="${radius}" stroke="url(#goldGrad)" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="${goldLenAdj} ${circumference - goldLenAdj}" stroke-dashoffset="${circumference - greenLen - sep}" />` : ''}
+                        <!-- highlight sottile SOLO sopra l'oro (mix-blend normale, blur ridotto) -->
+                        ${goldLen > 0 ? `<circle cx="40" cy="40" r="${radius}" stroke="rgba(255,255,255,0.12)" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-dasharray="${goldLenAdj} ${circumference - goldLenAdj}" stroke-dashoffset="${circumference - greenLen - sep}" style="filter: blur(1px); mix-blend-mode: normal;" />` : ''}
+                        <!-- viscous sheen overlay (mirrors .progress-seg-gold::after) -->
+                        ${goldLen > 0 ? `<circle class="arc-gold-sheen" cx="40" cy="40" r="${radius}" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="${goldLenAdj} ${circumference - goldLenAdj}" stroke-dashoffset="${circumference - greenLen - sep}" />` : ''}
+                        <!-- small separator between green and gold (static, rendered on top so it's visible) -->
+                        ${ (greenLen > 0 && goldLen > 0) ? `<circle class="arc-separator" cx="40" cy="40" r="${radius}" stroke="${appleGray}" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="${sep} ${circumference - sep}" stroke-dashoffset="${circumference - greenLen - (sep/2)}" stroke-opacity="0.9" />` : ''}
+                        ${ (greenLen > 0 && goldLen > 0) ? `<circle class="arc-sep-highlight" cx="40" cy="40" r="${radius}" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="${sep} ${circumference - sep}" stroke-dashoffset="${circumference - greenLen - (sep/2)}" />` : ''}
                     </svg>
-                    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">${percentTotal}%</div>
+                    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">${aggPercent}%</div>
                 </div>
                 <div style="flex:1; display:flex; flex-direction:column; gap:8px">
                     <div>
                         <div style="font-size:12px">Corrette: ${stats.correct}</div>
-  <div style="height:8px; background:${appleGray}; border-radius:6px; display:flex; overflow:hidden;">
-    <div style="width:${Math.min((stats.correct / totalPotential) * 100, 100)}%; height:100%; background:#34c759; border-radius:6px 0 0 6px"></div>
-    <div style="width:${stats.isPerfect ? 100 : 0}%; height:100%; background:linear-gradient(90deg, #ffd700, #ff8c00); transition:0.5s"></div>
-  </div>
+        <div style="height:8px; background:${appleGray}; border-radius:6px; display:flex; overflow:hidden;">
+        <div style="width:${Math.min((stats.correct / totalPotential) * 100, 100)}%; height:100%; background:var(--apple-green); border-radius:6px 0 0 6px"></div>
+        ${(() => {
+            const goldActiveMain = (stats.goldCorrect && stats.goldCorrect > 0) || stats.isPerfect;
+            const mainClass = 'progress-seg-gold ' + (goldActiveMain ? 'glow active' : 'inactive');
+            const w = goldActiveMain ? (stats.isPerfect ? 100 : Math.min((stats.goldCorrect / totalPotential) * 100, 100)) : 0;
+            return `<div class="${mainClass}" style="width:${w}%; height:100%; transition:0.5s"></div>`;
+        })()}
+    </div>
 </div>
                     <div>
                         <div style="font-size:12px">Non studiate: ${totalMarkedNotStudied}</div>
@@ -1788,10 +2188,11 @@ input, select, textarea { font-size: 16px !important; }
 
         <div class="glass-card" id="card-hist" onclick="toggleGeneralContent('history-content', this)" style="cursor:pointer">
     <strong>Storico</strong>
-    <div id="history-content" style="display:none; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">
-        <div class="scrollable-content">
+    <div id="history-content" style="display:none; flex-direction:column; width:100%; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px; position:relative; min-height:150px">
+        <div class="scrollable-content" style="width:100%" onscroll="handleHistoryScroll(this)">
             ${generateHistoryHTML(u)}
         </div>
+        <div id="history-jump-pill" class="history-jump-pill" onclick="event.stopPropagation()"></div>
     </div>
 </div>`;
 }
@@ -1813,6 +2214,46 @@ window.toggleGeneralContent = function(id, card) {
     if (isHidden && card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
+let historyScrollTimer;
+window.handleHistoryScroll = function(el) {
+    const pill = document.getElementById('history-jump-pill');
+    if(!pill) return;
+    
+    // Nascondi mentre scorri (meno invasivo)
+    pill.classList.remove('visible');
+    
+    clearTimeout(historyScrollTimer);
+    historyScrollTimer = setTimeout(() => {
+        updateHistoryPill(el, pill);
+    }, 150); // Appare dopo che ti sei fermato
+};
+
+window.updateHistoryPill = function(container, pill) {
+    // Trova tutti i possibili punti di ancoraggio (Lingue e Livelli)
+    const targets = Array.from(container.querySelectorAll('[id^="hist-"]'));
+    if(targets.length === 0) return;
+
+    const containerRect = container.getBoundingClientRect();
+    // Cerchiamo il primo elemento che inizia "sotto" la metà della vista attuale
+    const threshold = containerRect.top + (containerRect.height / 2); 
+    
+    const nextTarget = targets.find(t => t.getBoundingClientRect().top > threshold);
+
+    if (nextTarget) {
+        let label = "";
+        if (nextTarget.id.startsWith('hist-head-')) {
+            label = nextTarget.innerText; // Es: "Python"
+        } else {
+            const titleEl = nextTarget.querySelector('.history-level-title');
+            label = titleEl ? titleEl.innerText : "Livello Successivo";
+        }
+        
+        pill.innerHTML = `⬇ Vai a ${label}`;
+        pill.onclick = (e) => { e.stopPropagation(); nextTarget.scrollIntoView({behavior: 'smooth', block: 'start'}); pill.classList.remove('visible'); };
+        pill.classList.add('visible');
+    }
+};
+
    
 function toggleHistory(el) {
     const content = el.nextElementSibling;
@@ -1825,23 +2266,64 @@ function toggleHistory(el) {
     }
 }
 
-function generateHistoryHTML(u) {
+function generateHistoryHTML(data) {
     let html = "";
-    Object.keys(u.history || {}).forEach(lang => {
-        html += `<div style="margin-bottom:10px"><strong>${lang}</strong></div>`;
-        u.history[lang].forEach((h, idx) => {
-            const status = h.ok ? "✅" : "❌";
-            html += `<div style="font-size:12px; margin-bottom:6px">
-                        ${status} Q${idx + 1}: ${h.question}<br>
-                        <div style="font-size:12px; margin-bottom:6px">
-                            ${status} Q: ${h.question}<br>
-                            ${h.userAnswer ? `<span style="opacity:0.7">Tua: ${h.userAnswer}</span><br>` : ''}
-                        <em style="opacity:0.6; color:#34c759">Corretta: ${h.correctAnswer || '—'}</em>
-                        </div>
-                     </div>`;
-        });
+    // Se passiamo l'intero oggetto utente prendiamo .history, altrimenti usiamo data
+    const historyData = data.history ? data.history : data;
+
+    // Recuperiamo le lingue disponibili (usiamo domandaRepo per l'ordine corretto se esiste)
+    const repoLangs = typeof domandaRepo !== 'undefined' ? Object.keys(domandaRepo) : [];
+    const historyLangs = Object.keys(historyData || {});
+    // Uniamo le lingue: prima quelle del repo (ordinate), poi eventuali altre
+    // FILTRO AGGIUNTO: Escludiamo le chiavi che finiscono con _numero (es. HTML_5, MySQL_4)
+    const allLangs = [...new Set([...repoLangs, ...historyLangs])]
+        .filter(l => historyData[l] && historyData[l].length > 0 && !/_\d+$/.test(l));
+
+    allLangs.forEach(lang => {
+        const langEntries = historyData[lang];
+        
+        // Header Lingua
+        html += `<div class="history-topic" style="margin-bottom: 20px;">
+                    <h4 id="hist-head-${lang}" style="margin: 0 0 10px 0; border-bottom: 1px solid rgba(120,120,128,0.2); padding-bottom: 5px; color: var(--accent); font-size: 16px;">${lang}</h4>`;
+
+        // Iteriamo i livelli da 1 a 5
+        for (let lvl = 1; lvl <= 5; lvl++) {
+            const levelEntries = langEntries.filter(h => Number(h.lvl || h.level || 0) === lvl);
+            
+            if (levelEntries.length > 0) {
+                // Rimuoviamo il box contenitore (background/border) per far espandere le card al 100% della larghezza
+                // Aggiunto ID per lo scroll e scroll-margin-top per non finire sotto la barra sticky
+                html += `<div id="hist-${lang}-${lvl}" class="history-level" style="background:transparent; border:none; padding:0; margin-bottom: 20px; scroll-margin-top: 50px;">
+                            <div class="history-level-title" style="font-size: 13px; font-weight: 700; margin-bottom: 10px; opacity: 0.7; padding-left:4px; border-left: 3px solid var(--accent); line-height:1.2">Livello ${lvl}</div>`;
+                
+                // Renderizziamo le domande
+                levelEntries.forEach((h, idx) => {
+                    const status = h.ok ? "✅" : (h.isNotStudied ? "🟦" : "❌");
+                    
+                    let rispostaUtenteHtml = "";
+                    if (!h.isNotStudied) {
+                        let ansDisplay = h.userAnswer || '—';
+                        // Se la risposta è il generico "OK" (tipico di HTML/MySQL L5), mostriamo un testo più elegante
+                        if (ansDisplay === "OK") ansDisplay = "Eseguito con successo";
+                        // Modifica colore: "Tua:" usa il colore del tema (tramite opacity), solo la risposta è colorata
+                        rispostaUtenteHtml = `<div style="margin-top:2px; opacity:0.8">Tua: <span style="color:${h.ok ? '#34c759' : '#ff3b30'}; font-weight:600">${escapeHtml(ansDisplay)}</span></div>`;
+                    }
+
+                    html += `<div class="history-entry" style="margin-bottom: 10px; padding: 12px; background: rgba(120,120,128,0.06); border-radius: 12px; font-size: 13px; width:100%; box-sizing:border-box;">
+                                <div style="font-weight: 600; margin-bottom: 4px;">${status} ${escapeHtml(h.question || h.q)}</div>
+                                ${rispostaUtenteHtml}
+                                ${!h.ok ? `<div style="opacity:0.6; margin-top:2px;">Corretta: ${escapeHtml(h.correctAnswer || '—')}</div>` : ''}
+                             </div>`;
+                });
+
+                html += `</div>`; // Chiude livello
+            }
+        }
+
+        html += `</div>`; // Chiude lingua
     });
-    return html || "<div style='font-size:12px; opacity:0.6'>Nessuno Storico</div>";
+    
+    return html || "<div style='font-size:12px; opacity:0.6'>Nessun Storico</div>";
 }
 
 // Toggle per linguaggio
@@ -1913,7 +2395,7 @@ function renderRipasso() {
                 ${type === 'wrong' ? 'Risposta Errata' : 'Da Studiare'}
             </div>
             
-            <div style="font-weight: 700; font-size: 16px; margin-bottom: 12px; color: var(--text-color);">${d.q}</div>
+            <div style="font-weight: 700; font-size: 16px; margin-bottom: 12px; color: var(--text-color);">${escapeHtml(d.q)}</div>
             
             <div style="margin-bottom: 12px;">
                 ${d.options.map((opt, i) => {
@@ -1921,13 +2403,13 @@ function renderRipasso() {
                     if (i === d.correct) {
                         style += "background: rgba(52, 199, 89, 0.2); border-color: #34C759; font-weight: bold;";
                     }
-                    return `<div style="${style}">${opt} ${i === d.correct ? '✅' : ''}</div>`;
+                    return `<div style="${style}">${escapeHtml(opt)} ${i === d.correct ? '✅' : ''}</div>`;
                 }).join('')}
             </div>
 
             ${d.exp ? `
                 <div style="background: ${bgColor}; padding: 10px; border-radius: 8px; font-size: 12px; line-height: 1.4; color: var(--text-secondary);">
-                    <strong>Spiegazione:</strong> ${d.exp}
+                    <strong>Spiegazione:</strong> ${escapeHtml(d.exp)}
                 </div>` : ''}
         </div>`;
     };
@@ -2340,31 +2822,6 @@ function showUserHistory(userId) {
 }
 
 
-function generateHistoryHTML(u) {
-    let html = "";
-    Object.keys(u.history || {}).forEach(lang => {
-        html += `<div style="margin-bottom:10px"><strong>${lang}</strong></div>`;
-        u.history[lang].forEach((h, idx) => {
-            const status = h.ok ? "✅" : "❌";
-            html += `<div style="font-size:12px; margin-bottom:6px">
-                        ${status} Q${idx + 1}: ${h.question}<br>
-                        <em style="opacity:0.6">Risposta corretta: ${h.correctAnswer}</em>
-                     </div>`;
-        });
-    });
-    return html || "<div style='font-size:12px; opacity:0.6'>Nessuna domanda fatta</div>";
-}
-
-// Toggle per linguaggio
-function toggleLangDetails(el){
-    const content = el.nextElementSibling;
-    if(content) content.style.display = content.style.display==='none'?'block':'none';
-    const chevron = el.querySelector('.chevron');
-    if(chevron) chevron.style.transform = content.style.display==='block'?'rotate(90deg)':'rotate(0deg)';
-}
-
-
-
 function renderAdminUsers() {
     updateNav(true, "showHome()");
     const appTitle = document.getElementById('app-title');
@@ -2585,14 +3042,14 @@ function showUserDetails(pin) {
     let historyHtml = '';
     Object.entries(u.history || {}).forEach(([lang, arr]) => {
         historyHtml += `<div style="margin-top:10px"><strong>${lang}</strong></div>`;
-        arr.forEach((h, idx) => {
-            const status = h.ok ? "✅" : h.notStudied ? "🟡" : "❌";
-            historyHtml += `<div style="font-size:12px; margin-bottom:2px">
-                    ${status} Q${idx+1}: ${h.question || h.q}
-                    <br><span style="color:${h.ok ? '#34c759' : '#ff3b30'}">Tua: ${h.userAnswer || '—'}</span>
-                    ${!h.ok ? `<br><em style="opacity:0.6">Corretta: ${h.correctAnswer || h.correctAns || '—'}</em>` : ''}
+            arr.forEach((h, idx) => {
+                const status = h.ok ? "✅" : h.notStudied ? "🟡" : "❌";
+                historyHtml += `<div style="font-size:12px; margin-bottom:2px">
+                    ${status} Q${idx+1}: ${escapeHtml(h.question || h.q)}
+                    <br><span style="color:${h.ok ? '#34c759' : '#ff3b30'}">Tua: ${escapeHtml(h.userAnswer || '—')}</span>
+                    ${!h.ok ? `<br><em style="opacity:0.6">Corretta: ${escapeHtml(h.correctAnswer || h.correctAns || '—')}</em>` : ''}
                 </div>`;
-        });
+            });
     });
 
     document.getElementById('content-area').innerHTML = `
@@ -2786,12 +3243,13 @@ async function userChangePin() {
 
 /* Azzera statistiche */
 async function userResetStats() {
-    openModal("Azzera statistiche", "Vuoi azzerare tutte le tue statistiche? Questa azione è irreversibile.", async () => {
+    openModal("Azzera statistiche", "Perderai tutte le statistiche, progressi E il tuo status GOLD. Questa azione è irreversibile.", async () => {
         // 1. Pulizia dati nello stato attuale
         state.progress = {};
         state.history = {};
         state.activeProgress = {};
         state.ripasso = { wrong: [], notStudied: [] };
+        state.isPerfect = false;  // 🏆 TORNA UTENTE NORMALE
 
         // 2. Pulizia nell'oggetto database locale
         const u = dbUsers[state.currentPin];
@@ -2800,12 +3258,13 @@ async function userResetStats() {
             u.history = {};
             u.activeProgress = {};
             u.ripasso = { wrong: [], notStudied: [] };
+            u.goldMode = false;  // 🏆 SALVA RESET GOLD
         }
 
         // 3. Sincronizzazione con Google (Firebase)
         // Usiamo await per essere sicuri che i dati siano cancellati sul server
         // reset gold su Firebase
-        if (state.currentPin !== testerUser.pin) {
+        if (!state.isTester) {
            await db.collection("utenti").doc(state.currentPin).set(
             { goldMode: false },
             { merge: true }
@@ -2818,7 +3277,10 @@ async function userResetStats() {
             await db.collection("classifica").doc(state.currentPin).delete();
         } catch(e) { console.log("Errore pulizia classifica"); }
 
-        // 5. Ricarica la pagina del profilo aggiornata
+        // 5. Aggiorna il tema (torna a normale)
+        initTheme();
+        
+        // 6. Ricarica la pagina del profilo aggiornata
         renderProfile();
     });
 }
@@ -2927,7 +3389,7 @@ async function renderGlobalClassifica() {
         snapshot.forEach(doc => {
             const data = doc.data();
     
-    if (doc.id === "1111" && state.currentPin !== "1111") return;
+    if (doc.id === "1111" && !state.isTester) return;
 
     const isUtentePerfetto = data.perfect > 0; 
     const isMe = doc.id === state.currentPin;
@@ -2991,39 +3453,7 @@ async function renderGlobalClassifica() {
     }
 }
 
-function renderTesterDebug() {
-    const oldIcon = document.getElementById('tester-debug-icon');
-    if (oldIcon) oldIcon.remove();
-
-    if (state.currentPin === "1111") {
-        const debugIcon = document.createElement('div');
-        debugIcon.id = 'tester-debug-icon';
-        debugIcon.onclick = async () => { await toggleDebugPerfect(); };
-        debugIcon.innerHTML = "⚡";
-        
-        // CSS coordinato al tasto luna/sole
-        debugIcon.style.cssText = `
-            position: fixed; 
-            bottom: 30px;          /* Stessa altezza della luna */
-            left: 30px;            /* Posizionato a sinistra */
-            width: 50px;           /* Stessa dimensione */
-            height: 50px;
-            background: var(--card-bg); 
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--border);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 1000;         /* Stesso z-index del tema */
-            font-size: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        `;
-        document.body.appendChild(debugIcon);
-    }
-}
+// renderTesterDebug removed
 
 
       
@@ -3034,7 +3464,7 @@ async function adminResetSingleUser(userId) {
 
     openModal(
         "Reset Singolo Utente",
-        `Vuoi azzerare i progressi di ${u.name}? Il PIN rimarrà lo stesso, ma tornerà al livello 1.`,
+        `Azzererai tutti i progressi di ${u.name} (compreso lo status GOLD se lo aveva). Il PIN rimarrà lo stesso, ma tornerà al livello 1.`,
         async () => {
             try {
                 const updateData = {
@@ -3049,6 +3479,13 @@ async function adminResetSingleUser(userId) {
                 await db.collection("utenti").doc(pin).update(updateData);
                 // Aggiorna Locale
                 dbUsers[pin] = { ...dbUsers[pin], ...updateData };
+                
+                // 🏆 Se questo reset riguarda l'utente ATTUALMENTE LOGGATO, aggiorna state
+                if (state.currentPin === pin) {
+                    state.isPerfect = false;
+                    initTheme();  // Aggiorna il tema subito
+                }
+                
                 // Rimuovi da classifica
                 await db.collection("classifica").doc(pin).delete();
                 
@@ -3069,5 +3506,22 @@ function closeModal() {
     if (logoutModal) logoutModal.style.display = 'none';
 }
 
-// Inserisci qui le tue funzioni renderProfile, adminReset, adminDelete, userChangePin che hai nel file
-// (Mantenile come sono, sono corrette nel tuo originale)
+// Renderizza il toggle tester (fulmine) come elemento flottante a sinistra, simile al toggle tema
+function renderTesterToggle() {
+    const existing = document.getElementById('tester-toggle');
+    // Se non sei il tester rimuovi e esci
+    if (!state.isTester) {
+        if (existing) existing.remove();
+        return;
+    }
+
+    if (existing) return; // già presente
+
+    const t = document.createElement('div');
+    t.id = 'tester-toggle';
+    t.className = 'tester-toggle';
+    t.title = 'Toggle Gold (tester)';
+    t.onclick = () => { toggleDebugPerfect(); };
+    t.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8L21 10h-9l1-8z"></path></svg>`;
+    document.body.appendChild(t);
+}
