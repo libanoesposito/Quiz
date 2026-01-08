@@ -3,10 +3,14 @@
     --bg: #f5f5f7; 
     --text: #1d1d1f; 
     --accent: #0071e3; 
+    --apple-green: #34C759; /* Verde Apple ufficiale */
     --card-bg: rgba(255, 255, 255, 0.45); 
     --border: rgba(255, 255, 255, 0.6);
     --gold-gradient: linear-gradient(135deg, #bf953f 0%, #fcf6ba 45%, #b38728 50%, #fbf5b7 55%, #aa771c 100%);
     --gold-border: #d4af37;
+    /* Gradient dorato: niente verde/arcobaleno, solo oro liquido dopo la lucciola */
+    --gold-progress-gradient: linear-gradient(90deg, #8a5f10 0%, #d4af37 40%, #ffdd66 70%, #fff5d0 100%);
+    --gold-sheen: rgba(255, 245, 200, 0.55);
 }
 
 [data-theme="dark"] { 
@@ -219,6 +223,98 @@
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
 }
 
+/* Progress bar split: green (base) + gold (extra) */
+.progress-split {
+    height: 12px;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    width: 100%;
+    background: rgba(120,120,128,0.08);
+    position: relative;
+}
+.progress-seg-green {
+    background: var(--apple-green);
+    height: 100%;
+    transition: width 0.45s ease;
+    position: relative;
+    min-width: 1px; /* evita che il segmento verde scompaia del tutto quando molto piccolo */
+}
+.progress-seg-green::after{
+    /* rimosso sheen che sfumava il verde verso l'oro; il verde dev'essere pieno */
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 0px; /* nessuna sovrapposizione */
+    pointer-events: none;
+    background: transparent;
+    mix-blend-mode: normal;
+    filter: none;
+}
+
+.progress-seg-gold::before{
+    /* lucentezza di giunzione: più evidente, luce forte sul bordo sinistro dell'oro */
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0));
+    mix-blend-mode: normal;
+    filter: blur(1px);
+    pointer-events: none;
+}
+.progress-seg-gold { position: relative; }
+.progress-seg-gold {
+    /* Oro metallico, più denso e viscoso: base scura, centro brillante, highlight finale */
+    background: var(--gold-progress-gradient);
+    height: 100%;
+    transition: width 0.45s ease;
+    position: relative;
+}
+
+.progress-seg-gold::after{
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 20%;
+    pointer-events: none;
+    /* Seta viscosa lucida: rende l'oro più stratificato e 'appiccicoso' */
+    background: linear-gradient(90deg, rgba(255,255,255,0.0), var(--gold-sheen));
+    mix-blend-mode: overlay;
+    filter: blur(8px) saturate(130%);
+}
+
+/* glow to make the gold look metallic and viscous */
+.progress-seg-gold.glow{
+    box-shadow: 0 0 22px 6px rgba(167,129,45,0.45), inset 0 -6px 14px rgba(0,0,0,0.32);
+    border-left: 1px solid rgba(255,255,255,0.12);
+}
+/* Gold inactive state: visible but muted until truly earned */
+.progress-seg-gold.inactive{
+    opacity: 0.28;
+    box-shadow: none !important;
+    filter: none !important;
+}
+.progress-seg-gold.active{
+    opacity: 1;
+}
+
+/* Static separator between green and gold (harmonic, no animations) */
+.arc-separator { stroke-linecap: round; }
+/* Highlight overlay for arc separator to mirror .progress-seg-gold::before */
+.arc-sep-highlight { stroke: #ffffff; stroke-opacity: 0.95; stroke-linecap: round; filter: blur(1px); mix-blend-mode: normal; pointer-events: none; }
+/* Sheen over gold arc to mirror .progress-seg-gold::after (viscous overlay) */
+.arc-gold-sheen { stroke: var(--gold-sheen); stroke-opacity: 0.7; stroke-linecap: round; filter: blur(2px) saturate(110%); mix-blend-mode: overlay; pointer-events: none; }
+.progress-seg-red { background: #ff3b30; height:100%; }
+.progress-seg-blue { background: #0a84ff; height:100%; }
+
+
 /* Forza tutti i testi dentro il profilo ad essere scuri e leggibili */
 [data-theme-gold="true"]:not([data-theme="dark"]) .btn-apple, 
 [data-theme-gold="true"]:not([data-theme="dark"]) .modal-content h3,
@@ -324,19 +420,52 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
 }
 
 
-.correct { background: rgba(52, 199, 89, 0.15); border: 1px solid #34c759; }
+.correct { background: rgba(52, 199, 89, 0.15); border: 1px solid var(--apple-green); }
 .wrong { background: rgba(255, 59, 48, 0.15); border: 1px solid #ff3b30; }
+
+/* History styling for grouped view */
+.history-topic { margin-bottom: 18px; padding-top: 6px; }
+.history-topic-title { font-size:14px; font-weight:700; margin-bottom:8px; }
+.history-level { margin-bottom:12px; padding:10px; background: rgba(120,120,128,0.03); border-radius:10px; border:1px solid rgba(120,120,128,0.06); }
+.history-level-title { font-size:13px; font-weight:700; margin-bottom:8px; opacity:0.9 }
+.history-entry { font-size:13px; margin-bottom:8px; padding:8px; background: rgba(120,120,128,0.02); border-radius:8px; }
+.history-entry-main { font-weight:700; margin-bottom:6px }
+.history-entry-sub { margin-top:4px; opacity:0.75; font-size:12px }
+.history-entry-correct { margin-top:6px; color:var(--apple-green); font-weight:700; font-size:12px }
 
 .error-inline { color: #ff3b30; font-size: 13px; font-weight: 600; margin-bottom: 8px; display: none; padding-left: 5px; }
 
 .review-card { background: rgba(120, 120, 128, 0.05); border-radius: 15px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #ccc; }
-.review-card.is-ok { border-left-color: #34c759; }
+.review-card.is-ok { border-left-color: var(--apple-green); }
 .review-card.is-err { border-left-color: #ff3b30; }
 
 .code-editor { width: 100%; height: 140px; background: #1c1c1e; color: #9cdcfe; border-radius: 12px; padding: 15px; font-family: 'SF Mono', monospace; border: 1px solid #3a3a3c; margin-top: 5px; font-size: 14px; resize: none; }
 .console-terminal { background: #000; color: #30d158; padding: 15px; border-radius: 12px; margin-top: 15px; font-family: monospace; font-size: 13px; }
 
 .theme-toggle { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; }
+.tester-btn { font-size: 18px; color: var(--accent); cursor: pointer; padding: 6px 8px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; margin-right: 8px; }
+
+/* Toggle tester flottante (fulmine) */
+.tester-toggle {
+    position: fixed;
+    left: 30px;
+    bottom: 30px;
+    width: 50px;
+    height: 50px;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    color: var(--accent);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.tester-toggle:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+.tester-toggle svg { width: 20px; height: 20px; }
 .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
 .back-link { color: var(--accent); cursor: pointer; font-size: 17px; }
 @keyframes slideIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -478,7 +607,7 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
 /* La parte verde che si riempie */
 .progress-bar-fill {
     height: 100%;
-    background: #34c759; /* Verde Apple */
+    background: var(--apple-green); /* Verde Apple */
     width: 0%; /* Gestito da JS */
     transition: width 0.3s ease;
 }
@@ -729,3 +858,6 @@ input:focus, textarea:focus, select:focus, button:focus {
 .token.function { color: #dcdcaa !important; }
 .token.operator { color: #d4d4d4 !important; }
 .token.comment { color: #6a9955 !important; }
+
+/* Override progress gold gradient to match the profile SVG gradient */
+.progress-seg-gold { background: var(--gold-progress-gradient) !important; }
