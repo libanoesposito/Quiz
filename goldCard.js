@@ -27,7 +27,7 @@ const GoldCardManager = {
         this.renderer = new THREE.WebGLRenderer({ 
             antialias: true, 
             alpha: true, 
-            preserveDrawingBuffer: true,
+            preserveDrawingBuffer: false, // FIX performance
             powerPreference: "high-performance"
         });
         this.renderer.setSize(width, height);
@@ -35,8 +35,8 @@ const GoldCardManager = {
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 1.2;
         this.renderer.outputEncoding = THREE.sRGBEncoding;
-        
-        this.container.innerHTML = ''; 
+
+        this.container.innerHTML = '';
         this.container.appendChild(this.renderer.domElement);
 
         // LUCI STUDIO
@@ -74,7 +74,6 @@ const GoldCardManager = {
     createLuxuryCard: function(user) {
         this.cardGroup = new THREE.Group();
 
-        // 1. GEOMETRIA CORPO
         const width = 8.56;
         const height = 5.398;
         const radius = 0.5;
@@ -91,42 +90,42 @@ const GoldCardManager = {
         shape.quadraticCurveTo(-width/2, -height/2, -width/2 + radius, -height/2);
 
         const extrudeSettings = {
-            depth: 0.05, 
+            depth: 0.03,            
             bevelEnabled: true,
-            bevelSegments: 5,
-            bevelSize: 0.1,
-            bevelThickness: 0.1,
+            bevelSegments: 3,
+            bevelSize: 0.02,
+            bevelThickness: 0.02,
             curveSegments: 24
         };
 
         const geometryBody = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-        geometryBody.center(); // CENTRA LA GEOMETRIA (Cruciale per la rotazione)
-        geometryBody.computeBoundingBox(); // Calcola i limiti per posizionare la texture
+        geometryBody.center();
+        geometryBody.computeBoundingBox(); 
         const maxZ = geometryBody.boundingBox.max.z;
-        
+
         const materialGold = new THREE.MeshStandardMaterial({
             color: 0xd4af37,
             metalness: 0.9,
-            roughness: 0.3,
-            side: THREE.DoubleSide
+            roughness: 0.35,
+            side: THREE.FrontSide
         });
 
         const bodyMesh = new THREE.Mesh(geometryBody, materialGold);
         this.cardGroup.add(bodyMesh);
 
-        // 2. GEOMETRIA FACCIA (Texture)
         const geometryFace = new THREE.ShapeGeometry(shape, 24);
         const texture = this.createCardTexture(user);
-        
+
         const materialFace = new THREE.MeshStandardMaterial({
             map: texture,
             transparent: true,
             metalness: 0.6,
-            roughness: 0.4
+            roughness: 0.4,
+            depthWrite: false,
+            depthTest: true
         });
 
         const faceMesh = new THREE.Mesh(geometryFace, materialFace);
-        // POSIZIONAMENTO SICURO: Appena sopra il punto più alto del corpo
         faceMesh.position.z = maxZ + 0.01; 
         this.cardGroup.add(faceMesh);
 
@@ -135,31 +134,29 @@ const GoldCardManager = {
 
     createCardTexture: function(user) {
         const canvas = document.createElement('canvas');
-        canvas.width = 1024;
-        canvas.height = 646;
+        canvas.width = 512;  
+        canvas.height = 323;
         const ctx = canvas.getContext('2d');
 
-        // Sfondo Oro
-        const grd = ctx.createLinearGradient(0, 0, 1024, 646);
+        const grd = ctx.createLinearGradient(0, 0, 512, 323);
         grd.addColorStop(0, "#b88a4d");
         grd.addColorStop(0.4, "#fdfcbf");
         grd.addColorStop(0.6, "#d4af37");
         grd.addColorStop(1, "#8a6e2f");
         ctx.fillStyle = grd;
-        ctx.fillRect(0, 0, 1024, 646);
+        ctx.fillRect(0, 0, 512, 323);
 
-        // EFFETTO SPAZZOLATURA METALLICA
-        this.addBrushedMetalEffect(ctx, 1024, 646);
-        this.addNoise(ctx, 1024, 646);
+        this.addBrushedMetalEffect(ctx, 512, 323);
+        this.addNoise(ctx, 512, 323);
 
         // Bordo
         ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
         ctx.lineWidth = 6;
-        ctx.strokeRect(30, 30, 964, 586);
+        ctx.strokeRect(15, 15, 482, 293);
 
         // Chip & Contactless
-        this.drawChip(ctx, 90, 220);
-        this.drawContactless(ctx, 900, 323);
+        this.drawChip(ctx, 45, 110);
+        this.drawContactless(ctx, 450, 160);
 
         // TESTI
         ctx.shadowColor = "rgba(0,0,0,0.4)";
@@ -167,58 +164,62 @@ const GoldCardManager = {
         ctx.shadowOffsetX = 2;
         ctx.shadowOffsetY = 2;
 
-        ctx.font = "800 48px 'Helvetica Neue', sans-serif";
+        ctx.font = "800 24px 'Helvetica Neue', sans-serif";
         ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
         ctx.textAlign = "right";
-        ctx.fillText("UTENTE GOLD", 960, 90);
+        ctx.fillText("UTENTE GOLD", 480, 45);
 
         ctx.textAlign = "left";
-        ctx.font = "600 55px 'Courier New', monospace";
+        ctx.font = "600 28px 'Courier New', monospace";
         ctx.fillStyle = "#1d1d1f";
         ctx.shadowColor = "rgba(255,255,255,0.3)";
-        ctx.fillText(user.name.toUpperCase(), 90, 420);
+        ctx.fillText(user.name.toUpperCase(), 45, 210);
 
-        ctx.font = "600 24px 'Helvetica Neue', sans-serif";
+        ctx.font = "500 12px 'Helvetica Neue', sans-serif";
         ctx.fillStyle = "#333";
         ctx.shadowBlur = 0;
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 0;
-        
-        ctx.font = "500 20px 'Helvetica Neue', sans-serif";
-        ctx.fillText("ID UTENTE", 90, 540);
-        ctx.fillText("ISCRITTO DAL", 380, 540);
 
-        ctx.font = "700 32px 'Courier New', monospace";
+        ctx.font = "500 10px 'Helvetica Neue', sans-serif";
+        ctx.fillText("ID UTENTE", 45, 270);
+        ctx.fillText("ISCRITTO DAL", 190, 270);
+
+        ctx.font = "700 16px 'Courier New', monospace";
         ctx.fillStyle = "#000";
-        ctx.fillText(user.id, 90, 580);
-        ctx.fillText(user.date, 380, 580);
+        ctx.fillText(user.id, 45, 290);
+        ctx.fillText(user.date, 190, 290);
 
         // QR CODE
         const qr = new QRious({
             value: window.location.href,
-            size: 170,
+            size: 85,
             backgroundAlpha: 0,
             foreground: '#1d1d1f'
         });
-        ctx.drawImage(qr.canvas, 800, 430);
+        ctx.drawImage(qr.canvas, 400, 215);
 
         const texture = new THREE.CanvasTexture(canvas);
-        texture.anisotropy = 16;
+        texture.anisotropy = Math.min(
+            4,
+            this.renderer.capabilities.getMaxAnisotropy()
+        );
+
         return texture;
     },
 
     addBrushedMetalEffect: function(ctx, w, h) {
-        // Disegna migliaia di linee sottili orizzontali per l'effetto spazzolato
         ctx.save();
         ctx.globalAlpha = 0.08;
         ctx.globalCompositeOperation = 'overlay';
-        for (let i = 0; i < 3000; i++) {
+        for (let i = 0; i < 600; i++) { 
             ctx.fillStyle = Math.random() > 0.5 ? '#ffffff' : '#000000';
-            const y = Math.random() * h;
-            const height = Math.random() * 2;
-            const width = Math.random() * w;
-            const x = Math.random() * w;
-            ctx.fillRect(x, y, width, height);
+            ctx.fillRect(
+                Math.random() * w,
+                Math.random() * h,
+                Math.random() * w,
+                Math.random() * 2
+            );
         }
         ctx.restore();
     },
@@ -226,26 +227,25 @@ const GoldCardManager = {
     drawChip: function(ctx, x, y) {
         ctx.fillStyle = "#e0e0e0";
         ctx.beginPath();
-        ctx.roundRect(x, y, 140, 110, 15);
+        ctx.roundRect(x, y, 70, 55, 8);
         ctx.fill();
         ctx.strokeStyle = "#666";
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1;
         ctx.stroke();
-        // Dettagli chip
         ctx.beginPath();
-        ctx.moveTo(x, y+55); ctx.lineTo(x+140, y+55);
-        ctx.moveTo(x+70, y); ctx.lineTo(x+70, y+110);
+        ctx.moveTo(x, y+28); ctx.lineTo(x+70, y+28);
+        ctx.moveTo(x+35, y); ctx.lineTo(x+35, y+55);
         ctx.stroke();
-        ctx.strokeRect(x+45, y+30, 50, 50);
+        ctx.strokeRect(x+22, y+15, 25, 25);
     },
 
     drawContactless: function(ctx, x, y) {
         ctx.strokeStyle = "rgba(255,255,255,0.7)";
-        ctx.lineWidth = 6;
+        ctx.lineWidth = 3;
         ctx.lineCap = 'round';
-        ctx.beginPath(); ctx.arc(x, y, 15, -Math.PI/2, 0); ctx.stroke();
-        ctx.beginPath(); ctx.arc(x, y, 35, -Math.PI/2.2, 0.2); ctx.stroke();
-        ctx.beginPath(); ctx.arc(x, y, 55, -Math.PI/2.5, 0.4); ctx.stroke();
+        ctx.beginPath(); ctx.arc(x, y, 7, -Math.PI/2, 0); ctx.stroke();
+        ctx.beginPath(); ctx.arc(x, y, 17, -Math.PI/2.2, 0.2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(x, y, 27, -Math.PI/2.5, 0.4); ctx.stroke();
     },
 
     addNoise: function(ctx, w, h) {
@@ -261,6 +261,7 @@ const GoldCardManager = {
     },
 
     animate: function() {
+        if (!this.container.offsetParent) return;
         this.animationId = requestAnimationFrame(this.animate.bind(this));
         this.controls.update();
         this.renderer.render(this.scene, this.camera);
@@ -275,17 +276,14 @@ const GoldCardManager = {
         this.renderer.setSize(width, height);
     },
 
-    // --- DOWNLOAD PNG ASINCRONO (Non blocca il PC) ---
     downloadSnapshot: function(btnElement) {
         if (!this.renderer) return;
         
         const originalText = btnElement ? btnElement.innerText : "Salva Foto";
         if(btnElement) { btnElement.innerText = "Elaborazione..."; btnElement.disabled = true; }
 
-        // Renderizza un frame fresco
         this.renderer.render(this.scene, this.camera);
         
-        // Usa toBlob invece di toDataURL per non bloccare il main thread
         this.renderer.domElement.toBlob(function(blob) {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -298,7 +296,6 @@ const GoldCardManager = {
         }, 'image/png');
     },
 
-    // --- DOWNLOAD GLTF (Con controlli) ---
     downloadGLTF: function(btnElement) {
         if (!this.cardGroup) return;
         if (typeof THREE.GLTFExporter === 'undefined') {
@@ -351,3 +348,4 @@ const GoldCardManager = {
         this.controls = null;
     }
 };
+
