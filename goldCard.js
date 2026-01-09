@@ -43,7 +43,8 @@ const GoldCardManager = {
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         this.scene.add(ambientLight);
 
-        const mainLight = new THREE.DirectionalLight(0xfff0dd, 1.2);
+        // FIX LUCI: Ora anche la luce frontale è ORO (come quella posteriore) per evitare l'effetto "bianco"
+        const mainLight = new THREE.DirectionalLight(0xffd700, 1.0);
         mainLight.position.set(5, 5, 10);
         this.scene.add(mainLight);
 
@@ -52,7 +53,7 @@ const GoldCardManager = {
         rimLight.lookAt(0,0,0);
         this.scene.add(rimLight);
 
-        const cameraLight = new THREE.PointLight(0xffeeb1, 0.6);
+        const cameraLight = new THREE.PointLight(0xffd700, 0.5); // Luce camera dorata
         this.camera.add(cameraLight);
         this.scene.add(this.camera);
 
@@ -106,9 +107,9 @@ const GoldCardManager = {
         const zOffset = (extrudeSettings.depth / 2) + extrudeSettings.bevelThickness + 0.002;
 
         const materialGold = new THREE.MeshStandardMaterial({
-            color: 0xffd700, // Oro più brillante e saturo
-            metalness: 1.0,  // Metallo puro per riflessi lucidi sul bordo
-            roughness: 0.15, // Molto liscio per massimizzare la lucentezza
+            color: 0xffd700, // Oro brillante
+            metalness: 1.0,  // Ripristinato al massimo per effetto metallo reale
+            roughness: 0.15, // Liscio per riflessi netti
             side: THREE.DoubleSide
         });
 
@@ -124,8 +125,8 @@ const GoldCardManager = {
         const materialFront = new THREE.MeshStandardMaterial({
             map: textureFront,
             transparent: true,
-            metalness: 0.2, // Leggermente più metallico ma controllato per non perdere contrasto
-            roughness: 0.3
+            metalness: 0.5,
+            roughness: 0.2
         });
 
         const frontMesh = new THREE.Mesh(geometryFront, materialFront);
@@ -141,8 +142,8 @@ const GoldCardManager = {
         const materialBack = new THREE.MeshStandardMaterial({
             map: textureBack,
             transparent: true,
-            metalness: 0.1,
-            roughness: 0.4
+            metalness: 0.5,
+            roughness: 0.2
         });
 
         const backMesh = new THREE.Mesh(geometryBack, materialBack);
@@ -172,11 +173,11 @@ const GoldCardManager = {
         canvas.height = 646;
         const ctx = canvas.getContext('2d');
 
-        // 1. SFONDO ORO UNIFORME (Senza strisce strane)
+        // 1. SFONDO ORO UNIFORME (Identico al retro)
         const diagGrd = ctx.createLinearGradient(0, 0, 1024, 646);
-        diagGrd.addColorStop(0, "#c69c6d");   // Bronzo morbido
-        diagGrd.addColorStop(0.5, "#d4af37"); // Oro puro centrale
-        diagGrd.addColorStop(1, "#c69c6d");   // Bronzo morbido
+        diagGrd.addColorStop(0, "#b88a4d");   // Bronzo scuro
+        diagGrd.addColorStop(0.5, "#d4af37"); // Oro classico
+        diagGrd.addColorStop(1, "#8a6e2f");   // Ombra profonda
         
         ctx.fillStyle = diagGrd;
         ctx.fillRect(0, 0, 1024, 646);
@@ -196,16 +197,16 @@ const GoldCardManager = {
         ctx.shadowOffsetY = 1;
 
         // Colore Testi: BRONZO SCURO (Uniformità con l'oro) invece di bianco/nero
-        const textBronze = "#4a3c31"; 
+        const textDark = "#000000"; // Nero Assoluto
 
         // Header Alto
         ctx.font = "700 32px 'Helvetica Neue', sans-serif";
-        ctx.fillStyle = textBronze;
+        ctx.fillStyle = textDark;
         ctx.textAlign = "left";
         ctx.fillText("QUIZ MASTER", 60, 80);
         
         ctx.font = "italic 600 24px 'Helvetica Neue', sans-serif";
-        ctx.fillStyle = textBronze;
+        ctx.fillStyle = textDark;
         ctx.globalAlpha = 0.8; // Leggera trasparenza per eleganza
         ctx.textAlign = "right";
         ctx.fillText("WORLD ELITE", 860, 80);
@@ -218,22 +219,18 @@ const GoldCardManager = {
         ctx.textAlign = "center";
         ctx.font = "700 66px 'Courier New', monospace"; 
         
-        // Effetto RILIEVO COERENTE (Oro Chiaro su Oro Scuro)
-        // Ombra scura netta per dare profondità (effetto incavato/stampato)
-        ctx.shadowColor = "rgba(60, 40, 20, 0.6)"; 
-        ctx.shadowOffsetX = 2;
-        ctx.shadowOffsetY = 3;
-        ctx.shadowBlur = 4;
+        // NUMERO CARTA: Niente rilievo, solo testo scuro e leggibile
+        ctx.shadowColor = "rgba(255,255,255,0.3)"; // Leggera luce sotto per staccare
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+        ctx.shadowBlur = 0;
         
-        // Colore: Crema/Oro pallido (Uniforme)
-        ctx.fillStyle = "#f5e6c8"; 
+        ctx.fillStyle = "#000000"; // Nero Assoluto
         
         ctx.fillText(cardNumber, 512, 380);
         
         // Reset ombre per i testi successivi (Stile Inciso/Stampato scuro)
-        ctx.shadowColor = "rgba(255,255,255,0.2)"; 
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 1;
+        ctx.shadowColor = "transparent"; 
         ctx.shadowBlur = 0;
 
         // 5. DATI UTENTE (Basso Sinistra)
@@ -241,25 +238,25 @@ const GoldCardManager = {
         
         // DATE (Affiancate)
         ctx.font = "600 13px 'Helvetica Neue', sans-serif"; // Etichette più grandi
-        ctx.fillStyle = "#5c4b3a"; // Bronzo medio
+        ctx.fillStyle = "#000000"; // Nero Assoluto
         
         // Member Since
-        ctx.fillText("MEMBER SINCE", 340, 430);
+        ctx.fillText("ISCRITTO DAL", 340, 430); // ITALIANO
         ctx.font = "700 26px 'Courier New', monospace"; // Date molto più visibili
-        ctx.fillStyle = "#2a1f15"; // Bronzo scurissimo (quasi nero ma caldo)
+        ctx.fillStyle = "#000000"; // Nero Assoluto
         ctx.fillText(user.memberSince, 340, 455);
 
         // Gold Since
         ctx.font = "600 13px 'Helvetica Neue', sans-serif";
-        ctx.fillStyle = "#5c4b3a";
-        ctx.fillText("GOLD SINCE", 520, 430);
+        ctx.fillStyle = "#000000";
+        ctx.fillText("GOLD DAL", 520, 430); // ITALIANO
         ctx.font = "700 26px 'Courier New', monospace";
-        ctx.fillStyle = "#2a1f15";
+        ctx.fillStyle = "#000000";
         ctx.fillText(user.goldSince, 520, 455);
 
         // Nome Utente
         ctx.font = "800 42px 'Helvetica Neue', sans-serif"; // Più grande e bold
-        ctx.fillStyle = "#2a1f15"; 
+        ctx.fillStyle = "#000000"; 
         ctx.fillText((user.name || 'UTENTE').toUpperCase(), 60, 580);
 
         const texture = new THREE.CanvasTexture(canvas);
@@ -274,9 +271,10 @@ const GoldCardManager = {
         canvas.height = 646;
         const ctx = canvas.getContext('2d');
 
-        // 1. SFONDO ORO (Leggermente più scuro/opaco per il retro)
+        // 1. SFONDO ORO (Identico al fronte)
         const grd = ctx.createLinearGradient(0, 0, 1024, 646);
         grd.addColorStop(0, "#b88a4d");
+        grd.addColorStop(0.5, "#d4af37"); // Aggiunto punto luce centrale per uniformità
         grd.addColorStop(1, "#8a6e2f");
         ctx.fillStyle = grd;
         ctx.fillRect(0, 0, 1024, 646);
@@ -290,9 +288,10 @@ const GoldCardManager = {
         ctx.fillStyle = "#f0f0f0";
         ctx.fillRect(60, 240, 600, 80);
         // Pattern firma
-        ctx.font = "italic 24px 'Courier New'";
-        ctx.fillStyle = "#ccc";
-        ctx.fillText("Authorized Signature", 80, 290);
+        ctx.font = "italic 36px 'Brush Script MT', cursive"; // Font corsivo per firma
+        ctx.fillStyle = "#000000"; // Nero Assoluto
+        const signature = user.name || "Firma Autorizzata";
+        ctx.fillText(signature, 80, 290); 
 
         // 4. CVC
         ctx.fillStyle = "#fff";
@@ -322,17 +321,17 @@ const GoldCardManager = {
         ctx.shadowOffsetY = 1;
 
         ctx.textAlign = "left";
-        ctx.fillStyle = "#fff";
+        ctx.fillStyle = "#000000"; // Nero Assoluto
         ctx.font = "700 28px 'Helvetica Neue', sans-serif";
-        ctx.fillText("TOTAL SCORE", 60, 420);
+        ctx.fillText("PUNTEGGIO TOTALE", 60, 420); // ITALIANO
 
         ctx.font = "300 80px 'Helvetica Neue', sans-serif";
-        ctx.fillStyle = "#fff";
+        ctx.fillStyle = "#000000"; // Nero Assoluto
         ctx.fillText(user.points || '0', 60, 500);
 
         ctx.font = "italic 18px 'Helvetica Neue', sans-serif";
-        ctx.fillStyle = "rgba(255,255,255,0.7)";
-        ctx.fillText("Quiz Master Official Ranking", 60, 540);
+        ctx.fillStyle = "#000000";
+        ctx.fillText("Classifica Ufficiale Quiz Master", 60, 540); // ITALIANO
 
         const texture = new THREE.CanvasTexture(canvas);
         texture.anisotropy = 16;
@@ -476,6 +475,52 @@ const GoldCardManager = {
         };
         
         requestAnimationFrame(animateRecord);
+    },
+
+    // --- DOWNLOAD SMART (GLB o USDZ) ---
+    downloadSmart: function(btnElement) {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        if (isIOS) {
+            this.downloadUSDZ(btnElement);
+        } else {
+            this.downloadGLB(btnElement);
+        }
+    },
+
+    // --- DOWNLOAD USDZ (iOS AR) ---
+    downloadUSDZ: function(btnElement) {
+        if (!this.cardGroup) return;
+        if (typeof THREE.USDZExporter === 'undefined') {
+            alert("Errore: Libreria USDZ non caricata.");
+            return;
+        }
+
+        const originalText = btnElement ? btnElement.innerText : "Scarica USDZ";
+        if(btnElement) { btnElement.innerText = "Esportazione..."; btnElement.disabled = true; }
+        
+        setTimeout(async () => {
+            try {
+                const exporter = new THREE.USDZExporter();
+                const arraybuffer = await exporter.parse(this.cardGroup);
+                const blob = new Blob([arraybuffer], { type: 'application/octet-stream' });
+                const url = URL.createObjectURL(blob);
+                
+                const link = document.createElement('a');
+                link.style.display = 'none';
+                link.href = url;
+                link.download = 'QuizMaster_GoldCard.usdz';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+                if(btnElement) { btnElement.innerText = originalText; btnElement.disabled = false; }
+            } catch(e) {
+                console.error(e);
+                alert("Errore esportazione USDZ");
+                if(btnElement) { btnElement.innerText = "Errore"; btnElement.disabled = false; }
+            }
+        }, 50);
     },
 
     // --- DOWNLOAD GLB (Binario) ---
