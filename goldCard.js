@@ -247,18 +247,17 @@ const GoldCardManager = {
         ctx.fillStyle = "#000000"; // Nero Assoluto
         ctx.fillText(user.memberSince, 340, 455);
 
-        // Gold Since
-        ctx.font = "600 13px 'Helvetica Neue', sans-serif";
-        ctx.fillStyle = "#000000";
-        ctx.fillText("GOLD DAL", 520, 430); // ITALIANO
-        ctx.font = "700 26px 'Courier New', monospace";
-        ctx.fillStyle = "#000000";
-        ctx.fillText(user.goldSince, 520, 455);
-
         // Nome Utente
         ctx.font = "800 42px 'Helvetica Neue', sans-serif"; // Più grande e bold
         ctx.fillStyle = "#000000"; 
-        ctx.fillText((user.name || 'UTENTE').toUpperCase(), 60, 580);
+        const nameText = (user.name || 'UTENTE').toUpperCase();
+        ctx.fillText(nameText, 60, 580);
+
+        // Scritta "Miglior Programmatore" accanto al nome
+        const nameWidth = ctx.measureText(nameText).width;
+        ctx.font = "italic 500 22px 'Helvetica Neue', sans-serif"; // Elegante e pulito
+        ctx.fillStyle = "#333333"; 
+        ctx.fillText("Miglior Programmatore", 60 + nameWidth + 20, 580);
 
         const texture = new THREE.CanvasTexture(canvas);
         texture.anisotropy = 16;
@@ -509,7 +508,10 @@ const GoldCardManager = {
                 // La card è larga 8.56 units. In AR 1 unit = 1 metro.
                 // Scaliamo a dimensioni reali (carta credito ~8.5cm = 0.085m)
                 const originalScale = this.cardGroup.scale.clone();
+                const originalRotation = this.cardGroup.rotation.clone(); // Backup rotazione
+
                 this.cardGroup.scale.multiplyScalar(0.01); 
+                this.cardGroup.rotation.z += Math.PI; // FIX: Ruota di 180° per correggere orientamento AR (Base in basso)
                 this.cardGroup.updateMatrixWorld();
 
                 const exporter = new THREE.USDZExporter();
@@ -517,6 +519,7 @@ const GoldCardManager = {
                 
                 // 2. RIPRISTINA SCALA ORIGINALE
                 this.cardGroup.scale.copy(originalScale);
+                this.cardGroup.rotation.copy(originalRotation); // Ripristina rotazione
                 this.cardGroup.updateMatrixWorld();
 
                 const blob = new Blob([arraybuffer], { type: 'application/octet-stream' });
