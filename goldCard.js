@@ -135,7 +135,7 @@ const GoldCardManager = {
 
         // 3. FACCIA POSTERIORE (Back)
         const geometryBack = new THREE.ShapeGeometry(shape, 24);
-        this.applyUVs(geometryBack, width, height);
+        this.applyUVs(geometryBack, width, height, true); // Flip UVs per correggere l'effetto specchio
 
         const textureBack = this.createBackTexture(user);
         
@@ -154,14 +154,15 @@ const GoldCardManager = {
         this.scene.add(this.cardGroup);
     },
 
-    applyUVs: function(geometry, width, height) {
+    applyUVs: function(geometry, width, height, flipX = false) {
         const posAttribute = geometry.attributes.position;
         const uvAttribute = geometry.attributes.uv;
         for (let i = 0; i < posAttribute.count; i++) {
             const x = posAttribute.getX(i);
             const y = posAttribute.getY(i);
-            const u = (x + width / 2) / width;
+            let u = (x + width / 2) / width;
             const v = (y + height / 2) / height;
+            if (flipX) u = 1 - u; // Inverte la texture orizzontalmente
             uvAttribute.setXY(i, u, v);
         }
         geometry.attributes.uv.needsUpdate = true;
@@ -288,10 +289,13 @@ const GoldCardManager = {
         ctx.fillStyle = "#f0f0f0";
         ctx.fillRect(60, 240, 600, 80);
         // Pattern firma
-        ctx.font = "italic 36px 'Brush Script MT', cursive"; // Font corsivo per firma
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.font = "italic 60px 'Brush Script MT', 'Segoe Script', 'Lucida Handwriting', cursive"; // Firma più grande e realistica
         ctx.fillStyle = "#000000"; // Nero Assoluto
         const signature = user.name || "Firma Autorizzata";
-        ctx.fillText(signature, 80, 290); 
+        ctx.fillText(signature, 80, 280); 
+        ctx.textBaseline = "alphabetic"; // Reset
 
         // 4. CVC
         ctx.fillStyle = "#fff";
