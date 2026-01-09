@@ -106,9 +106,9 @@ const GoldCardManager = {
         const zOffset = (extrudeSettings.depth / 2) + extrudeSettings.bevelThickness + 0.002;
 
         const materialGold = new THREE.MeshStandardMaterial({
-            color: 0xd4af37,
-            metalness: 0.8,
-            roughness: 0.3,
+            color: 0xffd700, // Oro più brillante e saturo
+            metalness: 1.0,  // Metallo puro per riflessi lucidi sul bordo
+            roughness: 0.15, // Molto liscio per massimizzare la lucentezza
             side: THREE.DoubleSide
         });
 
@@ -124,8 +124,8 @@ const GoldCardManager = {
         const materialFront = new THREE.MeshStandardMaterial({
             map: textureFront,
             transparent: true,
-            metalness: 0.1, // Basso per leggibilità testo
-            roughness: 0.4
+            metalness: 0.2, // Leggermente più metallico ma controllato per non perdere contrasto
+            roughness: 0.3
         });
 
         const frontMesh = new THREE.Mesh(geometryFront, materialFront);
@@ -172,23 +172,21 @@ const GoldCardManager = {
         canvas.height = 646;
         const ctx = canvas.getContext('2d');
 
-        // 1. SFONDO ORO (Più chiaro per contrasto testo)
+        // 1. SFONDO ORO UNIFORME (Senza strisce strane)
         const diagGrd = ctx.createLinearGradient(0, 0, 1024, 646);
-        diagGrd.addColorStop(0, "#8a6e2f");   // Bronzo scuro
-        diagGrd.addColorStop(0.2, "#d4af37"); // Oro classico
-        diagGrd.addColorStop(0.4, "#fdfcbf"); // Luce speculare
-        diagGrd.addColorStop(0.6, "#d4af37"); // Oro classico
-        diagGrd.addColorStop(1, "#5e4b20");   // Ombra profonda
+        diagGrd.addColorStop(0, "#c69c6d");   // Bronzo morbido
+        diagGrd.addColorStop(0.5, "#d4af37"); // Oro puro centrale
+        diagGrd.addColorStop(1, "#c69c6d");   // Bronzo morbido
         
         ctx.fillStyle = diagGrd;
         ctx.fillRect(0, 0, 1024, 646);
 
-        // EFFETTO SPAZZOLATURA METALLICA
+        // EFFETTO SPAZZOLATURA (Senza Noise/Brillantini)
         this.addBrushedMetalEffect(ctx, 1024, 646);
-        this.addNoise(ctx, 1024, 646);
+        // this.addNoise(ctx, 1024, 646); // RIMOSSO: Causava l'effetto "brillantinato"
 
         // 2. ELEMENTI TECNICI (Chip & Contactless)
-        this.drawChip(ctx, 140, 250);
+        this.drawChip(ctx, 140, 200); // SPOSTATO IN ALTO (Era 250) per non toccare i numeri
         this.drawContactless(ctx, 920, 100);
 
         // 3. LOGHI E SCRITTE "PREMIUM"
@@ -197,57 +195,71 @@ const GoldCardManager = {
         ctx.shadowOffsetX = 1;
         ctx.shadowOffsetY = 1;
 
+        // Colore Testi: BRONZO SCURO (Uniformità con l'oro) invece di bianco/nero
+        const textBronze = "#4a3c31"; 
+
         // Header Alto
         ctx.font = "700 32px 'Helvetica Neue', sans-serif";
-        ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+        ctx.fillStyle = textBronze;
         ctx.textAlign = "left";
         ctx.fillText("QUIZ MASTER", 60, 80);
         
         ctx.font = "italic 600 24px 'Helvetica Neue', sans-serif";
-        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+        ctx.fillStyle = textBronze;
+        ctx.globalAlpha = 0.8; // Leggera trasparenza per eleganza
         ctx.textAlign = "right";
         ctx.fillText("WORLD ELITE", 860, 80);
+        ctx.globalAlpha = 1.0;
 
         // 4. NUMERO CARTA (Simulato con ID)
         const padId = String(user.id || '0000').padStart(4, '0');
         const cardNumber = `5412 7500 8890 ${padId}`;
         
         ctx.textAlign = "center";
-        ctx.font = "500 64px 'Courier New', monospace"; // Font monospaziato per effetto rilievo
-        // Effetto rilievo (Emboss) Argento/Bianco
-        ctx.fillStyle = "#1a1a1a"; // Ombra interna scura
-        ctx.shadowColor = "rgba(255,255,255,0.4)"; // Luce bordo inferiore
-        ctx.shadowOffsetY = 2;
+        ctx.font = "700 66px 'Courier New', monospace"; 
+        
+        // Effetto RILIEVO COERENTE (Oro Chiaro su Oro Scuro)
+        // Ombra scura netta per dare profondità (effetto incavato/stampato)
+        ctx.shadowColor = "rgba(60, 40, 20, 0.6)"; 
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 3;
+        ctx.shadowBlur = 4;
+        
+        // Colore: Crema/Oro pallido (Uniforme)
+        ctx.fillStyle = "#f5e6c8"; 
+        
         ctx.fillText(cardNumber, 512, 380);
         
-        // Reset ombre per testo normale
-        ctx.shadowColor = "rgba(0,0,0,0.3)";
+        // Reset ombre per i testi successivi (Stile Inciso/Stampato scuro)
+        ctx.shadowColor = "rgba(255,255,255,0.2)"; 
+        ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 1;
+        ctx.shadowBlur = 0;
 
         // 5. DATI UTENTE (Basso Sinistra)
         ctx.textAlign = "left";
         
         // DATE (Affiancate)
-        ctx.font = "400 10px 'Helvetica Neue', sans-serif";
-        ctx.fillStyle = "#333"; // Scuro per leggibilità su oro
+        ctx.font = "600 13px 'Helvetica Neue', sans-serif"; // Etichette più grandi
+        ctx.fillStyle = "#5c4b3a"; // Bronzo medio
         
         // Member Since
         ctx.fillText("MEMBER SINCE", 340, 430);
-        ctx.font = "600 20px 'Courier New', monospace";
-        ctx.fillStyle = "#111"; // Scuro
+        ctx.font = "700 26px 'Courier New', monospace"; // Date molto più visibili
+        ctx.fillStyle = "#2a1f15"; // Bronzo scurissimo (quasi nero ma caldo)
         ctx.fillText(user.memberSince, 340, 455);
 
         // Gold Since
-        ctx.font = "400 10px 'Helvetica Neue', sans-serif";
-        ctx.fillStyle = "#333";
+        ctx.font = "600 13px 'Helvetica Neue', sans-serif";
+        ctx.fillStyle = "#5c4b3a";
         ctx.fillText("GOLD SINCE", 520, 430);
-        ctx.font = "600 20px 'Courier New', monospace";
-        ctx.fillStyle = "#111";
+        ctx.font = "700 26px 'Courier New', monospace";
+        ctx.fillStyle = "#2a1f15";
         ctx.fillText(user.goldSince, 520, 455);
 
         // Nome Utente
-        ctx.font = "600 36px 'Helvetica Neue', sans-serif";
-        ctx.fillStyle = "#111"; // Scuro per contrasto massimo
+        ctx.font = "800 42px 'Helvetica Neue', sans-serif"; // Più grande e bold
+        ctx.fillStyle = "#2a1f15"; 
         ctx.fillText((user.name || 'UTENTE').toUpperCase(), 60, 580);
 
         const texture = new THREE.CanvasTexture(canvas);
@@ -347,13 +359,19 @@ const GoldCardManager = {
     drawChip: function(ctx, x, y) {
         // Gradiente Chip
         const chipGrad = ctx.createLinearGradient(x, y, x+120, y+90);
-        chipGrad.addColorStop(0, "#e6cfa3");
-        chipGrad.addColorStop(1, "#d1b464");
+        chipGrad.addColorStop(0, "#fff8e1"); // Oro molto chiaro/Platino per visibilità
+        chipGrad.addColorStop(0.5, "#e6cfa3");
+        chipGrad.addColorStop(1, "#b8860b"); // Oro scuro
         
         ctx.fillStyle = chipGrad;
         ctx.beginPath();
         ctx.roundRect(x, y, 120, 90, 12);
         ctx.fill();
+        
+        // Bordo sottile per staccarlo dallo sfondo
+        ctx.strokeStyle = "rgba(0,0,0,0.4)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
         
         // Linee circuito chip
         ctx.strokeStyle = "rgba(0,0,0,0.3)";
@@ -404,86 +422,112 @@ const GoldCardManager = {
         this.renderer.setSize(width, height);
     },
 
-    // --- DOWNLOAD PNG ASINCRONO (Non blocca il PC) ---
-    downloadSnapshotVideo: function(btnElement) {
-    if (!this.renderer || !this.cardGroup) return;
+    // --- REGISTRAZIONE VIDEO 360° (WebM) ---
+    recordVideo: function(btnElement) {
+        if (!this.renderer) return;
+        
+        const canvas = this.renderer.domElement;
+        // Cattura lo stream del canvas a 30fps
+        const stream = canvas.captureStream(30);
+        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+        const chunks = [];
+        
+        recorder.ondataavailable = e => { if(e.data.size > 0) chunks.push(e.data); };
+        
+        recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'QuizMaster_GoldCard_360.webm';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            // Ripristina UI
+            if(btnElement) { btnElement.innerText = "🎥 Video 360°"; btnElement.disabled = false; }
+            this.controls.autoRotate = true; // Riprendi rotazione normale
+        };
 
-    const originalText = btnElement ? btnElement.innerText : "Salva Video";
-    if (btnElement) { btnElement.innerText = "Elaborazione..."; btnElement.disabled = true; }
+        // Setup Animazione Registrazione
+        if(btnElement) { btnElement.innerText = "Registrazione..."; btnElement.disabled = true; }
+        
+        this.controls.autoRotate = false; // Disabilita auto-rotate standard
+        this.cardGroup.rotation.y = 0;    // Reset posizione
+        
+        recorder.start();
+        
+        // Esegui una rotazione completa in 4 secondi
+        const duration = 4000;
+        const start = performance.now();
+        
+        const animateRecord = (time) => {
+            const elapsed = time - start;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Ruota di 360 gradi (2PI)
+            this.cardGroup.rotation.y = progress * Math.PI * 2;
+            this.renderer.render(this.scene, this.camera);
+            
+            if (progress < 1) {
+                requestAnimationFrame(animateRecord);
+            } else {
+                recorder.stop();
+            }
+        };
+        
+        requestAnimationFrame(animateRecord);
+    },
 
-    const stream = this.renderer.domElement.captureStream(30); // 30 fps
-    const recorder = new MediaRecorder(stream, { mimeType: "video/webm; codecs=vp9" });
-    const chunks = [];
-
-    recorder.ondataavailable = e => chunks.push(e.data);
-    recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: "video/webm" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = "QuizPro_GoldCard.webm";
-        link.click();
-        URL.revokeObjectURL(url);
-
-        if (btnElement) { btnElement.innerText = originalText; btnElement.disabled = false; }
-    };
-
-    recorder.start();
-
-    // animazione di 1 rotazione completa in 3 secondi
-    let frames = 90; 
-    let i = 0;
-    const rotateStep = (2 * Math.PI) / frames;
-
-    const animateFrame = () => {
-        if (i >= frames) {
-            recorder.stop();
+    // --- DOWNLOAD GLB (Binario) ---
+    downloadGLB: function(btnElement) {
+        if (!this.cardGroup) return;
+        if (typeof THREE.GLTFExporter === 'undefined') {
+            alert("Errore: Libreria esportazione non caricata.");
             return;
         }
-        this.cardGroup.rotation.y += rotateStep;
-        this.renderer.render(this.scene, this.camera);
-        i++;
-        requestAnimationFrame(animateFrame);
-    };
-    animateFrame();
-}
 
-    // --- DOWNLOAD GLTF (Con controlli) ---
-    downloadGLB: function(btnElement) {
-    if (!this.cardGroup) return;
-    if (typeof THREE.GLTFExporter === 'undefined') {
-        alert("Errore: Libreria esportazione non caricata.");
-        return;
-    }
+        const originalText = btnElement ? btnElement.innerText : "Scarica GLB";
+        if(btnElement) { btnElement.innerText = "Esportazione..."; btnElement.disabled = true; }
+        
+        setTimeout(() => {
+            try {
+                const exporter = new THREE.GLTFExporter();
+                exporter.parse(
+                    this.cardGroup,
+                    function (result) {
+                        // result è un ArrayBuffer se binary=true
+                        const blob = new Blob([result], { type: 'model/gltf-binary' });
+                        const url = URL.createObjectURL(blob);
+                        
+                        const link = document.createElement('a');
+                        link.style.display = 'none';
+                        link.href = url;
+                        link.download = 'QuizMaster_GoldCard.glb';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
 
-    const originalText = btnElement ? btnElement.innerText : "Scarica 3D";
-    if(btnElement) { btnElement.innerText = "Esportazione..."; btnElement.disabled = true; }
+                        if(btnElement) { btnElement.innerText = originalText; btnElement.disabled = false; }
+                    },
+                    { binary: true } // FORZA FORMATO GLB
+                );
+            } catch(e) {
+                console.error(e);
+                if(btnElement) { btnElement.innerText = "Errore"; btnElement.disabled = false; }
+            }
+        }, 50);
+    },
 
-    setTimeout(() => {
-        try {
-            const exporter = new THREE.GLTFExporter();
-            exporter.parse(
-                this.cardGroup,
-                function (result) {
-                    const blob = new Blob([result], { type: 'application/octet-stream' });
-                    const url = URL.createObjectURL(blob);
-
-                    const link = document.createElement('a');
-                    link.style.display = 'none';
-                    link.href = url;
-                    link.download = 'QuizPro_GoldCard.glb';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-
-                    if(btnElement) { btnElement.innerText = originalText; btnElement.disabled = false; }
-                },
-                { binary: true } // export in GLB
-            );
-        } catch(e) {
-            console.error(e);
-            if(btnElement) { btnElement.innerText = "Errore"; btnElement.disabled = false; }
+    dispose: function() {
+        cancelAnimationFrame(this.animationId);
+        window.removeEventListener('resize', this.onResize);
+        if (this.renderer) {
+            this.renderer.dispose();
+            this.container.innerHTML = '';
         }
-    }, 50);
-}
+        this.scene = null;
+        this.camera = null;
+        this.controls = null;
+    }
+};
