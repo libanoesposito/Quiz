@@ -1477,7 +1477,9 @@ function checkL5(lang, index) {
                         const stats = calcStats();
                         if (stats.isPerfect) {
                             state.isPerfect = true;
-                            db.collection("utenti").doc(state.currentPin).set({ goldMode: true }, { merge: true });
+                            const now = new Date().toISOString();
+                            db.collection("utenti").doc(state.currentPin).set({ goldMode: true, goldDate: now }, { merge: true });
+                            if(dbUsers[state.currentPin]) dbUsers[state.currentPin].goldDate = now;
                             triggerGoldTransition(); // ANIMAZIONE L5
                         }
                     }
@@ -1721,10 +1723,13 @@ function check(isOk, userAnsText) {
             if (stats.isPerfect) {
                 state.isPerfect = true;
                 triggerGoldTransition(); // ANIMAZIONE QUIZ NORMALE
+                const now = new Date().toISOString();
                 // 🏆 SALVA STATO GOLD SU FIREBASE IMMEDIATAMENTE (PERMANENTE)
                 db.collection("utenti").doc(state.currentPin).set({
-                    goldMode: true
+                    goldMode: true,
+                    goldDate: now
                 }, { merge: true }).catch(e => console.error("Errore salvataggio goldMode:", e));
+                if(dbUsers[state.currentPin]) dbUsers[state.currentPin].goldDate = now;
             }
         }
         // Se è già gold, non fare nulla (rimane gold per sempre)
@@ -3640,7 +3645,6 @@ function openGoldCardModal() {
                 
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 10px;">
                     <button class="modal-btn btn-primary" onclick="GoldCardManager.downloadSnapshot()" style="margin:0; font-size:13px; background: #fff; color: #000;">📸 Salva Foto</button>
-                    <button class="modal-btn btn-primary" onclick="GoldCardManager.downloadSnapshot(this)" style="margin:0; font-size:13px; background: #fff; color: #000;">📸 Salva Foto</button>
                     <!-- Passiamo 'this' per gestire il loading state -->
                     <button class="modal-btn btn-primary" onclick="GoldCardManager.downloadGLTF(this)" style="margin:0; font-size:13px; background: #fff; color: #000;">📦 Scarica 3D</button>
                 </div>
@@ -3655,10 +3659,23 @@ function openGoldCardModal() {
 
     // Prepara i dati utente
     const u = dbUsers[state.currentPin];
+    const stats = calcStats();
+    // Calcolo punti approssimativo basato sulle corrette (o usa u.points se salvato)
+    const currentPoints = stats.correct * 10; 
+
+    const fmtDate = (d) => {
+        try { return new Date(d).toLocaleDateString('it-IT', { month: '2-digit', year: '2-digit' }); }
+        catch(e) { return '01/24'; }
+    };
+    const memberSince = fmtDate(u.created || u.createdAt || new Date());
+    const goldSince = fmtDate(u.goldDate || u.created || u.createdAt || new Date());
+
     const userData = {
         name: u.name,
         id: u.userId,
-        date: new Date().toLocaleDateString()
+        memberSince: memberSince,
+        goldSince: goldSince,
+        points: currentPoints
     };
 
     // Inizializza Three.js in modo asincrono per non bloccare l'apertura del modale
