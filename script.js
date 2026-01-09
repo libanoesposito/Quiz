@@ -2010,6 +2010,17 @@ function renderProfile() {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const appleGray = isDark ? '#2c2c2e' : '#e5e5ea';
 
+    // --- PULSANTE GOLD CARD (Se l'utente è Gold) ---
+    let goldCardBtn = '';
+    if (state.isPerfect) {
+        goldCardBtn = `
+        <div class="glass-card is-perfect-gold" onclick="openGoldCardModal()" style="cursor:pointer; text-align:center; padding:15px; margin-bottom:15px;">
+            <div style="font-size:24px; margin-bottom:5px">🏆</div>
+            <div class="gold-glow-text" style="font-weight:800; font-size:16px">VISUALIZZA LA TUA GOLD CARD 3D</div>
+            <div style="font-size:11px; opacity:0.8; margin-top:4px">Tocca per ruotare e scaricare</div>
+        </div>`;
+    }
+
     // Calcolo aggregato per profilo: sommiamo green/gold su tutti i livelli/lingue
     let aggGreen = 0, aggGold = 0, aggTotal = 0;
     totalLevels.forEach(lang => {
@@ -2181,6 +2192,9 @@ input, select, textarea { font-size: 16px !important; }
             <div><strong>Nome:</strong> ${escapeHtml(u.name)}</div>
             <div><strong>ID Utente:</strong> ${escapeHtml(u.userId)}</div>
         </div>
+
+        <!-- INSERIMENTO BOTTONE GOLD CARD -->
+        ${goldCardBtn}
 
         <div class="glass-card">
             <strong>Statistiche</strong>
@@ -3605,4 +3619,58 @@ function renderTesterToggle() {
     t.onclick = () => { toggleDebugPerfect(); };
     t.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8L21 10h-9l1-8z"></path></svg>`;
     document.body.appendChild(t);
+}
+
+/* =========================
+   GESTIONE GOLD CARD 3D
+   ========================= */
+function openGoldCardModal() {
+    // Crea il modale se non esiste
+    let modal = document.getElementById('gold-card-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'gold-card-modal';
+        // Struttura HTML uniforme ai modali del sito (modal-content, modal-btn)
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 700px; width: 90%; background: rgba(30,30,30,0.95); border: 1px solid rgba(255,215,0,0.3);">
+                <h3 class="gold-glow-text" style="margin-bottom: 10px; font-size: 20px;">LA TUA CARTA ORO</h3>
+                <p style="font-size: 12px; opacity: 0.7; margin-bottom: 20px; color: #fff;">Ruota per ammirare i dettagli</p>
+                
+                <div id="gold-card-container" style="width:100%; height:350px; position:relative; margin-bottom: 20px;"></div>
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 10px;">
+                    <button class="modal-btn btn-primary" onclick="GoldCardManager.downloadSnapshot()" style="margin:0; font-size:13px; background: #fff; color: #000;">📸 Salva Foto</button>
+                    <!-- Passiamo 'this' per gestire il loading state -->
+                    <button class="modal-btn btn-primary" onclick="GoldCardManager.downloadGLTF(this)" style="margin:0; font-size:13px; background: #fff; color: #000;">📦 Scarica 3D</button>
+                </div>
+                <!-- Tasto Chiudi uniforme agli altri modali -->
+                <button class="modal-btn btn-cancel" onclick="closeGoldCardModal()">Chiudi</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    modal.style.display = 'flex';
+
+    // Prepara i dati utente
+    const u = dbUsers[state.currentPin];
+    const userData = {
+        name: u.name,
+        id: u.userId,
+        date: new Date().toLocaleDateString()
+    };
+
+    // Inizializza Three.js in modo asincrono per non bloccare l'apertura del modale
+    // Risolve: [Violation] 'click' handler took X ms
+    requestAnimationFrame(() => {
+        setTimeout(() => {
+            GoldCardManager.init(document.getElementById('gold-card-container'), userData);
+        }, 50);
+    });
+}
+
+function closeGoldCardModal() {
+    const modal = document.getElementById('gold-card-modal');
+    if (modal) modal.style.display = 'none';
+    GoldCardManager.dispose(); // Pulisce la memoria WebGL
 }
