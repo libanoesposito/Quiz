@@ -405,78 +405,85 @@ const GoldCardManager = {
     },
 
     // --- DOWNLOAD PNG ASINCRONO (Non blocca il PC) ---
-    downloadSnapshot: function(btnElement) {
-        if (!this.renderer) return;
-        
-        const originalText = btnElement ? btnElement.innerText : "Salva Foto";
-        if(btnElement) { btnElement.innerText = "Elaborazione..."; btnElement.disabled = true; }
+    downloadSnapshotVideo: function(btnElement) {
+    if (!this.renderer || !this.cardGroup) return;
 
-        // Renderizza un frame fresco
-        this.renderer.render(this.scene, this.camera);
-        
-        // Usa toBlob invece di toDataURL per non bloccare il main thread
-        this.renderer.domElement.toBlob(function(blob) {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.download = 'QuizPro_GoldCard.png';
-            link.href = url;
-            link.click();
-            URL.revokeObjectURL(url);
-            
-            if(btnElement) { btnElement.innerText = originalText; btnElement.disabled = false; }
-        }, 'image/png');
-    },
+    const originalText = btnElement ? btnElement.innerText : "Salva Video";
+    if (btnElement) { btnElement.innerText = "Elaborazione..."; btnElement.disabled = true; }
 
-    // --- DOWNLOAD GLTF (Con controlli) ---
-    downloadGLTF: function(btnElement) {
-        if (!this.cardGroup) return;
-        if (typeof THREE.GLTFExporter === 'undefined') {
-            alert("Errore: Libreria esportazione non caricata.");
+    const stream = this.renderer.domElement.captureStream(30); // 30 fps
+    const recorder = new MediaRecorder(stream, { mimeType: "video/webm; codecs=vp9" });
+    const chunks = [];
+
+    recorder.ondataavailable = e => chunks.push(e.data);
+    recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "video/webm" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = "QuizPro_GoldCard.webm";
+        link.click();
+        URL.revokeObjectURL(url);
+
+        if (btnElement) { btnElement.innerText = originalText; btnElement.disabled = false; }
+    };
+
+    recorder.start();
+
+    // animazione di 1 rotazione completa in 3 secondi
+    let frames = 90; 
+    let i = 0;
+    const rotateStep = (2 * Math.PI) / frames;
+
+    const animateFrame = () => {
+        if (i >= frames) {
+            recorder.stop();
             return;
         }
+        this.cardGroup.rotation.y += rotateStep;
+        this.renderer.render(this.scene, this.camera);
+        i++;
+        requestAnimationFrame(animateFrame);
+    };
+    animateFrame();
+}
 
-        const originalText = btnElement ? btnElement.innerText : "Scarica 3D";
-        if(btnElement) { btnElement.innerText = "Esportazione..."; btnElement.disabled = true; }
-        
-        setTimeout(() => {
-            try {
-                const exporter = new THREE.GLTFExporter();
-                exporter.parse(
-                    this.cardGroup,
-                    function (gltf) {
-                        const output = JSON.stringify(gltf, null, 2);
-                        const blob = new Blob([output], { type: 'text/plain' });
-                        const url = URL.createObjectURL(blob);
-                        
-                        const link = document.createElement('a');
-                        link.style.display = 'none';
-                        link.href = url;
-                        link.download = 'QuizPro_GoldCard.gltf';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        URL.revokeObjectURL(url);
-
-                        if(btnElement) { btnElement.innerText = originalText; btnElement.disabled = false; }
-                    },
-                    { binary: false }
-                );
-            } catch(e) {
-                console.error(e);
-                if(btnElement) { btnElement.innerText = "Errore"; btnElement.disabled = false; }
-            }
-        }, 50);
-    },
-
-    dispose: function() {
-        cancelAnimationFrame(this.animationId);
-        window.removeEventListener('resize', this.onResize);
-        if (this.renderer) {
-            this.renderer.dispose();
-            this.container.innerHTML = '';
-        }
-        this.scene = null;
-        this.camera = null;
-        this.controls = null;
+    // --- DOWNLOAD GLTF (Con controlli) ---
+    downloadGLB: function(btnElement) {
+    if (!this.cardGroup) return;
+    if (typeof THREE.GLTFExporter === 'undefined') {
+        alert("Errore: Libreria esportazione non caricata.");
+        return;
     }
-};
+
+    const originalText = btnElement ? btnElement.innerText : "Scarica 3D";
+    if(btnElement) { btnElement.innerText = "Esportazione..."; btnElement.disabled = true; }
+
+    setTimeout(() => {
+        try {
+            const exporter = new THREE.GLTFExporter();
+            exporter.parse(
+                this.cardGroup,
+                function (result) {
+                    const blob = new Blob([result], { type: 'application/octet-stream' });
+                    const url = URL.createObjectURL(blob);
+
+                    const link = document.createElement('a');
+                    link.style.display = 'none';
+                    link.href = url;
+                    link.download = 'QuizPro_GoldCard.glb';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+
+                    if(btnElement) { btnElement.innerText = originalText; btnElement.disabled = false; }
+                },
+                { binary: true } // export in GLB
+            );
+        } catch(e) {
+            console.error(e);
+            if(btnElement) { btnElement.innerText = "Errore"; btnElement.disabled = false; }
+        }
+    }, 50);
+}
