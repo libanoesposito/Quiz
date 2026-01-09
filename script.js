@@ -239,7 +239,7 @@ function viewDebugLogs() { return; }
 function renderDebugWidget() { return; }
 
 // Hash SHA-256 dei PIN speciali (Admin: 3473, Tester: 1111)
-const ADMIN_HASH = "b03ddf3ca2e714a6548e7495e2a03f5e824eaac983717e563a66f5261e454e81";
+const ADMIN_HASH = "18c6b6f84040725098b1bf26e6269ff898b9ab4ab5e7f64c2c7446ea563c3cd7";
 const TESTER_HASH = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
 
 
@@ -290,6 +290,7 @@ window.onload = async () => {
             
             if (hashedSaved === ADMIN_HASH) {
                 state.mode = 'admin';
+                state.currentUser = "Creatore";
             } else {
                 state.mode = 'user';
                 state.progress = cloudUser.progress || {};
@@ -978,6 +979,11 @@ async function showHome() {
     // 3. Sezione Admin
     if(state.mode === 'admin') {
         html += `
+        <div class="lang-item profile-slot" onclick="renderGlobalClassifica()" style="background: rgba(255, 149, 0, 0.15) !important; border: 1px solid #ff9500 !important; color: #ff9500 !important; display: flex; align-items: center; justify-content: center; gap: 10px;">
+          <img src="https://cdn-icons-png.flaticon.com/512/2817/2817958.png" width="22" style="filter: invert(58%) sepia(91%) saturate(2375%) hue-rotate(1deg) brightness(105%) contrast(105%);">
+          <div style="font-weight:700; font-size:13px">CLASSIFICA</div>
+        </div>
+
         <div class="lang-item profile-slot" onclick="renderAdminPanel()" style="background: #0a84ff; color: white;">
             <div style="font-weight:700; font-size:13px">PANNELLO ADMIN</div>
         </div>`;
@@ -1771,6 +1777,16 @@ function logout() {
     state.mode = null; 
     state.currentPin = null; 
     state.currentUser = null; // Aggiungi questa riga
+    
+    // Reset completo dello stato per pulire residui (es. Gold Mode del Tester)
+    state.isPerfect = false;
+    state.isTester = false;
+    state.history = {};
+    state.progress = {};
+    state.ripasso = { wrong: [], notStudied: [] };
+    state.activeProgress = {};
+    initTheme(); // Rimuove subito il tema Gold se attivo
+
     session = null; 
     
     // 3. Torna alla schermata di login
@@ -2676,7 +2692,7 @@ if (attivi.length === 0) {
 
     const isTemp = u.needsPinChange ? `<span style="color:#ff9500; font-size:10px; font-weight:bold; margin-left:5px">⚠️ TEMP</span>` : '';
 
-    html += `<div class="review-card is-ok" style="margin-bottom:16px; cursor:pointer" onclick="const s=document.getElementById('stats-container-${u.id}'); if(!event.target.closest('span')){ s.style.display=s.style.display==='none'?'block':'none'; }">
+    html += `<div class="review-card is-ok" style="margin-bottom:16px; cursor:pointer" onclick="const s=document.getElementById('stats-container-${u.id}'); if(s && !event.target.closest('span')){ s.style.display=s.style.display==='none'?'block':'none'; }">
         <div style="display:flex; justify-content:space-between; align-items:flex-start">
             <div>
                 <strong style="color:currentColor; font-size:15px">${u.name}</strong> ${isTemp}
