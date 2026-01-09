@@ -3640,6 +3640,7 @@ function openGoldCardModal() {
                 
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 10px;">
                     <button class="modal-btn btn-primary" onclick="GoldCardManager.downloadSnapshot()" style="margin:0; font-size:13px; background: #fff; color: #000;">📸 Salva Foto</button>
+                    <button class="modal-btn btn-primary" onclick="GoldCardManager.downloadSnapshot(this)" style="margin:0; font-size:13px; background: #fff; color: #000;">📸 Salva Foto</button>
                     <!-- Passiamo 'this' per gestire il loading state -->
                     <button class="modal-btn btn-primary" onclick="GoldCardManager.downloadGLTF(this)" style="margin:0; font-size:13px; background: #fff; color: #000;">📦 Scarica 3D</button>
                 </div>
