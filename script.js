@@ -3645,7 +3645,7 @@ function openGoldCardModal() {
                 
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 10px;">
                     <button class="modal-btn btn-primary" onclick="GoldCardManager.recordVideo(this)" style="margin:0; font-size:13px; background: #fff; color: #000;">🎥 Video 360°</button>
-                    <button class="modal-btn btn-primary" onclick="GoldCardManager.downloadGLB(this)" style="margin:0; font-size:13px; background: #fff; color: #000;">📦 Scarica GLB</button>
+                    <button class="modal-btn btn-primary" onclick="GoldCardManager.downloadSmart(this)" style="margin:0; font-size:13px; background: #fff; color: #000;">📦 Scarica 3D</button>
                 </div>
                 <!-- Tasto Chiudi uniforme agli altri modali -->
                 <button class="modal-btn btn-cancel" onclick="closeGoldCardModal()">Chiudi</button>
