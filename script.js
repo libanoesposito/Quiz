@@ -150,6 +150,45 @@ window.alert = function(message) {
     document.body.appendChild(overlay);
 };
 
+// SISTEMA SUONI (Precaricamento Globale)
+const audioCache = {
+    level: new Audio("https://codeskulptor-demos.commondatastorage.googleapis.com/GalaxyInvaders/bonus.wav"),
+    gold: new Audio("https://commondatastorage.googleapis.com/codeskulptor-assets/week7-brrring.m4a")
+};
+// Impostazioni iniziali per garantire il caricamento
+Object.values(audioCache).forEach(a => { a.volume = 0.5; a.preload = 'auto'; });
+
+function playSound(type) {
+    const sound = audioCache[type];
+    if (sound) {
+        sound.currentTime = 0; // Riavvia il suono se già in riproduzione
+        sound.play().catch(e => console.warn("Audio play blocked", e));
+    }
+}
+
+// ANIMAZIONE TRANSIZIONE GOLD
+function triggerGoldTransition() {
+    playSound('gold');
+
+    const overlay = document.createElement('div');
+    overlay.className = 'gold-transition-overlay';
+    overlay.innerHTML = `
+        <div class="gold-explosion-bg"></div>
+        <div class="perfect-text-anim">PERFECT</div>
+    `;
+    // Icona semplice ed elegante (Trofeo) che appare nella nebbia dorata
+    overlay.innerHTML = `<div class="gold-icon-anim">🏆</div>`;
+    document.body.appendChild(overlay);
+
+    // Cambia il tema a metà dell'esplosione (quando lo schermo è coperto)
+    setTimeout(() => { initTheme(); }, 800); 
+    // Cambia il tema quando lo schermo è completamente sfocato (circa 1s)
+    setTimeout(() => { initTheme(); }, 1000); 
+
+    // Rimuovi overlay alla fine
+    setTimeout(() => { overlay.remove(); }, 3500);
+    setTimeout(() => { overlay.remove(); }, 3100);
+}
 
 
 let state = {
@@ -387,7 +426,7 @@ async function toggleDebugPerfect() {
             // prima di costruire lo storico completo (operazione più lenta).
             state.isPerfect = true;
             localStorage.setItem('testerGold', 'true');
-            try { initTheme(); } catch(e) {}
+            triggerGoldTransition(); // ANIMAZIONE TESTER
             try { renderTesterToggle(); } catch(e) {}
             try { showHome(); } catch(e) {}
 
@@ -1387,6 +1426,21 @@ function checkL5(lang, index) {
                 if (dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[storageKey];
             }
 
+            // CONTROLLO SUONI (Livello o Gold)
+            if (index === challenges5[lang].length - 1) {
+                // Se abbiamo finito il livello 5, controlliamo se siamo diventati Gold
+                if (!state.isPerfect) {
+                    const stats = calcStats();
+                    if (stats.isPerfect) {
+                        // Diventato Gold ora! (gestito nel blocco successivo)
+                    } else {
+                        playSound('level');
+                    }
+                } else {
+                    playSound('level');
+                }
+            }
+
             saveMasterDB();
         }
         // ... resto del codice (tasto per andare avanti) ...
@@ -1418,6 +1472,16 @@ function checkL5(lang, index) {
                     if (!u.history[`${lang}_5`].some(h => h.q === histEntry.q && h.userAnswer === histEntry.userAnswer)) u.history[`${lang}_5`].push(histEntry);
 
                     // se abbiamo appena completato il livello, assicuriamoci di persistere il progresso
+                    // CONTROLLO GOLD PER L5
+                    if (!state.isPerfect) {
+                        const stats = calcStats();
+                        if (stats.isPerfect) {
+                            state.isPerfect = true;
+                            db.collection("utenti").doc(state.currentPin).set({ goldMode: true }, { merge: true });
+                            triggerGoldTransition(); // ANIMAZIONE L5
+                        }
+                    }
+
                     if (state.progress[lang] === 5) {
                         if (!u.progress) u.progress = {};
                         u.progress[lang] = 5;
@@ -1656,11 +1720,11 @@ function check(isOk, userAnsText) {
             const stats = calcStats(); 
             if (stats.isPerfect) {
                 state.isPerfect = true;
+                triggerGoldTransition(); // ANIMAZIONE QUIZ NORMALE
                 // 🏆 SALVA STATO GOLD SU FIREBASE IMMEDIATAMENTE (PERMANENTE)
                 db.collection("utenti").doc(state.currentPin).set({
                     goldMode: true
                 }, { merge: true }).catch(e => console.error("Errore salvataggio goldMode:", e));
-                initTheme(); 
             }
         }
         // Se è già gold, non fare nulla (rimane gold per sempre)
@@ -1753,6 +1817,7 @@ function next() {
                 state.progress[lang] = Math.max(state.progress[lang]||0, lvl);
                 // Persistiamo anche nella copia locale dell'utente per coerenza immediata
                 if (!dbUsers[state.currentPin].progress) dbUsers[state.currentPin].progress = {};
+                playSound('level'); // SUONO COMPLETAMENTO LIVELLO
                 dbUsers[state.currentPin].progress[lang] = state.progress[lang];
             }
 
