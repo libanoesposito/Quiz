@@ -498,10 +498,23 @@ const GoldCardManager = {
         const originalText = btnElement ? btnElement.innerText : "Scarica USDZ";
         if(btnElement) { btnElement.innerText = "Esportazione..."; btnElement.disabled = true; }
         
-        setTimeout(async () => {
+        // Usa requestAnimationFrame per non bloccare la UI ma rimanere nel ciclo di rendering
+        requestAnimationFrame(async () => {
             try {
+                // 1. SCALA PER AR (Realtà Aumentata)
+                // La card è larga 8.56 units. In AR 1 unit = 1 metro.
+                // Scaliamo a dimensioni reali (carta credito ~8.5cm = 0.085m)
+                const originalScale = this.cardGroup.scale.clone();
+                this.cardGroup.scale.multiplyScalar(0.01); 
+                this.cardGroup.updateMatrixWorld();
+
                 const exporter = new THREE.USDZExporter();
                 const arraybuffer = await exporter.parse(this.cardGroup);
+                
+                // 2. RIPRISTINA SCALA ORIGINALE
+                this.cardGroup.scale.copy(originalScale);
+                this.cardGroup.updateMatrixWorld();
+
                 const blob = new Blob([arraybuffer], { type: 'application/octet-stream' });
                 const url = URL.createObjectURL(blob);
                 
@@ -509,18 +522,26 @@ const GoldCardManager = {
                 link.style.display = 'none';
                 link.href = url;
                 link.download = 'QuizMaster_GoldCard.usdz';
+                link.rel = 'noopener'; // Sicurezza per iOS
                 document.body.appendChild(link);
                 link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
+                
+                // Ritardo pulizia per iOS
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }, 100);
 
                 if(btnElement) { btnElement.innerText = originalText; btnElement.disabled = false; }
             } catch(e) {
                 console.error(e);
-                alert("Errore esportazione USDZ");
+                // Ripristina scala in caso di errore
+                this.cardGroup.scale.set(1,1,1);
+                // Mostra l'errore specifico
+                alert("Errore esportazione USDZ: " + (e.message || e));
                 if(btnElement) { btnElement.innerText = "Errore"; btnElement.disabled = false; }
             }
-        }, 50);
+        });
     },
 
     // --- DOWNLOAD GLB (Binario) ---
