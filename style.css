@@ -66,20 +66,64 @@
     --accent: var(--gold-border) !important;
 }
 
-[data-theme-gold="true"]:not([data-theme="dark"]) .review-card.is-perfect-gold {
-    background: linear-gradient(135deg, #ffffff 0%, #fff9e6 100%) !important;
-    box-shadow: 0 10px 40px rgba(189, 149, 63, 0.3) !important;
-    border: 2px solid #bf953f !important;
+/* 1° Posto: Sfondo ORO (invece che bianco) */
+[data-theme-gold="true"]:not([data-theme="dark"]) .review-card.is-perfect-gold,
+[data-theme-gold="true"]:not([data-theme="dark"]) .review-card:nth-of-type(1) {
+    /* Oro metallico morbido senza linea di riflesso netta */
+    background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 50%, #b38728 100%) !important;
+    box-shadow: 0 10px 40px rgba(189, 149, 63, 0.4) !important;
+    border: 1px solid #b38728 !important;
+    position: relative !important;
+    overflow: hidden !important;
 }
 
-/* Adattamento riflesso shimmer per fondo chiaro */
-[data-theme-gold="true"]:not([data-theme="dark"]) .review-card.is-perfect-gold::after {
+/* Fix leggibilità testo su sfondo oro (altrimenti oro su oro non si legge) */
+[data-theme-gold="true"]:not([data-theme="dark"]) .review-card:nth-of-type(1) .gold-glow-text,
+[data-theme-gold="true"]:not([data-theme="dark"]) .review-card.is-perfect-gold .gold-glow-text {
+    -webkit-text-fill-color: #ffffff !important; /* Bianco per contrasto */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    background: none !important;
+}
+
+/* 2° Posto: Argento Metallico (Delicato) */
+[data-theme-gold="true"]:not([data-theme="dark"]) .review-card:nth-of-type(2) {
+    background: linear-gradient(135deg, #e3e3e3 0%, #ffffff 50%, #d6d6d6 100%) !important;
+    border: 1px solid #a0a0a0 !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+/* 3° Posto: Bronzo Metallico (Delicato) */
+[data-theme-gold="true"]:not([data-theme="dark"]) .review-card:nth-of-type(3) {
+    background: linear-gradient(135deg, #eecda3 0%, #fff 50%, #dca375 100%) !important;
+    border: 1px solid #cd7f32 !important;
+    box-shadow: 0 4px 15px rgba(205, 127, 50, 0.15) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+/* Adattamento riflesso shimmer animato per 1°, 2° e 3° posto */
+[data-theme-gold="true"]:not([data-theme="dark"]) .review-card.is-perfect-gold::after,
+[data-theme-gold="true"]:not([data-theme="dark"]) .review-card:nth-of-type(1)::after,
+[data-theme-gold="true"]:not([data-theme="dark"]) .review-card:nth-of-type(2)::after,
+[data-theme-gold="true"]:not([data-theme="dark"]) .review-card:nth-of-type(3)::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
     background: linear-gradient(
         to bottom right,
         rgba(255, 255, 255, 0) 0%,
-        rgba(255, 215, 0, 0.2) 50%,
+        rgba(255, 255, 255, 0.5) 50%,
         rgba(255, 255, 255, 0) 100%
     ) !important;
+    transform: rotate(-45deg);
+    animation: shimmerGold 3s infinite linear;
+    pointer-events: none;
+    z-index: 1;
 }
 
 [data-theme="dark"][data-theme-gold="true"] {
@@ -160,7 +204,10 @@
 }
 [data-theme-gold="true"]:not([data-theme="dark"]) .lang-item:not(.profile-slot) {
     color: #1d1d1f !important;
-    background: rgba(255, 255, 255, 0.6) !important; /* Più corpo in light mode */
+    /* Gradiente beige/oro chiaro per stacco dal fondo ma non scuro */
+    background: linear-gradient(135deg, #ffffff 0%, #f7e8c6 100%) !important;
+    border: 1px solid rgba(189, 149, 63, 0.3) !important;
+    box-shadow: 0 4px 15px rgba(189, 149, 63, 0.15) !important;
 }
 [data-theme-gold="true"]:not([data-theme="dark"]) .glass-header {
     background: rgba(255, 255, 255, 0.8) !important;
@@ -861,3 +908,61 @@ input:focus, textarea:focus, select:focus, button:focus {
 
 /* Override progress gold gradient to match the profile SVG gradient */
 .progress-seg-gold { background: var(--gold-progress-gradient) !important; }
+
+/* --- ANIMAZIONE TRANSIZIONE GOLD (ELEGANT MELT - STILE APPLE) --- */
+.gold-transition-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    /* Partiamo invisibili */
+    background: rgba(255, 215, 0, 0);
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+    animation: goldMeltApple 3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.gold-icon-anim {
+    font-size: 80px;
+    /* Ombra dorata morbida e diffusa */
+    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.6));
+    opacity: 0;
+    transform: scale(0.9);
+    animation: iconFadeApple 3s ease-in-out forwards;
+}
+
+@keyframes goldMeltApple {
+    0% {
+        background: rgba(255, 215, 0, 0);
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
+    }
+    30% {
+        /* Il momento "sciolto": tutto sfocato e dorato */
+        background: rgba(255, 215, 0, 0.25);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+    }
+    70% {
+        /* Mantiene lo stato mentre sotto cambia il tema */
+        background: rgba(255, 215, 0, 0.25);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+    }
+    100% {
+        /* Svanisce rivelando il nuovo tema nitido */
+        background: rgba(255, 215, 0, 0);
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
+    }
+}
+
+@keyframes iconFadeApple {
+    0% { opacity: 0; transform: scale(0.8); }
+    30% { opacity: 1; transform: scale(1.1); }
+    70% { opacity: 1; transform: scale(1.0); }
+    100% { opacity: 0; transform: scale(1.2); }
+}
