@@ -124,9 +124,9 @@ const GoldCardManager = {
         
         const materialFront = new THREE.MeshStandardMaterial({
             map: textureFront,
-            transparent: false, // FIX: Disattiva trasparenza per evitare problemi in AR
-            metalness: 0.0,     // FIX: Opaco per massima leggibilità testo (no effetto specchio)
-            roughness: 0.8
+            transparent: true,
+            metalness: 0.5,
+            roughness: 0.2
         });
 
         const frontMesh = new THREE.Mesh(geometryFront, materialFront);
@@ -141,9 +141,9 @@ const GoldCardManager = {
         
         const materialBack = new THREE.MeshStandardMaterial({
             map: textureBack,
-            transparent: false, // FIX: Disattiva trasparenza
-            metalness: 0.0,     // FIX: Opaco per leggibilità
-            roughness: 0.8
+            transparent: true,
+            metalness: 0.5,
+            roughness: 0.2
         });
 
         const backMesh = new THREE.Mesh(geometryBack, materialBack);
