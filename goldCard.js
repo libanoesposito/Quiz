@@ -39,15 +39,16 @@ const GoldCardManager = {
         this.container.innerHTML = ''; 
         this.container.appendChild(this.renderer.domElement);
 
-        // LUCI STUDIO
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        const isPink = userData.pinkMode;
+
+        // LUCI STUDIO: Aumentiamo l'ambiente per il Pink per evitare ombre "sporche"
+        const ambientIntensity = isPink ? 0.8 : 0.6;
+        const ambientLight = new THREE.AmbientLight(0xffffff, ambientIntensity);
         this.scene.add(ambientLight);
 
-        // FIX LUCI: Adattiamo il colore della luce in base alla modalità
-        // Se è Pink Mode, usiamo luce bianca/neutra per far risaltare il rosa.
-        // Se è Gold Mode, usiamo luce dorata per massimizzare l'effetto oro.
-        const isPink = userData.pinkMode;
-        const lightColor = isPink ? 0xffc0cb : 0xffd700; // Luce rosa per saturare il colore
+        // FIX VERO COLORE: Usiamo luce BIANCA (0xffffff) per il Pink.
+        // Qualsiasi altra luce (gialla o rosa) altera la percezione del colore reale della texture.
+        const lightColor = isPink ? 0xffffff : 0xffd700; 
 
         const mainLight = new THREE.DirectionalLight(lightColor, 1.0);
         mainLight.position.set(5, 5, 10);
@@ -115,8 +116,9 @@ const GoldCardManager = {
 
         const materialGold = new THREE.MeshStandardMaterial({
             color: isPink ? 0xcd7f92 : 0xffd700, // Rose Gold più scuro e intenso
-            metalness: 1.0,  // Ripristinato al massimo per effetto metallo reale
-            roughness: 0.15, // Liscio per riflessi netti
+            // PER IL PINK: Riduciamo metalness per far vedere il colore "verniciato" e non solo il riflesso scuro
+            metalness: isPink ? 0.5 : 1.0,  
+            roughness: isPink ? 0.4 : 0.15, 
             side: THREE.DoubleSide
         });
 
@@ -274,7 +276,7 @@ const GoldCardManager = {
         const nameWidth = ctx.measureText(nameText).width;
         
         // FONT PIÙ GRANDE E ANNO
-        ctx.font = "italic 700 40px 'Helvetica Neue', sans-serif"; // Ingrandito ulteriormente
+        ctx.font = "italic 700 46px 'Helvetica Neue', sans-serif"; // Aumentato a 46px come richiesto
         ctx.fillStyle = isPink ? "#d4af37" : "#333333"; 
         
         // Estrazione Anno (es. da "05/24" -> "2024")
