@@ -524,8 +524,8 @@ const GoldCardManager = {
                 this.cardGroup.scale.multiplyScalar(0.01); 
                 
                 // 2. RESET ROTAZIONE (Fix orientamento e specchio)
-                // Forziamo la carta a essere dritta (fronte verso l'utente)
-                this.cardGroup.rotation.set(0, 0, 0);
+                // Ruotiamo di 180° su Z per raddrizzarla (altrimenti appare capovolta in AR)
+                this.cardGroup.rotation.set(0, 0, Math.PI);
                 this.cardGroup.updateMatrixWorld();
 
                 const exporter = new THREE.USDZExporter();
