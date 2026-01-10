@@ -126,7 +126,8 @@ const GoldCardManager = {
             map: textureFront,
             transparent: true,
             metalness: 0.5,
-            roughness: 0.2
+            roughness: 0.2,
+            side: THREE.DoubleSide // FIX: Necessario per scala negativa (export AR)
         });
 
         const frontMesh = new THREE.Mesh(geometryFront, materialFront);
@@ -143,7 +144,8 @@ const GoldCardManager = {
             map: textureBack,
             transparent: true,
             metalness: 0.5,
-            roughness: 0.2
+            roughness: 0.2,
+            side: THREE.DoubleSide // FIX: Necessario per scala negativa
         });
 
         const backMesh = new THREE.Mesh(geometryBack, materialBack);
@@ -518,11 +520,12 @@ const GoldCardManager = {
                 const originalScale = this.cardGroup.scale.clone();
                 const originalRotation = this.cardGroup.rotation.clone(); // Backup rotazione
 
-                // 1. SCALA POSITIVA (Fix invisibilità/oro solido)
-                this.cardGroup.scale.multiplyScalar(0.01); 
+                // FIX AR COMPLETO:
+                // 1. Scala X Negativa (-0.015): Corregge l'effetto specchio (riflette orizzontalmente)
+                // 2. Scala aumentata (0.015): Migliora la reattività alla rotazione (oggetto più "pesante")
+                this.cardGroup.scale.set(-0.015, 0.015, 0.015); 
                 
-                // 2. RESET ROTAZIONE (Fix orientamento e specchio)
-                // Ruotiamo di 180° su Z per raddrizzarla (altrimenti appare capovolta in AR)
+                // 3. Rotazione Z 180: Corregge l'orientamento "a testa in giù"
                 this.cardGroup.rotation.set(0, 0, Math.PI);
                 this.cardGroup.updateMatrixWorld();
 
