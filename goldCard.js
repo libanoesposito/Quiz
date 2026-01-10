@@ -500,6 +500,14 @@ const GoldCardManager = {
         if (!this.renderer) return;
         
         const canvas = this.renderer.domElement;
+        
+        // Feature detection per evitare crash su browser non supportati
+        if (typeof canvas.captureStream !== 'function') {
+            alert("La registrazione video non è supportata su questo browser.");
+            if(btnElement) { btnElement.innerText = "Non supportato"; btnElement.disabled = false; }
+            return;
+        }
+
         // Cattura lo stream del canvas a 30fps
         const stream = canvas.captureStream(30);
         const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
