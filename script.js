@@ -1165,6 +1165,7 @@ function showLevels(lang) {
         // 3. LOGICA ORO (Attiva solo se ha completato le 10)
         let isGoldPhase = (comp >= i) || !!state.isPerfect;
 
+        const seg = computeProgressSegments(lang, i);
         let displayTotal = isGoldPhase ? totalExist : 10;
         let displayCurrent = isGoldPhase ? userCorrectUniques : currentIdx;
 
