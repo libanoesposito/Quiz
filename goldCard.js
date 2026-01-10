@@ -106,8 +106,10 @@ const GoldCardManager = {
         // Calcolo Z offset per le facce (metà spessore totale + epsilon)
         const zOffset = (extrudeSettings.depth / 2) + extrudeSettings.bevelThickness + 0.002;
 
+        const isPink = user.pinkMode;
+
         const materialGold = new THREE.MeshStandardMaterial({
-            color: 0xffd700, // Oro brillante
+            color: isPink ? 0xffb7c5 : 0xffd700, // Rose Gold se Pink, altrimenti Oro
             metalness: 1.0,  // Ripristinato al massimo per effetto metallo reale
             roughness: 0.15, // Liscio per riflessi netti
             side: THREE.DoubleSide
@@ -176,11 +178,19 @@ const GoldCardManager = {
         canvas.height = 646;
         const ctx = canvas.getContext('2d');
 
+        const isPink = user.pinkMode;
+
         // 1. SFONDO ORO UNIFORME (Identico al retro)
         const diagGrd = ctx.createLinearGradient(0, 0, 1024, 646);
-        diagGrd.addColorStop(0, "#b88a4d");   // Bronzo scuro
-        diagGrd.addColorStop(0.5, "#d4af37"); // Oro classico
-        diagGrd.addColorStop(1, "#8a6e2f");   // Ombra profonda
+        if (isPink) {
+            diagGrd.addColorStop(0, "#c48d94");   // Rose Dark
+            diagGrd.addColorStop(0.5, "#fddde6"); // Rose Light
+            diagGrd.addColorStop(1, "#b57b82");   // Rose Dark
+        } else {
+            diagGrd.addColorStop(0, "#b88a4d");   // Bronzo scuro
+            diagGrd.addColorStop(0.5, "#d4af37"); // Oro classico
+            diagGrd.addColorStop(1, "#8a6e2f");   // Ombra profonda
+        }
         
         ctx.fillStyle = diagGrd;
         ctx.fillRect(0, 0, 1024, 646);
@@ -200,16 +210,16 @@ const GoldCardManager = {
         ctx.shadowOffsetY = 1;
 
         // Colore Testi: BRONZO SCURO (Uniformità con l'oro) invece di bianco/nero
-        const textDark = "#000000"; // Nero Assoluto
+        const textMain = isPink ? "#d4af37" : "#000000"; // Oro se Pink, Nero se Gold
 
         // Header Alto
         ctx.font = "700 32px 'Helvetica Neue', sans-serif";
-        ctx.fillStyle = textDark;
+        ctx.fillStyle = textMain;
         ctx.textAlign = "left";
         ctx.fillText("QUIZ MASTER", 60, 80);
         
         ctx.font = "italic 600 24px 'Helvetica Neue', sans-serif";
-        ctx.fillStyle = textDark;
+        ctx.fillStyle = textMain;
         ctx.globalAlpha = 0.8; // Leggera trasparenza per eleganza
         ctx.textAlign = "right";
         ctx.fillText("WORLD ELITE", 860, 80);
@@ -228,7 +238,7 @@ const GoldCardManager = {
         ctx.shadowOffsetY = 1;
         ctx.shadowBlur = 0;
         
-        ctx.fillStyle = "#000000"; // Nero Assoluto
+        ctx.fillStyle = textMain;
         
         ctx.fillText(cardNumber, 512, 380);
         
@@ -241,17 +251,17 @@ const GoldCardManager = {
         
         // DATE (Affiancate)
         ctx.font = "600 13px 'Helvetica Neue', sans-serif"; // Etichette più grandi
-        ctx.fillStyle = "#000000"; // Nero Assoluto
+        ctx.fillStyle = textMain;
         
         // Member Since
         ctx.fillText("ISCRITTO DAL", 340, 430); // ITALIANO
         ctx.font = "700 26px 'Courier New', monospace"; // Date molto più visibili
-        ctx.fillStyle = "#000000"; // Nero Assoluto
+        ctx.fillStyle = textMain;
         ctx.fillText(user.memberSince, 340, 455);
 
         // Nome Utente
         ctx.font = "800 42px 'Helvetica Neue', sans-serif"; // Più grande e bold
-        ctx.fillStyle = "#000000"; 
+        ctx.fillStyle = textMain;
         const nameText = (user.name || 'UTENTE').toUpperCase();
         ctx.fillText(nameText, 60, 580);
 
@@ -260,7 +270,7 @@ const GoldCardManager = {
         
         // FONT PIÙ GRANDE E ANNO
         ctx.font = "italic 700 32px 'Helvetica Neue', sans-serif"; // Ingrandito per leggibilità
-        ctx.fillStyle = "#333333"; 
+        ctx.fillStyle = isPink ? "#d4af37" : "#333333"; 
         
         // Estrazione Anno (es. da "05/24" -> "2024")
         let year = new Date().getFullYear();
@@ -281,11 +291,19 @@ const GoldCardManager = {
         canvas.height = 646;
         const ctx = canvas.getContext('2d');
 
+        const isPink = user.pinkMode;
+
         // 1. SFONDO ORO (Identico al fronte)
         const grd = ctx.createLinearGradient(0, 0, 1024, 646);
-        grd.addColorStop(0, "#b88a4d");
-        grd.addColorStop(0.5, "#d4af37"); // Aggiunto punto luce centrale per uniformità
-        grd.addColorStop(1, "#8a6e2f");
+        if (isPink) {
+            grd.addColorStop(0, "#c48d94");
+            grd.addColorStop(0.5, "#fddde6");
+            grd.addColorStop(1, "#b57b82");
+        } else {
+            grd.addColorStop(0, "#b88a4d");
+            grd.addColorStop(0.5, "#d4af37");
+            grd.addColorStop(1, "#8a6e2f");
+        }
         ctx.fillStyle = grd;
         ctx.fillRect(0, 0, 1024, 646);
         this.addBrushedMetalEffect(ctx, 1024, 646);
@@ -301,7 +319,7 @@ const GoldCardManager = {
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
         ctx.font = "italic 60px 'Brush Script MT', 'Segoe Script', 'Lucida Handwriting', cursive"; // Firma più grande e realistica
-        ctx.fillStyle = "#000000"; // Nero Assoluto
+        ctx.fillStyle = "#000000"; // La firma resta nera per realismo (inchiostro)
         const signature = user.name || "Firma Autorizzata";
         ctx.fillText(signature, 80, 280); 
         ctx.textBaseline = "alphabetic"; // Reset
@@ -333,17 +351,19 @@ const GoldCardManager = {
         ctx.shadowOffsetX = 1;
         ctx.shadowOffsetY = 1;
 
+        const textMain = isPink ? "#d4af37" : "#000000";
+
         ctx.textAlign = "left";
-        ctx.fillStyle = "#000000"; // Nero Assoluto
+        ctx.fillStyle = textMain;
         ctx.font = "700 28px 'Helvetica Neue', sans-serif";
         ctx.fillText("PUNTEGGIO TOTALE", 60, 420); // ITALIANO
 
         ctx.font = "300 80px 'Helvetica Neue', sans-serif";
-        ctx.fillStyle = "#000000"; // Nero Assoluto
+        ctx.fillStyle = textMain;
         ctx.fillText(user.points || '0', 60, 500);
 
         ctx.font = "italic 18px 'Helvetica Neue', sans-serif";
-        ctx.fillStyle = "#000000";
+        ctx.fillStyle = textMain;
         ctx.fillText("Classifica Ufficiale Quiz Master", 60, 540); // ITALIANO
 
         const texture = new THREE.CanvasTexture(canvas);
