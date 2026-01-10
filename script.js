@@ -1168,8 +1168,15 @@ function showLevels(lang) {
         let displayTotal = isGoldPhase ? totalExist : 10;
         let displayCurrent = isGoldPhase ? userCorrectUniques : currentIdx;
 
+        // FIX: Se siamo nella fase standard (Verde), forziamo la barra a usare l'indice corrente (Sessione)
+        // invece delle corrette totali (Mastery), così l'utente vede l'avanzamento 1/10, 2/10 etc.
+        if (!isGoldPhase) {
+            seg.displayCurrent = currentIdx;
+        }
+
         // Calcolo percentuali per i segmenti (verde / oro)
-        const seg = computeProgressSegments(lang, i);
+        // Nota: seg è già calcolato sopra, ma displayCurrent in seg era basato sullo storico.
+        // Lo abbiamo appena sovrascritto per la visualizzazione.
 
         // 4. HTML
         html += `
@@ -3381,7 +3388,8 @@ async function adminResetAll(mode) {
                         progress: {},
                         history: {},
                         activeProgress: {},
-                        ripasso: { wrong: [], notStudied: [] }
+                        ripasso: { wrong: [], notStudied: [] },
+                        savedQuizzes: {} // FIX: Reset quiz salvati per tutti
                     });
                 }
             });
@@ -3515,6 +3523,7 @@ async function userResetStats() {
             u.activeProgress = {};
             u.ripasso = { wrong: [], notStudied: [] };
             u.goldMode = false;  // 🏆 SALVA RESET GOLD
+            u.savedQuizzes = {}; // FIX: Reset completo quiz salvati
         }
 
         // 3. Sincronizzazione con Google (Firebase)
@@ -3744,7 +3753,8 @@ async function adminResetSingleUser(userId) {
                 history: {},
                 activeProgress: {},
                 ripasso: { wrong: [], notStudied: [] },
-                goldMode: false
+                goldMode: false,
+                savedQuizzes: {} // FIX: Cancella anche i quiz salvati per evitare che riparta dal vecchio stato
                 };
                 
                 // Aggiorna Firebase
