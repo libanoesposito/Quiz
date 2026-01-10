@@ -470,6 +470,13 @@ h1 { font-size: 22px; font-weight: 700; margin: 0; flex: 2; text-align: center; 
 .correct { background: rgba(52, 199, 89, 0.15); border: 1px solid var(--apple-green); }
 .wrong { background: rgba(255, 59, 48, 0.15); border: 1px solid #ff3b30; }
 
+/* Evidenziazione risposta corretta quando si sbaglia */
+.correct-highlight {
+    border: 2px solid var(--apple-green) !important;
+    background: rgba(52, 199, 89, 0.1) !important;
+    box-shadow: 0 0 12px rgba(52, 199, 89, 0.25) !important;
+}
+
 /* History styling for grouped view */
 .history-topic { margin-bottom: 18px; padding-top: 6px; }
 .history-topic-title { font-size:14px; font-weight:700; margin-bottom:8px; }
