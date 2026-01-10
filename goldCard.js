@@ -434,6 +434,20 @@ const GoldCardManager = {
         this.renderer.setSize(width, height);
     },
 
+    // Helper per invertire UV (Fix specchio iOS)
+    flipUVsHorizontal: function(group) {
+        group.traverse((child) => {
+            if (child.isMesh && child.geometry && child.geometry.attributes.uv) {
+                const uvAttribute = child.geometry.attributes.uv;
+                for (let i = 0; i < uvAttribute.count; i++) {
+                    const u = uvAttribute.getX(i);
+                    uvAttribute.setX(i, 1 - u);
+                }
+                uvAttribute.needsUpdate = true;
+            }
+        });
+    },
+
     // --- REGISTRAZIONE VIDEO 360° (WebM) ---
     recordVideo: function(btnElement) {
         if (!this.renderer) return;
@@ -528,10 +542,14 @@ const GoldCardManager = {
                 this.cardGroup.rotation.set(0, 0, Math.PI);
                 this.cardGroup.updateMatrixWorld();
 
+                // 3. FIX SPECCHIO: Invertiamo UV orizzontalmente
+                this.flipUVsHorizontal(this.cardGroup);
+
                 const exporter = new THREE.USDZExporter();
                 const arraybuffer = await exporter.parse(this.cardGroup);
                 
-                // 2. RIPRISTINA SCALA ORIGINALE
+                // 4. RIPRISTINO (Invertiamo di nuovo per tornare normale)
+                this.flipUVsHorizontal(this.cardGroup);
                 this.cardGroup.scale.copy(originalScale);
                 this.cardGroup.rotation.copy(originalRotation); // Ripristina rotazione
                 this.cardGroup.updateMatrixWorld();
