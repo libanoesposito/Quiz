@@ -93,9 +93,6 @@ function migrateHistoryInMemory() {
     try { localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers)); } catch(e){}
 }
 
-// Esegui migrazione iniziale appena caricato dbUsers
-migrateHistoryInMemory();
-   
    /* ============================================================
    TRUE APPLE ALERT SYSTEM (Glassmorphism Edition)
    ============================================================ */
@@ -289,15 +286,24 @@ function renderDebugWidget() { return; }
 // Hash SHA-256 dei PIN speciali (Admin: 3473, Tester: 1111)
 const ADMIN_HASH = "18c6b6f84040725098b1bf26e6269ff898b9ab4ab5e7f64c2c7446ea563c3cd7";
 const TESTER_HASH = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c";
+const TESTER_PIN = "1111";
 
 
 window.onload = async () => {
-    initTheme();
-
     const savedPinRaw = localStorage.getItem('sessionPin');
     
     // Pulizia estrema del valore recuperato
     const savedPin = (savedPinRaw && typeof savedPinRaw === 'string') ? savedPinRaw.trim() : "";
+
+    // 0. FIX RACE CONDITION TEMA: Controlla stato locale prima della rete
+    if (savedPin && dbUsers[savedPin]) {
+        const localUser = dbUsers[savedPin];
+        // Imposta provvisoriamente lo stato gold dai dati locali
+        state.isPerfect = localUser.goldMode || localUser.testerGold || false;
+    }
+    
+    initTheme(); // Applica il tema subito (evita flash bianco/standard)
+    migrateHistoryInMemory(); // Esegui migrazione ora che siamo sicuri che tutto è caricato
 
     // Se il PIN è nullo, vuoto o solo spazi, abortiamo subito verso il login
     if (!savedPin || savedPin === "" || savedPin === "null" || savedPin === "undefined") {
@@ -3418,24 +3424,28 @@ async function adminPermanentDelete(docId) {
 
 // SVUOTA TUTTO IL CESTINO
 async function adminClearTrash() {
-    if (!confirm("Vuoi eliminare DEFINITIVAMENTE tutti gli utenti nella lista eliminati?")) return;
-    
-    try {
-        const snapshot = await db.collection("eliminati").get();
-        const batch = db.batch();
-        snapshot.docs.forEach(doc => batch.delete(doc.ref));
-        await batch.commit();
-        
-        // Aggiorna locale
-        Object.keys(dbUsers).forEach(pin => {
-            if (dbUsers[pin].deleted) delete dbUsers[pin];
-        });
-        
-        saveMasterDB();
-        renderAdminPanel();
-    } catch (e) {
-        alert("Errore durante la pulizia del cestino.");
-    }
+    openModal(
+        "Svuota Cestino",
+        "Vuoi eliminare DEFINITIVAMENTE tutti gli utenti nella lista eliminati? Questa azione è irreversibile.",
+        async () => {
+            try {
+                const snapshot = await db.collection("eliminati").get();
+                const batch = db.batch();
+                snapshot.docs.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+                
+                // Aggiorna locale
+                Object.keys(dbUsers).forEach(pin => {
+                    if (dbUsers[pin].deleted) delete dbUsers[pin];
+                });
+                
+                saveMasterDB();
+                renderAdminPanel();
+            } catch (e) {
+                alert("Errore durante la pulizia del cestino.");
+            }
+        }
+    );
 }
 
 /* Cambia PIN */
@@ -3580,39 +3590,55 @@ async function userDeleteAccount() {
 
 /* MODALE GENERICO */
 function openModal(title, content, onConfirm) {
-    let overlay = document.getElementById('modal-overlay');
+    // FIX: Usa l'ID corretto definito in index.html ('universal-modal')
+    let overlay = document.getElementById('universal-modal');
+    
     if(!overlay) {
+        // Fallback creazione dinamica se manca nell'HTML
         overlay = document.createElement('div');
-        overlay.id = 'modal-overlay';
+        overlay.id = 'universal-modal';
         overlay.className = 'modal-overlay';
         overlay.innerHTML = `
-            <div class="modal-content">
+            <div class="modal-content" onclick="event.stopPropagation()">
                 <h3 id="modal-title"></h3>
-                <div id="modal-body"></div>
-
-                <button class="modal-btn btn-primary" id="modal-confirm">Conferma</button>
-                <button class="modal-btn btn-cancel" id="modal-cancel">Annulla</button>
+                <div id="modal-desc"></div>
+                <button class="modal-btn btn-primary" id="modal-confirm-btn">Conferma</button>
+                <button class="modal-btn btn-cancel">Annulla</button>
             </div>
         `;
         document.body.appendChild(overlay);
     }
 
-    document.getElementById('modal-title').innerText = title;
-    document.getElementById('modal-body').innerHTML = content;
+    const titleEl = document.getElementById('modal-title');
+    // Supporta sia 'modal-desc' (HTML) che 'modal-body' (Legacy)
+    const descEl = document.getElementById('modal-desc') || document.getElementById('modal-body');
     
-    const btnConfirm = document.getElementById('modal-confirm');
-    const btnCancel = document.getElementById('modal-cancel');
-    if (btnConfirm) btnConfirm.innerText = "Conferma";
-    if (btnCancel) btnCancel.style.display = "inline-block";
+    if(titleEl) titleEl.innerText = title;
+    if(descEl) descEl.innerHTML = content;
+    
+    // Gestione bottoni: supporta ID HTML 'modal-confirm-btn' o legacy 'modal-confirm'
+    let btnConfirm = document.getElementById('modal-confirm-btn') || document.getElementById('modal-confirm');
+    // Cerca il tasto annulla dentro il modale corrente
+    const btnCancel = overlay.querySelector('.btn-cancel') || document.getElementById('modal-cancel');
     
     overlay.style.display = 'flex';
 
-    const newConfirm = document.getElementById('modal-confirm');
-    const clonedConfirm = newConfirm.cloneNode(true);
-    newConfirm.parentNode.replaceChild(clonedConfirm, newConfirm);
+    if (btnConfirm) {
+        btnConfirm.innerText = "Conferma";
+        // Clona il bottone per rimuovere vecchi event listener
+        const newConfirm = btnConfirm.cloneNode(true);
+        btnConfirm.parentNode.replaceChild(newConfirm, btnConfirm);
+        
+        newConfirm.onclick = () => { 
+            if(onConfirm) onConfirm(); 
+            overlay.style.display='none'; 
+        };
+    }
 
-    clonedConfirm.onclick = () => { onConfirm(); overlay.style.display='none'; };
-    document.getElementById('modal-cancel').onclick = () => { overlay.style.display='none'; };
+    if (btnCancel) {
+        btnCancel.style.display = "inline-block";
+        btnCancel.onclick = () => { overlay.style.display='none'; };
+    }
 }
 
 async function renderGlobalClassifica() {
@@ -3635,7 +3661,7 @@ async function renderGlobalClassifica() {
         snapshot.forEach(doc => {
             const data = doc.data();
     
-    if (doc.id === "1111" && !state.isTester) return;
+    if (doc.id === TESTER_PIN && !state.isTester) return;
 
     const isUtentePerfetto = data.perfect > 0; 
     const isMe = doc.id === state.currentPin;
