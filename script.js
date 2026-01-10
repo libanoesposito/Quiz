@@ -1716,7 +1716,7 @@ function renderQ() {
             ${data.options.map((o, i) => {
                 // Fix: escape anche backslash e newline per evitare SyntaxError
                 const safeOption = o.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n').replace(/\r/g, '');
-                return `<button class="btn-apple" onclick="check(${i === data.correct}, '${safeOption}')">${o}</button>`;
+                return `<button id="btn-opt-${i}" class="btn-apple" onclick="check(${i === data.correct}, '${safeOption}')">${o}</button>`;
             }).join('')}
         </div>
         <div id="fb"></div>
@@ -1831,6 +1831,13 @@ function check(isOk, userAnsText) {
         });
     }
 }
+    
+    // EVIDENZIA RISPOSTA GIUSTA SE SBAGLIATO
+    if (!isOk) {
+        const correctBtn = document.getElementById(`btn-opt-${data.correct}`);
+        if (correctBtn) correctBtn.classList.add('correct-highlight');
+    }
+
     // Fix: check for elements existence to prevent crash during rapid navigation
     const optsEl = document.getElementById('opts');
     if (optsEl) optsEl.style.pointerEvents = "none";
@@ -2268,56 +2275,51 @@ input, select, textarea { font-size: 16px !important; }
     totalLevels.forEach(lang => {
         progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
         for (let i = 1; i <= 5; i++) {
-            let correct = 0, wrong = 0, markedNotStudied = 0;
+            // Calcolo statistiche uniche per la barra sovrapposta
+            const historyLevel = (u.history && u.history[lang]) ? u.history[lang].filter(h => Number(h.lvl || h.level) === i) : [];
             
-            // Leggi sempre da dbUsers per dati persistenti
-            if (u && u.history && u.history[lang]) {
-                u.history[lang].forEach(h => {
-                    if (Number(h.lvl || h.level) == i) { 
-                        if (h.isNotStudied) {
-                            markedNotStudied++;
-                            totalMarkedNotStudied++;
-                        }
-                        else if (h.ok) correct++;
-                        else wrong++;
-                    }
-                });
-            }
+            const uniqueCorrect = new Set();
+            const uniqueNotStudied = new Set();
+            const uniqueWrong = new Set();
 
-            const seg = computeProgressSegments(lang, i);
-            
-            // FIX: Ricalcoliamo le larghezze per includere gli errori senza sbordare
-            const currentGreen = seg.greenCount || 0;
-            const currentGold = seg.goldCount || 0;
-            const baseTotal = seg.displayTotal || totalQuestionsPerLevel;
-            
-            // Se la somma di tutto supera il totale base, usiamo la somma come nuovo 100%
-            const totalVolume = currentGreen + currentGold + wrong + markedNotStudied;
-            const denominator = Math.max(baseTotal, totalVolume);
+            // 1. Prima passata: Identifica le corrette (vincono su tutto)
+            historyLevel.forEach(h => { if (h.ok) uniqueCorrect.add(h.q); });
 
-            const wGreen = (currentGreen / denominator) * 100;
-            const wGold = (currentGold / denominator) * 100;
-            const wRed = (wrong / denominator) * 100;
-            const wBlue = (markedNotStudied / denominator) * 100;
+            // 2. Seconda passata: Identifica Non Studiate (se non sono già corrette)
+            historyLevel.forEach(h => { 
+                if (!h.ok && h.isNotStudied && !uniqueCorrect.has(h.q)) uniqueNotStudied.add(h.q);
+            });
+
+            // 3. Terza passata: Identifica Sbagliate (se non sono corrette né non studiate)
+            historyLevel.forEach(h => {
+                if (!h.ok && !h.isNotStudied && !uniqueCorrect.has(h.q) && !uniqueNotStudied.has(h.q)) uniqueWrong.add(h.q);
+            });
+
+            const countGreen = uniqueCorrect.size;
+            const countBlue = uniqueNotStudied.size;
+            const countRed = uniqueWrong.size;
             
-            const percent = Math.round((seg.displayCurrent / baseTotal) * 100);
+            // Aggiorna il contatore globale per la barra superiore (sommario)
+            totalMarkedNotStudied += countBlue;
+            
+            const target = 15; // Target fisso per livello
+            const pctGreen = Math.min((countGreen / target) * 100, 100);
+            const pctBlue = Math.min((countBlue / target) * 100, 100 - pctGreen);
+            const pctRed = Math.min((countRed / target) * 100, 100 - pctGreen - pctBlue);
+            
+            const totalPercent = Math.round(((countGreen + countBlue + countRed) / target) * 100);
 
             progHtml += `
             <div style="margin-bottom:10px">
-                <div style="font-size:13px">Livello ${i}</div>
-                ${(seg.isGoldPhase)
-                    ? `<div class="progress-split" style="height:8px; border-radius:8px; overflow:hidden">
-                           <div class="progress-seg-green" style="width:${seg.greenPct}%; border-radius:8px 0 0 8px"></div>
-                           ${(() => {
-                                const goldActive = (typeof seg.goldCount === 'number' && seg.goldCount > 0) && (seg.greenCount >= 15 || state.isPerfect);
-                                const goldClass = 'progress-seg-gold ' + (goldActive ? 'glow active' : 'inactive');
-                                return `<div class="${goldClass}" style="width:${seg.goldPct}%; border-radius:0 8px 8px 0"></div>`;
-                           })()}
-                       </div>`
-                    : `<div style="width:100%; height:4px; background:rgba(120,120,128,0.1); border-radius:6px; overflow:hidden">
-                           <div style="width:${percent}%; height:100%; border-radius:6px; transition:width 0.3s; background:var(--accent);"></div>
-                       </div>`}
-                <div style="font-size:11px; text-align:right; margin-top:2px; opacity:0.8">${percent}% progresso</div>
+                <div style="font-size:13px; display:flex; justify-content:space-between">
+                    <span>Livello ${i}</span>
+                    <span style="opacity:0.7">${totalPercent}%</span>
+                </div>
+                <div style="width:100%; height:8px; background:rgba(120,120,128,0.1); border-radius:6px; overflow:hidden; display:flex; margin-top:4px">
+                    <div style="width:${pctGreen}%; height:100%; background:var(--apple-green)"></div>
+                    <div style="width:${pctBlue}%; height:100%; background:#0a84ff"></div>
+                    <div style="width:${pctRed}%; height:100%; background:#ff3b30"></div>
+                </div>
             </div>`;
         }
         progHtml += `</div>`;
