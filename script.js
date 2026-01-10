@@ -2792,6 +2792,11 @@ if (attivi.length === 0) {
             </div>
             
             <div style="display:flex; gap:14px; align-items:center; color:currentColor">
+            <span style="cursor:pointer; color:${u.pinkMode ? '#ff69b4' : 'currentColor'}" title="Pink Mode (Ragazza)" onclick="event.stopPropagation(); adminTogglePinkMode(${u.id})">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="${u.pinkMode ? '#ff69b4' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+            </span>
             <span style="cursor:pointer; color:#ff9500" title="Reset progressi" onclick="event.stopPropagation(); adminResetSingleUser(${u.id})">
              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
@@ -3101,6 +3106,24 @@ async function adminDeleteUser(userId) {
             }
         }
     );
+}
+
+async function adminTogglePinkMode(userId) {
+    const pin = Object.keys(dbUsers).find(key => dbUsers[key].userId == userId);
+    if (!pin) return;
+    
+    const u = dbUsers[pin];
+    const newVal = !u.pinkMode;
+    
+    try {
+        await db.collection("utenti").doc(pin).update({ pinkMode: newVal });
+        u.pinkMode = newVal;
+        saveMasterDB();
+        renderAdminPanel();
+    } catch(e) {
+        console.error(e);
+        alert("Errore aggiornamento Pink Mode");
+    }
 }
 
 // Mostra i dettagli completi di un utente per l'admin
@@ -3674,7 +3697,8 @@ function openGoldCardModal() {
         id: u.userId,
         memberSince: memberSince,
         goldSince: goldSince,
-        points: currentPoints
+        points: currentPoints,
+        pinkMode: u.pinkMode || false
     };
 
     // Inizializza Three.js in modo asincrono per non bloccare l'apertura del modale
