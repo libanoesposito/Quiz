@@ -124,9 +124,9 @@ const GoldCardManager = {
         
         const materialFront = new THREE.MeshStandardMaterial({
             map: textureFront,
-            transparent: true,
-            metalness: 0.5,
-            roughness: 0.2
+            transparent: false, // FIX: Disattiva trasparenza per evitare problemi in AR
+            metalness: 0.0,     // FIX: Opaco per massima leggibilità testo (no effetto specchio)
+            roughness: 0.8
         });
 
         const frontMesh = new THREE.Mesh(geometryFront, materialFront);
@@ -135,15 +135,15 @@ const GoldCardManager = {
 
         // 3. FACCIA POSTERIORE (Back)
         const geometryBack = new THREE.ShapeGeometry(shape, 24);
-        this.applyUVs(geometryBack, width, height, true); // Flip UVs per correggere l'effetto specchio
+        this.applyUVs(geometryBack, width, height, false); // FIX: Rimosso flipX che causava l'effetto specchio
 
         const textureBack = this.createBackTexture(user);
         
         const materialBack = new THREE.MeshStandardMaterial({
             map: textureBack,
-            transparent: true,
-            metalness: 0.5,
-            roughness: 0.2
+            transparent: false, // FIX: Disattiva trasparenza
+            metalness: 0.0,     // FIX: Opaco per leggibilità
+            roughness: 0.8
         });
 
         const backMesh = new THREE.Mesh(geometryBack, materialBack);
@@ -255,9 +255,17 @@ const GoldCardManager = {
 
         // Scritta "Miglior Programmatore" accanto al nome
         const nameWidth = ctx.measureText(nameText).width;
-        ctx.font = "italic 500 22px 'Helvetica Neue', sans-serif"; // Elegante e pulito
+        
+        // FONT PIÙ GRANDE E ANNO
+        ctx.font = "italic 700 32px 'Helvetica Neue', sans-serif"; // Ingrandito per leggibilità
         ctx.fillStyle = "#333333"; 
-        ctx.fillText("Miglior Programmatore", 60 + nameWidth + 20, 580);
+        
+        // Estrazione Anno (es. da "05/24" -> "2024")
+        let year = new Date().getFullYear();
+        if (user.goldSince && user.goldSince.includes('/')) {
+            year = "20" + user.goldSince.split('/')[1];
+        }
+        ctx.fillText(`Miglior Programmatore ${year}`, 60 + nameWidth + 30, 580);
 
         const texture = new THREE.CanvasTexture(canvas);
         texture.anisotropy = 16;
@@ -510,11 +518,12 @@ const GoldCardManager = {
                 const originalScale = this.cardGroup.scale.clone();
                 const originalRotation = this.cardGroup.rotation.clone(); // Backup rotazione
 
-                // FIX COMPLETO ORIENTAMENTO AR:
-                // 1. Scale(-0.01, 0.01, 0.01): Scala a dimensioni reali E inverte X per correggere l'effetto specchio
-                this.cardGroup.scale.set(-0.01, 0.01, 0.01); 
-                // 2. Ruota Z 180°: Corregge "testa in giù" (combinato con flip X risulta dritto e leggibile)
-                this.cardGroup.rotation.z += Math.PI; 
+                // 1. SCALA POSITIVA (Fix invisibilità/oro solido)
+                this.cardGroup.scale.multiplyScalar(0.01); 
+                
+                // 2. RESET ROTAZIONE (Fix orientamento e specchio)
+                // Forziamo la carta a essere dritta (fronte verso l'utente)
+                this.cardGroup.rotation.set(0, 0, 0);
                 this.cardGroup.updateMatrixWorld();
 
                 const exporter = new THREE.USDZExporter();
