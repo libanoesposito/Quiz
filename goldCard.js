@@ -33,7 +33,7 @@ const GoldCardManager = {
         this.renderer.setSize(width, height);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        this.renderer.toneMappingExposure = 1.2;
+        this.renderer.toneMappingExposure = 1.0;
         this.renderer.outputEncoding = THREE.sRGBEncoding;
         
         this.container.innerHTML = ''; 
@@ -41,27 +41,31 @@ const GoldCardManager = {
 
         const isPink = userData.pinkMode;
 
-        // LUCI STUDIO: Per il Pink usiamo una luce ambiente rosata per mantenere la saturazione nelle ombre
-        const ambientColor = isPink ? 0xffd1dc : 0xffffff;
-        const ambientIntensity = isPink ? 0.5 : 0.6;
+        // LUCI STUDIO: Per il Pink usiamo luce bianca neutra per massimo contrasto (stile AR)
+        const ambientColor = 0xffffff;
+        // FIX PINK: Ridotto drasticamente per evitare effetto "bianco" (era 0.5)
+        const ambientIntensity = isPink ? 0.25 : 0.4; 
         const ambientLight = new THREE.AmbientLight(ambientColor, ambientIntensity);
         this.scene.add(ambientLight);
 
-        // LUCI PRINCIPALI: Usiamo un rosa pallido (Warm Pink) invece del bianco per evitare l'effetto "slavato"
-        const lightColor = isPink ? 0xffe6ea : 0xffd700; 
+        // LUCI PRINCIPALI: Luce bianca pura per il Pink per far staccare l'oro dal rosa
+        const lightColor = isPink ? 0xffffff : 0xffd700; 
 
-        // Abbassiamo l'intensità per il Pink per evitare riflessi speculari troppo forti
-        const mainIntensity = isPink ? 0.6 : 1.0;
+        // FIX PINK: Ridotto drasticamente e spostato per evitare riflessi diretti (era 0.8)
+        const mainIntensity = isPink ? 0.5 : 0.7; 
         const mainLight = new THREE.DirectionalLight(lightColor, mainIntensity);
-        mainLight.position.set(5, 5, 10);
+        
+        // Spostiamo la luce principale più laterale per il Pink (Angolo Destra/Alto, poco frontale)
+        if (isPink) mainLight.position.set(20, 10, 2); else mainLight.position.set(5, 5, 10);
         this.scene.add(mainLight);
 
-        const rimLight = new THREE.SpotLight(lightColor, 2.0);
+        const rimLight = new THREE.SpotLight(lightColor, 1.0);
         rimLight.position.set(-5, 10, -10);
         rimLight.lookAt(0,0,0);
         this.scene.add(rimLight);
 
-        const cameraLight = new THREE.PointLight(lightColor, 0.5); // Luce camera
+        // FIX PINK: Luce camera quasi spenta per evitare il bianco frontale
+        const cameraLight = new THREE.PointLight(lightColor, isPink ? 0.05 : 0.25); 
         this.camera.add(cameraLight);
         this.scene.add(this.camera);
 
@@ -119,8 +123,8 @@ const GoldCardManager = {
         const materialGold = new THREE.MeshStandardMaterial({
             color: isPink ? 0xb05d6e : 0xffd700, // Rose Gold ancora più scuro per il corpo
             // PER IL PINK: Riduciamo metalness per far vedere il colore "verniciato" e non solo il riflesso scuro
-            metalness: isPink ? 0.6 : 1.0,  
-            roughness: isPink ? 0.35 : 0.15, 
+            metalness: 0.6,  // Ridotto per entrambi (era 1.0 per Gold) per evitare riflessi neri
+            roughness: isPink ? 0.35 : 0.3, // Aumentato per Gold (era 0.15) per effetto spazzolato
             side: THREE.DoubleSide
         });
 
@@ -136,8 +140,8 @@ const GoldCardManager = {
         const materialFront = new THREE.MeshStandardMaterial({
             map: textureFront,
             transparent: true,  // Ripristinato per il web (più bello)
-            metalness: 0.5,     // Ripristinato oro
-            roughness: 0.2,
+            metalness: isPink ? 0.3 : 0.4, // Meno metallico per il Pink per far vedere il colore
+            roughness: isPink ? 0.4 : 0.3, // Più ruvido per il Pink per diffondere la luce
             side: THREE.DoubleSide
         });
 
@@ -154,8 +158,8 @@ const GoldCardManager = {
         const materialBack = new THREE.MeshStandardMaterial({
             map: textureBack,
             transparent: true,
-            metalness: 0.5,
-            roughness: 0.2,
+            metalness: isPink ? 0.3 : 0.4,
+            roughness: isPink ? 0.4 : 0.3,
             side: THREE.DoubleSide
         });
 
@@ -286,7 +290,21 @@ const GoldCardManager = {
         if (user.goldSince && user.goldSince.includes('/')) {
             year = "20" + user.goldSince.split('/')[1];
         }
-        ctx.fillText(`Miglior Programmatore ${year}`, 60 + nameWidth + 30, 580);
+        
+        const titleText = `Miglior Programmatore ${year}`;
+        const titleWidth = ctx.measureText(titleText).width;
+        
+        // LOGICA ADATTIVA: Se il testo esce dalla carta, vai a capo
+        let titleX = 60 + nameWidth + 30;
+        let titleY = 580;
+        const safetyMargin = 40;
+
+        if (titleX + titleWidth > (1024 - safetyMargin)) {
+            titleX = 60; // Allinea a sinistra sotto il nome
+            titleY = 630; // Nuova riga in basso
+        }
+
+        ctx.fillText(titleText, titleX, titleY);
 
         const texture = new THREE.CanvasTexture(canvas);
         texture.anisotropy = 16;
