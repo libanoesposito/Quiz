@@ -43,17 +43,22 @@ const GoldCardManager = {
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         this.scene.add(ambientLight);
 
-        // FIX LUCI: Ora anche la luce frontale è ORO (come quella posteriore) per evitare l'effetto "bianco"
-        const mainLight = new THREE.DirectionalLight(0xffd700, 1.0);
+        // FIX LUCI: Adattiamo il colore della luce in base alla modalità
+        // Se è Pink Mode, usiamo luce bianca/neutra per far risaltare il rosa.
+        // Se è Gold Mode, usiamo luce dorata per massimizzare l'effetto oro.
+        const isPink = userData.pinkMode;
+        const lightColor = isPink ? 0xffffff : 0xffd700;
+
+        const mainLight = new THREE.DirectionalLight(lightColor, 1.0);
         mainLight.position.set(5, 5, 10);
         this.scene.add(mainLight);
 
-        const rimLight = new THREE.SpotLight(0xffd700, 2.0);
+        const rimLight = new THREE.SpotLight(lightColor, 2.0);
         rimLight.position.set(-5, 10, -10);
         rimLight.lookAt(0,0,0);
         this.scene.add(rimLight);
 
-        const cameraLight = new THREE.PointLight(0xffd700, 0.5); // Luce camera dorata
+        const cameraLight = new THREE.PointLight(lightColor, 0.5); // Luce camera
         this.camera.add(cameraLight);
         this.scene.add(this.camera);
 
