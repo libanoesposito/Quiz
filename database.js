@@ -32,7 +32,7 @@ const domandaRepo = {
             "Come crei una variabile vuota?|x = None|x = 0|x = ''|0|'None' è un tipo speciale che rappresenta l'assenza di valore o un valore nullo.",
             "Come controlli se due valori sono diversi?|x != y|x <> y|x !== y|0|L'operatore '!=' restituisce True se i valori sono diversi.",
             "Come fai AND logico?|x and y|x && y|and(x,y)|0|L'operatore logico è 'and' (scritto in minuscolo). Restituisce True se entrambi sono veri.",
-            "Come fai OR logico?|x or y|x || y|or(x,y)|0|L'operatore logico è 'or'. Restituisce True se almeno uno dei due è vero.",
+            "Come fai OR logico?|x or y|x &#124;&#124; y|or(x,y)|0|L'operatore logico è 'or'. Restituisce True se almeno uno dei due è vero.",
             "Come fai NOT logico?|not x|!x|x not|0|L'operatore 'not' inverte il valore booleano (True diventa False e viceversa).",
             "Come assegni più variabili?|a,b = 1,2|a=1 b=2|set(a,b)|0|Python supporta l'assegnazione multipla (unpacking) in una sola riga.",
             "Come ottieni valore assoluto?|abs(x)|absolute(x)|x.abs()|0|La funzione built-in abs() restituisce il valore assoluto di un numero.",
@@ -303,7 +303,7 @@ const domandaRepo = {
             "Come cloni oggetto?|{...obj}|clone(obj)|copy(obj)|0|spread clona.",
             "Come destrutturi?|const {a}=obj|get a|obj[a]|0|destructuring estrae.",
             "Come usa optional chaining?|obj?.a|obj.a?|if obj|0|?. evita errori.",
-            "Come usa nullish?|a ?? b|a || b|null(a,b)|0|?? gestisce null.",
+            "Come usa nullish?|a ?? b|a &#124;&#124; b|null(a,b)|0|?? gestisce null.",
             "Come congeli oggetto?|Object.freeze(o)|freeze(o)|lock(o)|0|freeze blocca."
         ]
     },
@@ -326,7 +326,7 @@ const domandaRepo = {
             "Come confronto <?|a < b|lt|compare|0|L'operatore '<' verifica se a è minore di b.",
             "Come confronto diverso?|a != b|<>|not equal|0|L'operatore '!=' verifica la disuguaglianza.",
             "Come AND?|a && b|and|&|0|'&&' è l'operatore logico AND (Short-circuit).",
-            "Come OR?|a || b|or||0|'||' è l'operatore logico OR.",
+            "Come OR?|a &#124;&#124; b|or|&#124;&#124;|0|'&#124;&#124;' è l'operatore logico OR.",
             "Come NOT?|!a|not a|~a|0|'!' inverte il valore booleano.",
             "Come commento multi?|/* */|//|<!-- -->|0|I commenti multilinea sono racchiusi tra /* e */.",
             "Come cast int?| (int)x |int(x)|cast x|0|Il casting esplicito si fa mettendo il tipo tra parentesi prima del valore: (int)x.",
