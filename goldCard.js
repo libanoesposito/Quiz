@@ -41,17 +41,17 @@ const GoldCardManager = {
 
         const isPink = userData.pinkMode;
 
-        // LUCI STUDIO: Riduciamo l'ambiente per il Pink per aumentare il contrasto e la saturazione
-        const ambientIntensity = isPink ? 0.4 : 0.6;
-        const ambientLight = new THREE.AmbientLight(0xffffff, ambientIntensity);
+        // LUCI STUDIO: Per il Pink usiamo una luce ambiente rosata per mantenere la saturazione nelle ombre
+        const ambientColor = isPink ? 0xffd1dc : 0xffffff;
+        const ambientIntensity = isPink ? 0.5 : 0.6;
+        const ambientLight = new THREE.AmbientLight(ambientColor, ambientIntensity);
         this.scene.add(ambientLight);
 
-        // FIX VERO COLORE: Usiamo luce BIANCA (0xffffff) per il Pink.
-        // Qualsiasi altra luce (gialla o rosa) altera la percezione del colore reale della texture.
-        const lightColor = isPink ? 0xffffff : 0xffd700; 
+        // LUCI PRINCIPALI: Usiamo un rosa pallido (Warm Pink) invece del bianco per evitare l'effetto "slavato"
+        const lightColor = isPink ? 0xffe6ea : 0xffd700; 
 
-        // Riduciamo leggermente l'intensità della luce principale per il Pink per non "bruciare" il colore
-        const mainIntensity = isPink ? 0.8 : 1.0;
+        // Abbassiamo l'intensità per il Pink per evitare riflessi speculari troppo forti
+        const mainIntensity = isPink ? 0.6 : 1.0;
         const mainLight = new THREE.DirectionalLight(lightColor, mainIntensity);
         mainLight.position.set(5, 5, 10);
         this.scene.add(mainLight);
