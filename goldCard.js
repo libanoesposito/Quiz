@@ -47,7 +47,7 @@ const GoldCardManager = {
         // Se è Pink Mode, usiamo luce bianca/neutra per far risaltare il rosa.
         // Se è Gold Mode, usiamo luce dorata per massimizzare l'effetto oro.
         const isPink = userData.pinkMode;
-        const lightColor = isPink ? 0xffffff : 0xffd700;
+        const lightColor = isPink ? 0xfff5ea : 0xffd700; // Luce naturale calda per il rosa
 
         const mainLight = new THREE.DirectionalLight(lightColor, 1.0);
         mainLight.position.set(5, 5, 10);
@@ -114,7 +114,7 @@ const GoldCardManager = {
         const isPink = user.pinkMode;
 
         const materialGold = new THREE.MeshStandardMaterial({
-            color: isPink ? 0xffb7c5 : 0xffd700, // Rose Gold se Pink, altrimenti Oro
+            color: isPink ? 0xcd7f92 : 0xffd700, // Rose Gold più scuro e intenso
             metalness: 1.0,  // Ripristinato al massimo per effetto metallo reale
             roughness: 0.15, // Liscio per riflessi netti
             side: THREE.DoubleSide
@@ -188,9 +188,9 @@ const GoldCardManager = {
         // 1. SFONDO ORO UNIFORME (Identico al retro)
         const diagGrd = ctx.createLinearGradient(0, 0, 1024, 646);
         if (isPink) {
-            diagGrd.addColorStop(0, "#c48d94");   // Rose Dark
-            diagGrd.addColorStop(0.5, "#fddde6"); // Rose Light
-            diagGrd.addColorStop(1, "#b57b82");   // Rose Dark
+            diagGrd.addColorStop(0, "#a3626b");   // Rose Darker
+            diagGrd.addColorStop(0.5, "#eeccd4"); // Rose Mid
+            diagGrd.addColorStop(1, "#945059");   // Rose Darkest
         } else {
             diagGrd.addColorStop(0, "#b88a4d");   // Bronzo scuro
             diagGrd.addColorStop(0.5, "#d4af37"); // Oro classico
@@ -301,9 +301,9 @@ const GoldCardManager = {
         // 1. SFONDO ORO (Identico al fronte)
         const grd = ctx.createLinearGradient(0, 0, 1024, 646);
         if (isPink) {
-            grd.addColorStop(0, "#c48d94");
-            grd.addColorStop(0.5, "#fddde6");
-            grd.addColorStop(1, "#b57b82");
+            grd.addColorStop(0, "#a3626b");
+            grd.addColorStop(0.5, "#eeccd4");
+            grd.addColorStop(1, "#945059");
         } else {
             grd.addColorStop(0, "#b88a4d");
             grd.addColorStop(0.5, "#d4af37");
