@@ -225,16 +225,25 @@ async function updateGlobalLeaderboard() {
 
     Object.keys(domandaRepo).forEach(lang => {
         for (let lvl = 1; lvl <= 5; lvl++) {
+            // Salta il livello 5 se non esistono sfide per questo linguaggio
+            if (lvl === 5 && (!challenges5 || !challenges5[lang])) continue;
+
             const key = `${lang}_${lvl}`;
             const historyLevel = (u.history && (u.history[key] || u.history[lang])) ? (u.history[key] || (Array.isArray(u.history[lang]) ? u.history[lang].filter(h => Number(h.lvl||h.level) === lvl) : [])) : [];
             const uniqueCorrect = new Set(historyLevel.filter(h => h.ok).map(h => h.q));
-
-            const totalExist = (lvl === 5)
-                ? ((challenges5 && challenges5[lang] && Array.isArray(challenges5[lang])) ? challenges5[lang].length : (domandaRepo[lang] && domandaRepo[lang][`L${lvl}`] ? domandaRepo[lang][`L${lvl}`].length : 0))
-                : ((domandaRepo[lang] && domandaRepo[lang][`L${lvl}`]) ? domandaRepo[lang][`L${lvl}`].length : 0);
-
-            pts += uniqueCorrect.size * 10;
-            if (totalExist > 0 && uniqueCorrect.size >= totalExist) perfects++;
+            
+            const count = uniqueCorrect.size;
+            
+            // NUOVA LOGICA PUNTI:
+            // Prime 10 domande (Base) = 1 punto
+            // Successive 5 domande (Gold) = 2 punti
+            const basePoints = Math.min(count, 10) * 1;
+            const goldPoints = Math.max(0, Math.min(count - 10, 5)) * 2;
+            
+            pts += (basePoints + goldPoints);
+            
+            // Perfetto se ha completato almeno 15 domande (10 base + 5 gold)
+            if (count >= 15) perfects++;
         }
     });
 
@@ -632,6 +641,7 @@ function updateNav(showBack, backTarget) {
     try { renderTesterToggle(); } catch(e) {}
 }
 
+let _saveDebounce = null;
 async function saveMasterDB() {
     // 1. Prepariamo l'oggetto utente con i dati più recenti
     if (state.mode === 'user' && state.currentPin && dbUsers[state.currentPin]) {
@@ -643,30 +653,32 @@ async function saveMasterDB() {
         // 🏆 SALVA STATO GOLD PER UTENTI NORMALI
         dbUsers[state.currentPin].goldMode = state.isPerfect || false;
         
+        // Persistiamo sempre anche la copia locale per resilienza offline (IMMEDIATO)
+        try { localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers)); } catch(e) { console.warn('local persistence failed', e); }
+
         // --- SALVATAGGIO SU GOOGLE (CLOUDFLARE) ---
-        try {
-            // Usiamo 'set' con 'merge: true' per non sovrascrivere accidentalmente tutto il profilo
-            await db.collection("utenti").doc(state.currentPin).set(dbUsers[state.currentPin], { merge: true });
-            if (interactionLogging) console.log("Sincronizzazione Cloud completata per:", state.currentPin);
-                        // Sincronizzazione esplicita stato Gold per classifica
-            const stats = calcStats();
-            await db.collection("classifica").doc(state.currentPin).set({
-                perfect: stats.isPerfect ? 1 : 0,
-                points: stats.correct,
-                name: dbUsers[state.currentPin].name
-            }, { merge: true });
+        if (_saveDebounce) clearTimeout(_saveDebounce);
+        _saveDebounce = setTimeout(async () => {
+            try {
+                // Usiamo 'set' con 'merge: true' per non sovrascrivere accidentalmente tutto il profilo
+                await db.collection("utenti").doc(state.currentPin).set(dbUsers[state.currentPin], { merge: true });
+                if (interactionLogging) console.log("Sincronizzazione Cloud completata per:", state.currentPin);
+                
+                // Sincronizzazione esplicita stato Gold per classifica
+                const stats = calcStats();
+                await db.collection("classifica").doc(state.currentPin).set({
+                    perfect: stats.isPerfect ? 1 : 0,
+                    points: stats.correct,
+                    name: dbUsers[state.currentPin].name
+                }, { merge: true });
 
-            // Aggiorniamo anche la classifica globale ogni volta che salviamo i progressi
-            await updateGlobalLeaderboard();
+                // Aggiorniamo anche la classifica globale ogni volta che salviamo i progressi
+                await updateGlobalLeaderboard();
             } catch (error) {
-            console.error("Errore durante il salvataggio Cloud:", error);
-        }
-
-    // Persistiamo sempre anche la copia locale per resilienza offline
-    try { localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers)); } catch(e) { console.warn('local persistence failed', e); }
-
+                console.error("Errore durante il salvataggio Cloud:", error);
+            }
+        }, 1000);
     }
-
 }
 
 // La funzione `syncToFirebase` rimossa: non veniva usata.
@@ -755,20 +767,29 @@ function isWeakPin(pin) {
 async function registerUser() {
     const nameEl = document.getElementById('reg-name');
     const pinEl = document.getElementById('reg-pin');
-    const errorMsgEl = document.getElementById('reg-error-msg'); 
+    const errorMsgEl = document.getElementById('pin-error'); 
     
     const name = nameEl.value.trim();
     const pin = pinEl.value.trim();
 
-    if (errorMsgEl) errorMsgEl.textContent = "";
+    if (errorMsgEl) {
+        errorMsgEl.textContent = "";
+        errorMsgEl.style.display = "none";
+    }
 
     if (name.length < 2 || pin.length < 4) {
-        if (errorMsgEl) errorMsgEl.textContent = "Inserisci un nome di almeno 2 lettere e un PIN di 4 cifre.";
+        if (errorMsgEl) {
+            errorMsgEl.textContent = "Inserisci un nome di almeno 2 lettere e un PIN di 4 cifre.";
+            errorMsgEl.style.display = "block";
+        }
         return;
     }
 
     if (isWeakPin(pin)) {
-        if (errorMsgEl) errorMsgEl.textContent = "PIN troppo semplice! Non usare sequenze o numeri ripetuti.";
+        if (errorMsgEl) {
+            errorMsgEl.textContent = "PIN troppo semplice! Non usare sequenze o numeri ripetuti.";
+            errorMsgEl.style.display = "block";
+        }
         return;
     }
 
@@ -778,7 +799,10 @@ async function registerUser() {
         const check = await db.collection("utenti").doc(pin).get();
         
         if (check.exists) {
-            if (errorMsgEl) errorMsgEl.textContent = "Questo PIN è già occupato.";
+            if (errorMsgEl) {
+                errorMsgEl.textContent = "Questo PIN è già occupato.";
+                errorMsgEl.style.display = "block";
+            }
             return;
         }
 
@@ -937,6 +961,8 @@ async function validatePin(type) {
 
     } else {
         // --- LOGIN ---
+    // --- LOGIN ---
+    // Nota: La registrazione è gestita da registerUser(), quindi qui gestiamo solo il login.
         if (!cloudUser) {
             errorEl.innerText = "PIN errato o utente inesistente";
             errorEl.style.display = "block";
@@ -961,6 +987,10 @@ async function validatePin(type) {
     state.history = dbUsers[pin].history || {};
     state.ripasso = dbUsers[pin].ripasso || { wrong: [], notStudied: [] };
     state.activeProgress = dbUsers[pin].activeProgress || {};
+
+    // FIX: Carica lo stato Gold dal profilo utente O dalle statistiche (come in window.onload)
+    const stats = calcStats();
+    state.isPerfect = !!(dbUsers[pin].goldMode || dbUsers[pin].testerGold || stats.isPerfect);
 
     localStorage.setItem('sessionPin', pin);
 
@@ -1126,9 +1156,10 @@ function showLevels(lang) {
         }
 
         // 3. LOGICA ORO (Attiva se il livello è stato superato oppure l'utente è globale GOLD)
+        // 3. LOGICA ORO (Attiva solo se ha completato le 10)
         let isGoldPhase = (comp >= i) || !!state.isPerfect;
 
-        let displayTotal = isGoldPhase ? totalExist : 15;
+        let displayTotal = isGoldPhase ? totalExist : 10;
         let displayCurrent = isGoldPhase ? userCorrectUniques : currentIdx;
 
         // Calcolo percentuali per i segmenti (verde / oro)
@@ -1163,7 +1194,7 @@ function showLevels(lang) {
                                                </div>`
                                       })()
                                     : (() => {
-                                        const denom = (seg.displayTotal && seg.displayTotal > 0) ? seg.displayTotal : 15;
+                                        const denom = (seg.displayTotal && seg.displayTotal > 0) ? seg.displayTotal : 10;
                                         const pct = (seg.displayCurrent && denom) ? Math.round((seg.displayCurrent / denom) * 100) : 0;
                                         return `<div style="width:100%; height:4px; background:rgba(120,120,128,0.1); border-radius:10px; overflow:hidden">
                                                    <div style="width:${pct}%; height:100%; background:var(--accent); border-radius:10px; transition:width 0.3s"></div>
@@ -1197,26 +1228,35 @@ function startStep(lang, lvl) {
     let selezione;
     if (state.mode === 'user' && dbUsers[state.currentPin].savedQuizzes?.[storageKey] && Array.isArray(dbUsers[state.currentPin].savedQuizzes[storageKey]) && dbUsers[state.currentPin].savedQuizzes[storageKey].length > 0) {
         selezione = dbUsers[state.currentPin].savedQuizzes[storageKey];
+        // FIX PERSISTENZA: Se carichiamo un quiz salvato, dobbiamo capire se era un round Gold
+        // Se il livello è già segnato come completato (>= lvl), allora stiamo facendo la fase Gold/Ripasso
+        const comp = state.progress[lang] || 0;
+        if (comp >= lvl) {
+             // Se stiamo riprendendo un livello già fatto, è un Gold Round
+             isGoldRound = true;
+        }
     } else {
         // 1. Identifichiamo le domande già indovinate per non ripeterle nella fase Oro
-        const historyLivello = state.history ? state.history[`${lang}_${lvl}`] || [] : [];
+        const historyLang = state.history ? state.history[lang] || [] : [];
+        const historyLivello = historyLang.filter(h => Number(h.lvl || h.level || 0) === lvl);
         const giaIndovinate = new Set(historyLivello.filter(h => h.ok).map(h => h.q));
 
         // 2. Filtriamo il database: se il livello è già superato, prendiamo solo le "nuove"
         const comp = state.progress[lang] || 0;
         let sorgente = [...stringhe];
-        if (comp >= lvl) {
+        // FIX ENDGAME: Avvia fase Gold solo se il livello è finito E siamo in Endgame (tutti i linguaggi finiti)
+        if (comp >= lvl && isEndgameReached()) {
             const rimanenti = stringhe.filter(s => !giaIndovinate.has(s.split("|")[0]));
             if (rimanenti.length > 0) {
                 sorgente = rimanenti;
                 // Se stiamo caricando domande rimanenti e il totale supera 15, siamo nel round Gold
-                if (stringhe.length > 15) isGoldRound = true;
+                if (stringhe.length > 10) isGoldRound = true;
             }
         }
 
-        // 3. Mescoliamo e creiamo la selezione (massimo 15)
+        // 3. Mescoliamo e creiamo la selezione (massimo 10 per base)
         const rimescolate = sorgente.sort(() => 0.5 - Math.random());
-        selezione = rimescolate.slice(0, 15).map(r => {
+        selezione = rimescolate.slice(0, 10).map(r => {
             const p = r.split("|");
             
             // Mescolamento opzioni (già risolto)
@@ -1230,12 +1270,11 @@ function startStep(lang, lvl) {
                 exp: p[5] 
             };
         });
-        let savedIdx = 0;
         if (state.mode === 'user') {
             if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
             dbUsers[state.currentPin].savedQuizzes[storageKey] = selezione;
         }
-    } // <--- CHIUDE L'ELSE
+    }
 
     let savedIdx = 0;
     if (state.mode === 'user') {
@@ -1286,10 +1325,25 @@ function renderL5(lang, index = null) {
     const container = document.getElementById('content-area');
     const sfide = challenges5[lang];
 
+    // SAFETY CHECK: Se non esistono sfide per questa lingua
+    if (!sfide || sfide.length === 0) {
+        container.innerHTML = `
+            <div class="glass-card" style="text-align:center; padding:40px;">
+                <h2 style="color:#ff3b30">Nessuna sfida disponibile</h2>
+                <p>Le sfide per ${lang} sono in arrivo.</p>
+                <button class="btn-apple" onclick="showLevels('${lang}')" style="margin-top:20px">Torna indietro</button>
+            </div>`;
+        return;
+    }
+
     // Se è il tester e perfetto, impostiamo l'indice in base allo storico
 // tester-specific L5 handling removed
 
-    if (!sfide || index >= sfide.length) {
+    // CAP LIMIT: 15 domande totali (10 Base + 5 Gold)
+    const CAP_LIMIT = 15;
+
+    // STOP 1: Se abbiamo finito le domande disponibili o raggiunto il limite di 15
+    if (!sfide || index >= sfide.length || index >= CAP_LIMIT) {
         // Se finisce le sfide, mostra schermata finale
         container.innerHTML = `
             <div class="glass-card" style="text-align:center; padding:40px;">
@@ -1300,38 +1354,48 @@ function renderL5(lang, index = null) {
         return;
     }
 
+    // STOP 2: Se abbiamo finito le 10 Base ma non siamo in Endgame
+    // Nota: index 10 è la prima domanda Gold (11esima). Quindi se index >= 10 stop.
+    if (index >= 10 && !isEndgameReached() && !state.isPerfect && !state.isTester) {
+        container.innerHTML = `
+            <div class="glass-card" style="text-align:center; padding:40px;">
+                <h2 style="color:#34c759">Livello 5 Base Completato!</h2>
+                <p>Hai superato le 10 sfide base. Completa il livello 5 di <b>tutti i linguaggi</b> per sbloccare la fase Oro e le sfide avanzate.</p>
+                <button class="btn-apple" onclick="showLevels('${lang}')" style="margin-top:20px">Torna ai Livelli</button>
+            </div>`;
+        return;
+    }
+
     const sfida = sfide[index];
     
-    // --- NUOVA LOGICA BARRA (Coerente con renderQ) ---
-    let displayIndex = index + 1;
-    if (state.isTester && state.isPerfect) {
-        displayIndex = sfide.length;
+    // --- LOGICA BARRA E CONTATORE ---
+    // Determiniamo se siamo in fase Gold (oltre la 10 o utente perfetto)
+    const isGoldPhase = (index >= 10) || state.isPerfect;
+    
+    // Totale visualizzato: 10 se base, 15 se gold
+    const displayTotal = isGoldPhase ? CAP_LIMIT : 10;
+    const displayIndex = index + 1;
+    
+    // Stile contatore
+    let counterStyle = "opacity:0.7";
+    if (isGoldPhase && index >= 10) {
+        counterStyle = "color:#d4af37; font-weight:bold; text-shadow:0 0 10px rgba(212,175,55,0.3)";
     }
 
     let htmlBar = '';
-    const totalExist = sfide.length;
-    const baseline = 15;
-    const isGoldPhase = (index >= baseline) || state.isPerfect;
+    const barTotal = 15; 
+    const baseline = 10;
 
-    if (totalExist > 15 && isGoldPhase) {
-        const extra = totalExist - baseline;
-        const greenSegWidth = (baseline / totalExist) * 100;
-        const goldSegWidth = (extra / totalExist) * 100;
+    if (isGoldPhase) {
+        const extra = barTotal - baseline; // 5
+        const greenSegWidth = (baseline / barTotal) * 100; // 66.6%
+        const goldSegWidth = (extra / barTotal) * 100; // 33.3%
         
-        let greenFill = 0;
+        let greenFill = 100;
         let goldFill = 0;
         
-        if (state.isTester && state.isPerfect) {
-            greenFill = 100;
-            goldFill = 100;
-        } else {
-            if (index < baseline) {
-                greenFill = (index / baseline) * 100;
-                goldFill = 0;
-            } else {
-                greenFill = 100;
-                goldFill = ((index - baseline) / extra) * 100;
-            }
+        if (index >= baseline) {
+            goldFill = ((index - baseline) / extra) * 100;
         }
         
         htmlBar = `
@@ -1344,9 +1408,9 @@ function renderL5(lang, index = null) {
             </div>
         </div>`;
     } else {
-        let percentL5 = (index / totalExist) * 100;
-        if (state.isTester && state.isPerfect) percentL5 = 100;
-        const barColor = (totalExist > 15) ? 'var(--apple-green)' : 'var(--accent)';
+        // Fase Verde (0-9)
+        let percentL5 = (index / 10) * 100;
+        const barColor = 'var(--apple-green)'; 
         
         htmlBar = `
         <div style="width:100%; height:6px; background:rgba(255,255,255,0.1); border-radius:10px; margin-bottom:20px; overflow:hidden">
@@ -1358,7 +1422,7 @@ function renderL5(lang, index = null) {
         <div class="glass-card" style="padding: 20px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
     <h2 style="font-size:18px; margin:0">ESAME ${lang.toUpperCase()}</h2>
-    <span style="font-size:12px; opacity:0.7">${displayIndex}/${sfide.length}</span>
+    <span style="font-size:12px; ${counterStyle}">${displayIndex}/${displayTotal}</span>
 </div>
 
 ${htmlBar}
@@ -1406,7 +1470,7 @@ function checkL5(lang, index) {
 
     if (cleanUser.includes(cleanLogic)) {
         // --- CASO SUCCESSO ---
-        consoleRes.innerText = sfida.output + "\n\n>> Processo terminato con successo (0)";
+        consoleRes.innerText = sfida.output;
         consoleRes.style.color = "#34c759";
         fb.innerHTML = `<b style="color:#34c759">✓ Esatto!</b>`;
         // AGGIUNGI QUESTO BLOCCO PER IL SALVATAGGIO PARZIALE
@@ -1417,17 +1481,21 @@ function checkL5(lang, index) {
             dbUsers[state.currentPin].activeProgress[storageKey] = index + 1;
 
             // Se è l'ultima sfida, allora abbiamo completato il livello 5: persistiamo sia in state che in dbUsers
-            if (index === challenges5[lang].length - 1) {
+            // FIX: Completamento anche al raggiungimento della decima domanda (index 9)
+            if (index === 9 || index === challenges5[lang].length - 1) {
                 state.progress[lang] = 5;
                 if (!dbUsers[state.currentPin].progress) dbUsers[state.currentPin].progress = {};
                 dbUsers[state.currentPin].progress[lang] = 5;
-                // azzeriamo activeProgress per L5 (completato)
-                dbUsers[state.currentPin].activeProgress[storageKey] = 0;
-                if (dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[storageKey];
+                
+                // Se abbiamo finito tutto (ultima domanda), azzeriamo activeProgress
+                if (index === challenges5[lang].length - 1) {
+                    dbUsers[state.currentPin].activeProgress[storageKey] = 0;
+                    if (dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[storageKey];
+                }
             }
 
             // CONTROLLO SUONI (Livello o Gold)
-            if (index === challenges5[lang].length - 1) {
+            if (index === 9 || index === challenges5[lang].length - 1) {
                 // Se abbiamo finito il livello 5, controlliamo se siamo diventati Gold
                 if (!state.isPerfect) {
                     const stats = calcStats();
@@ -1441,14 +1509,7 @@ function checkL5(lang, index) {
                 }
             }
 
-            saveMasterDB();
-        }
-        // ... resto del codice (tasto per andare avanti) ...
-        // Aggiorna statistiche e progressi
-            if (state.mode === 'user') {
-            if (index === challenges5[lang].length - 1) {
-                state.progress[lang] = 5;
-            }
+            // STORICO
             const u = dbUsers[state.currentPin];
             if (u) {
                 if (!u.history) u.history = {};
@@ -1467,39 +1528,34 @@ function checkL5(lang, index) {
                     timestamp: Date.now()
                 };
 
-                    // evita duplicati identici (stesso q e userAnswer)
-                    if (!u.history[lang].some(h => h.q === histEntry.q && h.userAnswer === histEntry.userAnswer)) u.history[lang].push(histEntry);
-                    if (!u.history[`${lang}_5`].some(h => h.q === histEntry.q && h.userAnswer === histEntry.userAnswer)) u.history[`${lang}_5`].push(histEntry);
+                // evita duplicati identici (stesso q e userAnswer)
+                if (!u.history[lang].some(h => h.q === histEntry.q && h.userAnswer === histEntry.userAnswer)) u.history[lang].push(histEntry);
+                if (!u.history[`${lang}_5`].some(h => h.q === histEntry.q && h.userAnswer === histEntry.userAnswer)) u.history[`${lang}_5`].push(histEntry);
 
-                    // se abbiamo appena completato il livello, assicuriamoci di persistere il progresso
-                    // CONTROLLO GOLD PER L5
-                    if (!state.isPerfect) {
-                        const stats = calcStats();
-                        if (stats.isPerfect) {
-                            state.isPerfect = true;
-                            const now = new Date().toISOString();
-                            db.collection("utenti").doc(state.currentPin).set({ goldMode: true, goldDate: now }, { merge: true });
-                            if(dbUsers[state.currentPin]) dbUsers[state.currentPin].goldDate = now;
-                            triggerGoldTransition(); // ANIMAZIONE L5
-                        }
-                    }
-
-                    if (state.progress[lang] === 5) {
-                        if (!u.progress) u.progress = {};
-                        u.progress[lang] = 5;
-                        // azzeriamo activeProgress per L5
-                        if (!u.activeProgress) u.activeProgress = {};
-                        u.activeProgress[`${lang}_5`] = 0;
-                        if (u.savedQuizzes) delete u.savedQuizzes[`${lang}_5`];
+                // CONTROLLO GOLD PER L5
+                if (!state.isPerfect) {
+                    const stats = calcStats();
+                    if (stats.isPerfect) {
+                        state.isPerfect = true;
+                        const now = new Date().toISOString();
+                        db.collection("utenti").doc(state.currentPin).set({ goldMode: true, goldDate: now }, { merge: true });
+                        if(dbUsers[state.currentPin]) dbUsers[state.currentPin].goldDate = now;
+                        triggerGoldTransition(); // ANIMAZIONE L5
                     }
                 }
-                saveMasterDB();
+            }
+            saveMasterDB();
         }
 
         // Tasto per andare avanti
+        const nextIndex = index + 1;
+        // Calcolo label bottone coerente con il render
+        const isGoldPhase = (nextIndex >= 10) || state.isPerfect;
+        const displayTotal = isGoldPhase ? 15 : 10;
+
         btnContainer.innerHTML = `
             <button class="btn-apple" onclick="renderL5('${lang}', ${index + 1})" style="background:#34c759; color:white; width:100%; font-weight:bold">
-                Prossima Sfida (${index + 2}/${challenges5[lang].length}) →
+                Prossima Sfida (${nextIndex + 1}/${displayTotal}) →
             </button>`;
 
     } else {
@@ -1567,16 +1623,16 @@ function renderQ() {
     const data = session.q[session.idx];
     
     // Calcolo Totale Domande Esistenti per questo livello
-    let totalExist = 15;
+    let totalExist = 15; // Target per il perfetto (10 Basic + 5 Gold)
     if (domandaRepo[session.lang] && domandaRepo[session.lang][`L${session.lvl}`]) {
-        totalExist = domandaRepo[session.lang][`L${session.lvl}`].length;
+        // totalExist = domandaRepo[session.lang][`L${session.lvl}`].length; // Vecchia logica DB completo
     }
 
     let htmlBar = '';
 
-    // Se ci sono domande extra (Gold) E (siamo nella fase Gold O l'utente è perfetto), usiamo la barra segmentata
-    if (totalExist > 15 && (session.isGoldRound || state.isPerfect)) {
-        const baseline = 15;
+    // Se ci sono domande extra (Gold) E (siamo nella fase Gold o Tester), usiamo la barra segmentata
+    if (session.isGoldRound || (state.isTester && state.isPerfect)) {
+        const baseline = 10;
         const extra = totalExist - baseline;
         
         // Percentuali di larghezza dei due contenitori (Verde vs Oro)
@@ -1603,8 +1659,8 @@ function renderQ() {
     } else {
         // Barra classica per livelli standard o fase normale di livelli Gold
         const progress = (session.idx / session.q.length) * 100;
-        // Se è un livello Gold in fase normale, usiamo il verde per coerenza, altrimenti l'accento
-        const barColor = (totalExist > 15) ? 'var(--apple-green)' : 'var(--accent)';
+        // Se è un livello Gold in fase normale, usiamo il verde per coerenza
+        const barColor = (totalExist > 10) ? 'var(--apple-green)' : 'var(--accent)';
         htmlBar = `
         <div style="width:100%; height:4px; background:rgba(120,120,128,0.1); border-radius:10px; margin-bottom:15px">
             <div style="width:${progress}%; height:100%; background:${barColor}; border-radius:10px; transition:0.3s"></div>
@@ -1616,21 +1672,27 @@ function renderQ() {
 
      // Calcolo testo contatore dinamico
     let textCurrent = session.idx + 1;
-    let textTotal = session.q.length;
+    let textTotal = 10; // Base
+    let counterStyle = "opacity:0.5"; // Stile standard
 
     if (session.isGoldRound) {
-        // Fase Gold: siamo oltre le 15, quindi sommiamo la base (15) all'indice corrente
-        textCurrent = 15 + session.idx + 1;
-        textTotal = totalExist;
+        // Fase Gold: siamo oltre le 10, quindi sommiamo la base (10) all'indice corrente
+        textCurrent = 10 + session.idx + 1;
+        textTotal = 15; // Target Gold
+        counterStyle = "color:#d4af37; font-weight:bold; text-shadow:0 0 10px rgba(212,175,55,0.3)";
     } else if (state.isTester && state.isPerfect) {
         // Se Tester Perfetto, mostra sempre il totale assoluto del livello (es. 20/20)
         textCurrent = totalExist;
         textTotal = totalExist;
     }
 
+    // Intestazione Livello
+    const headerHtml = `<div style="text-align:center; font-size:13px; font-weight:700; opacity:0.6; margin-bottom:4px; text-transform:uppercase; letter-spacing:1px">Livello ${session.lvl}</div>`;
+
     container.innerHTML = `
         <div style="width:100%; margin-bottom:15px">
-            <div style="display:flex; justify-content:space-between; font-size:11px; opacity:0.5; margin-bottom:5px">
+            ${headerHtml}
+            <div style="display:flex; justify-content:center; font-size:12px; ${counterStyle}; margin-bottom:8px">
                 <span>DOMANDA ${textCurrent}/${textTotal}</span>
             </div>
             ${htmlBar}
@@ -1638,8 +1700,8 @@ function renderQ() {
         <h2 style="font-size:18px; margin-bottom:20px">${data.q}</h2>
         <div id="opts" style="width:100%">
             ${data.options.map((o, i) => {
-                // Puliamo il testo da eventuali apici per non rompere l'onclick
-                const safeOption = o.replace(/'/g, "\\'");
+                // Fix: escape anche backslash e newline per evitare SyntaxError
+                const safeOption = o.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n').replace(/\r/g, '');
                 return `<button class="btn-apple" onclick="check(${i === data.correct}, '${safeOption}')">${o}</button>`;
             }).join('')}
         </div>
@@ -1755,13 +1817,19 @@ function check(isOk, userAnsText) {
         });
     }
 }
-        document.getElementById('opts').style.pointerEvents = "none";
-    document.getElementById('fb').innerHTML = `
+    // Fix: check for elements existence to prevent crash during rapid navigation
+    const optsEl = document.getElementById('opts');
+    if (optsEl) optsEl.style.pointerEvents = "none";
+    
+    const fbEl = document.getElementById('fb');
+    if (fbEl) {
+        fbEl.innerHTML = `
         <div class="feedback-box ${isOk?'correct':'wrong'}" style="width:100%; margin: 15px 0; padding: 15px; box-sizing: border-box; border-radius: 14px;">
             <strong style="display: block; margin-bottom: 8px;">${isOk?'Giusto!':'Sbagliato'}</strong>
             <p style="margin-bottom: 15px; font-size: 14px; line-height: 1.4;">${data.exp}</p>
             <button class="btn-apple btn-primary" style="width:100%; margin:0;" onclick="next()">Continua</button>
         </div>`;
+    }
 }
 
 
@@ -1786,18 +1854,35 @@ function next() {
             const uniqueCorrect = new Set(historyAgg.filter(h => h && h.ok).map(h => h.q));
             // numero totale esistente per il livello
             let totalExist = 15;
-            if (domandaRepo[lang] && domandaRepo[lang][`L${lvl}`]) totalExist = domandaRepo[lang][`L${lvl}`].length;
+            if (domandaRepo[lang] && domandaRepo[lang][`L${lvl}`]) totalExist = domandaRepo[lang][`L${lvl}`].length; 
 
-            // Se la sessione appena finita era la baseline (15 domande) e l'utente ha risposto correttamente a tutte,
-            // e ci sono domande rimanenti, allora carichiamo le rimanenti (fase oro) e proseguiamo.
-            const wasBaseline = session.q && session.q.length === 15;
-            if (wasBaseline && session.correctCount === session.q.length && uniqueCorrect.size < totalExist) {
-                // costruiamo lista rimanenti (escludendo quelle già corrette)
+            const baseline = 10; // Base completamento
+            // Green Complete: sessione baseline finita con successo
+            const wasBaseline = session.q && session.q.length === baseline;
+            const greenComplete = wasBaseline && session.correctCount === session.q.length;
+
+            // 1. COMPLETAMENTO VERDE (Sblocco Livello + Suono Level)
+            // Se abbiamo finito la baseline (15) oppure tutte le domande se erano meno di 15
+            if (greenComplete || (uniqueCorrect.size >= totalExist && totalExist <= baseline)) {
+                // Aggiorna progresso se non già fatto
+                if ((state.progress[lang] || 0) < lvl) {
+                    state.progress[lang] = lvl;
+                    if (!dbUsers[state.currentPin].progress) dbUsers[state.currentPin].progress = {};
+                    dbUsers[state.currentPin].progress[lang] = state.progress[lang];
+                    saveMasterDB();
+                }
+                // Suona 'level' (tranne se eravamo già in gold round)
+                if (!session.isGoldRound) playSound('level');
+            }
+
+            // 2. TRANSIZIONE ORO (Attiva dopo le 10 base)
+            // FIX ENDGAME: Passa a Gold solo se Endgame raggiunto
+            // FIX 15: Si ferma se abbiamo già raggiunto 15 domande (10+5)
+            if (greenComplete && isEndgameReached() && uniqueCorrect.size < 15 && uniqueCorrect.size < totalExist) {
                 const allStrings = domandaRepo[lang][`L${lvl}`] || [];
                 const remaining = allStrings.filter(s => !uniqueCorrect.has(s.split('|')[0]));
-                // mescoliamo e trasformiamo in oggetti domanda
                 const rimescolate = remaining.sort(() => 0.5 - Math.random());
-                const selezioneRestante = rimescolate.map(r => {
+                const selezioneRestante = rimescolate.slice(0, 5).map(r => { // GOLD: 5 Domande
                     const p = r.split('|');
                     let opts = [{ t: p[1], id: 0 }, { t: p[2], id: 1 }, { t: p[3], id: 2 }];
                     opts.sort(() => 0.5 - Math.random());
@@ -1805,7 +1890,6 @@ function next() {
                 });
 
                 if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
-                // sovrascriviamo savedQuizzes con le restanti domande
                 dbUsers[state.currentPin].savedQuizzes[sk] = selezioneRestante;
                 session.q = selezioneRestante;
                 session.idx = 0;
@@ -1816,14 +1900,10 @@ function next() {
                 return;
             }
 
-            // Altrimenti: se l'utente ha completato tutte le domande del livello (uniqueCorrect -> totalExist),
-            // allora consideriamo il livello completato e aggiorniamo progress.
-            if (uniqueCorrect.size >= totalExist) {
-                state.progress[lang] = Math.max(state.progress[lang]||0, lvl);
-                // Persistiamo anche nella copia locale dell'utente per coerenza immediata
-                if (!dbUsers[state.currentPin].progress) dbUsers[state.currentPin].progress = {};
-                playSound('level'); // SUONO COMPLETAMENTO LIVELLO
-                dbUsers[state.currentPin].progress[lang] = state.progress[lang];
+            // 3. COMPLETAMENTO ORO (Suono Gold)
+            // Se abbiamo finito tutto il DB e siamo in fase Gold
+            if (uniqueCorrect.size >= 15 && session.isGoldRound) {
+                playSound('gold');
             }
 
             // Ripristina stato di activeProgress e savedQuizzes per questo livello
@@ -1900,14 +1980,36 @@ function calcStats() {
         });
     });
     // Calcoliamo quante domande esistono in TUTTO il database
-    let totalDomandeDatabase = 0;
-    // NOTA: Sostituisci 'domandeArchivio' con il nome della tua variabile che contiene tutte le categorie
-    Object.values(domandaRepo).forEach(categoria => {
-        // categoria è un oggetto con livelli (es. L1,L2,...), sommiamo le lunghezze degli array
-        Object.values(categoria).forEach(liv => {
-            if (Array.isArray(liv)) totalDomandeDatabase += liv.length;
-        });
+    // NUOVA LOGICA: 15 domande per livello per essere perfetto
+    let totalLevelsCount = 0;
+    let perfectLevelsCount = 0;
+    
+    const u = dbUsers[state.currentPin];
+    
+    Object.keys(domandaRepo).forEach(lang => {
+        // Livelli 1-4
+        for(let i=1; i<=4; i++) {
+            totalLevelsCount++;
+            if(u) {
+                const seg = computeProgressSegments(lang, i);
+                // Target fisso a 15 (10 Base + 5 Gold) come richiesto
+                const target = Math.min(15, seg.totalExist || 15);
+                if((seg.greenCount + seg.goldCount) >= target) perfectLevelsCount++;
+            }
+        }
+        // Livello 5
+        if(typeof challenges5 !== 'undefined' && challenges5[lang]) {
+            totalLevelsCount++;
+            if(u) {
+                const seg = computeProgressSegments(lang, 5);
+                // Per L5 usiamo 15 o la lunghezza reale se inferiore (safety check)
+                const target = Math.min(15, challenges5[lang].length);
+                if((seg.greenCount + seg.goldCount) >= target) perfectLevelsCount++;
+            }
+        }
     });
+    
+    const totalDomandeDatabase = totalLevelsCount * 15; // Approssimazione per la barra circolare
 
     const stats = {
         total: tot,
@@ -1924,13 +2026,20 @@ function calcStats() {
         stats.isPerfect = true;
     } else {
         // Non è ancora gold: controlla se ora lo raggiunge (100% di tutte le domande)
-        stats.isPerfect = (totalDomandeDatabase > 0 && ok >= totalDomandeDatabase && stats.perc === 100);
+        stats.isPerfect = (totalLevelsCount > 0 && perfectLevelsCount >= totalLevelsCount);
     }
   
     stats.greenCorrect = Math.min(ok, totalDomandeDatabase);  // verde: fino al massimo normale
     stats.goldCorrect  = Math.max(ok - totalDomandeDatabase, 0);  // oro: extra perfetto
    
     return stats;
+}
+
+// Helper per verificare se tutti i linguaggi sono completati (Endgame)
+function isEndgameReached() {
+    if (!state.progress) return false;
+    const langs = Object.keys(domandaRepo);
+    return langs.every(l => (state.progress[l] || 0) >= 5);
 }
 
 // Restituisce le percentuali per i segmenti della barra (verde = baseline, oro = extra)
@@ -1949,7 +2058,7 @@ function computeProgressSegments(lang, level) {
     const uniqueCorrect = new Set(historyLevel.filter(h => h && h.ok).map(h => h.q));
     const userCorrect = uniqueCorrect.size;
 
-    let totalExist = 15;
+    let totalExist = 15; // Target standard
     if (level === 5) {
         if (challenges5 && challenges5[lang] && Array.isArray(challenges5[lang])) {
             totalExist = challenges5[lang].length;
@@ -1959,13 +2068,12 @@ function computeProgressSegments(lang, level) {
     } else {
         if (domandaRepo[lang] && domandaRepo[lang][`L${level}`]) totalExist = domandaRepo[lang][`L${level}`].length;
     }
-    const baseline = 15;
+    const baseline = 10;
 
     // comp indica quanti livelli completati per la lingua
     const comp = state.progress[lang] || 0;
-    // Considera il livello in Gold se lo stato lo indica, se l'utente è globalmente gold,
-    // oppure se ha già risposto correttamente a tutte le domande esistenti per quel livello.
-    const isGoldPhase = (comp >= level) || !!state.isPerfect || (totalExist > 0 && userCorrect >= totalExist);
+    // FASE ORO: Attiva SOLO se Endgame raggiunto (tutti i linguaggi finiti) o utente perfetto
+    const isGoldPhase = isEndgameReached() || !!state.isPerfect || (userCorrect > baseline);
 
     if (!isGoldPhase) {
         const greenCount = Math.min(userCorrect, baseline);
@@ -1978,13 +2086,16 @@ function computeProgressSegments(lang, level) {
     // ma se il totale esistente è minore del baseline (es. L5 con poche sfide) adattiamo il calcolo
     // Calcolo robusto dei conteggi: verde è al massimo il baseline o il totale esistente,
     // l'oro è l'eccedenza rispetto al baseline (se presente).
-    const greenCount = Math.min(userCorrect, Math.min(baseline, totalExist));
-    const goldCount = Math.max(userCorrect - baseline, 0);
+    // Per la visualizzazione barra, limitiamo il totale a 15 (10+5) come da logica punti
+    // FIX: Se totalExist > 15, cappiamo comunque a 15 per la visualizzazione "Perfetto"
+    const displayTotalCap = 15;
+    const greenCount = Math.min(userCorrect, baseline);
+    const goldCount = Math.min(Math.max(userCorrect - baseline, 0), 5);
 
-    const greenPct = totalExist > 0 ? (greenCount / totalExist) * 100 : 0;
-    const goldPct = totalExist > 0 ? (goldCount / totalExist) * 100 : 0;
+    const greenPct = (greenCount / 15) * 100;
+    const goldPct = (goldCount / 15) * 100;
 
-    return { isGoldPhase: true, greenPct: greenPct, goldPct: goldPct, displayCurrent: userCorrect, displayTotal: totalExist, greenCount: greenCount, goldCount: goldCount, totalExist: totalExist };
+    return { isGoldPhase: true, greenPct: greenPct, goldPct: goldPct, displayCurrent: userCorrect, displayTotal: displayTotalCap, greenCount: greenCount, goldCount: goldCount, totalExist: totalExist };
 }
 
 function toggleSecurity(el) {
@@ -2033,7 +2144,7 @@ function renderProfile() {
             const seg = computeProgressSegments(lang, i) || {};
             aggGreen += seg.greenCount || 0;
             aggGold += seg.goldCount || 0;
-            aggTotal += seg.totalExist || 0;
+            aggTotal += seg.displayTotal || 0; // FIX: Usa il target (15) invece del totale DB
         }
     });
     const aggPercent = aggTotal ? Math.round(((aggGreen + aggGold) / aggTotal) * 100) : 0;
@@ -2135,7 +2246,7 @@ input, select, textarea { font-size: 16px !important; }
 
     
     let progHtml = '';
-    const totalQuestionsPerLevel = 15; 
+    const totalQuestionsPerLevel = 15; // 10 Base + 5 Gold
     
     // Variabile per contare i "Non studiati" totali per la barra superiore
     let totalMarkedNotStudied = 0;
@@ -2160,12 +2271,22 @@ input, select, textarea { font-size: 16px !important; }
             }
 
             const seg = computeProgressSegments(lang, i);
-            const totalForBar = seg.displayTotal || totalQuestionsPerLevel;
-            const wGreen = seg.greenPct;
-            const wGold = seg.goldPct;
-            const wRed = totalForBar ? (wrong / totalForBar) * 100 : 0;
-            const wBlue = totalForBar ? (markedNotStudied / totalForBar) * 100 : 0;
-            const percent = Math.round((seg.displayCurrent / (seg.displayTotal || totalQuestionsPerLevel)) * 100);
+            
+            // FIX: Ricalcoliamo le larghezze per includere gli errori senza sbordare
+            const currentGreen = seg.greenCount || 0;
+            const currentGold = seg.goldCount || 0;
+            const baseTotal = seg.displayTotal || totalQuestionsPerLevel;
+            
+            // Se la somma di tutto supera il totale base, usiamo la somma come nuovo 100%
+            const totalVolume = currentGreen + currentGold + wrong + markedNotStudied;
+            const denominator = Math.max(baseTotal, totalVolume);
+
+            const wGreen = (currentGreen / denominator) * 100;
+            const wGold = (currentGold / denominator) * 100;
+            const wRed = (wrong / denominator) * 100;
+            const wBlue = (markedNotStudied / denominator) * 100;
+            
+            const percent = Math.round((seg.displayCurrent / baseTotal) * 100);
 
             progHtml += `
             <div style="margin-bottom:10px">
@@ -2193,9 +2314,11 @@ input, select, textarea { font-size: 16px !important; }
 
     document.getElementById('content-area').innerHTML = noScrollStyle + `
 <div id="profile-scroll">
-        <div class="profile-container">
-            <div><strong>Nome:</strong> ${escapeHtml(u.name)}</div>
-            <div><strong>ID Utente:</strong> ${escapeHtml(u.userId)}</div>
+        <div class="profile-container" style="width:100%">
+            <div class="glass-card" style="padding:15px; margin-bottom:10px; flex-direction:row; justify-content:space-between; align-items:center;">
+                <div style="font-weight:700; font-size:16px">${escapeHtml(u.name)}</div>
+                <div style="font-size:12px; opacity:0.6; font-family:monospace">ID: ${escapeHtml(u.userId)}</div>
+            </div>
         </div>
 
         <!-- INSERIMENTO BOTTONE GOLD CARD -->
