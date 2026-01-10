@@ -47,7 +47,7 @@ const GoldCardManager = {
         // Se è Pink Mode, usiamo luce bianca/neutra per far risaltare il rosa.
         // Se è Gold Mode, usiamo luce dorata per massimizzare l'effetto oro.
         const isPink = userData.pinkMode;
-        const lightColor = isPink ? 0xfff5ea : 0xffd700; // Luce naturale calda per il rosa
+        const lightColor = isPink ? 0xffc0cb : 0xffd700; // Luce rosa per saturare il colore
 
         const mainLight = new THREE.DirectionalLight(lightColor, 1.0);
         mainLight.position.set(5, 5, 10);
@@ -274,7 +274,7 @@ const GoldCardManager = {
         const nameWidth = ctx.measureText(nameText).width;
         
         // FONT PIÙ GRANDE E ANNO
-        ctx.font = "italic 700 32px 'Helvetica Neue', sans-serif"; // Ingrandito per leggibilità
+        ctx.font = "italic 700 40px 'Helvetica Neue', sans-serif"; // Ingrandito ulteriormente
         ctx.fillStyle = isPink ? "#d4af37" : "#333333"; 
         
         // Estrazione Anno (es. da "05/24" -> "2024")
