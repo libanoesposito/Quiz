@@ -510,8 +510,11 @@ const GoldCardManager = {
                 const originalScale = this.cardGroup.scale.clone();
                 const originalRotation = this.cardGroup.rotation.clone(); // Backup rotazione
 
-                this.cardGroup.scale.multiplyScalar(0.01); 
-                this.cardGroup.rotation.z += Math.PI; // FIX: Ruota di 180° per correggere orientamento AR (Base in basso)
+                // FIX COMPLETO ORIENTAMENTO AR:
+                // 1. Scale(-0.01, 0.01, 0.01): Scala a dimensioni reali E inverte X per correggere l'effetto specchio
+                this.cardGroup.scale.set(-0.01, 0.01, 0.01); 
+                // 2. Ruota Z 180°: Corregge "testa in giù" (combinato con flip X risulta dritto e leggibile)
+                this.cardGroup.rotation.z += Math.PI; 
                 this.cardGroup.updateMatrixWorld();
 
                 const exporter = new THREE.USDZExporter();
