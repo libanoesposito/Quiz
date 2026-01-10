@@ -520,13 +520,14 @@ const GoldCardManager = {
                 const originalScale = this.cardGroup.scale.clone();
                 const originalRotation = this.cardGroup.rotation.clone(); // Backup rotazione
 
-                // FIX AR COMPLETO:
-                // 1. Scala X Negativa (-0.015): Corregge l'effetto specchio (riflette orizzontalmente)
-                // 2. Scala aumentata (0.015): Migliora la reattività alla rotazione (oggetto più "pesante")
-                this.cardGroup.scale.set(-0.015, 0.015, 0.015); 
+                // FIX AR DEFINITIVO:
+                // 1. Scala Z Negativa (-0.015): Corregge l'effetto specchio (Handedness) SENZA rendere l'oggetto invisibile
+                this.cardGroup.scale.set(0.015, 0.015, -0.015); 
                 
-                // 3. Rotazione Z 180: Corregge l'orientamento "a testa in giù"
-                this.cardGroup.rotation.set(0, 0, Math.PI);
+                // 2. Rotazione Combinata:
+                // - Z 180 (Math.PI): Corregge "Testa in giù"
+                // - Y 180 (Math.PI): Corregge "Fronte/Retro" (necessario dopo inversione Z)
+                this.cardGroup.rotation.set(0, Math.PI, Math.PI);
                 this.cardGroup.updateMatrixWorld();
 
                 const exporter = new THREE.USDZExporter();
