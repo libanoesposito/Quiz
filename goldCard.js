@@ -41,8 +41,8 @@ const GoldCardManager = {
 
         const isPink = userData.pinkMode;
 
-        // LUCI STUDIO: Aumentiamo l'ambiente per il Pink per evitare ombre "sporche"
-        const ambientIntensity = isPink ? 0.8 : 0.6;
+        // LUCI STUDIO: Riduciamo l'ambiente per il Pink per aumentare il contrasto e la saturazione
+        const ambientIntensity = isPink ? 0.4 : 0.6;
         const ambientLight = new THREE.AmbientLight(0xffffff, ambientIntensity);
         this.scene.add(ambientLight);
 
@@ -50,7 +50,9 @@ const GoldCardManager = {
         // Qualsiasi altra luce (gialla o rosa) altera la percezione del colore reale della texture.
         const lightColor = isPink ? 0xffffff : 0xffd700; 
 
-        const mainLight = new THREE.DirectionalLight(lightColor, 1.0);
+        // Riduciamo leggermente l'intensità della luce principale per il Pink per non "bruciare" il colore
+        const mainIntensity = isPink ? 0.8 : 1.0;
+        const mainLight = new THREE.DirectionalLight(lightColor, mainIntensity);
         mainLight.position.set(5, 5, 10);
         this.scene.add(mainLight);
 
@@ -115,10 +117,10 @@ const GoldCardManager = {
         const isPink = user.pinkMode;
 
         const materialGold = new THREE.MeshStandardMaterial({
-            color: isPink ? 0xcd7f92 : 0xffd700, // Rose Gold più scuro e intenso
+            color: isPink ? 0xb05d6e : 0xffd700, // Rose Gold ancora più scuro per il corpo
             // PER IL PINK: Riduciamo metalness per far vedere il colore "verniciato" e non solo il riflesso scuro
-            metalness: isPink ? 0.5 : 1.0,  
-            roughness: isPink ? 0.4 : 0.15, 
+            metalness: isPink ? 0.6 : 1.0,  
+            roughness: isPink ? 0.35 : 0.15, 
             side: THREE.DoubleSide
         });
 
@@ -190,9 +192,9 @@ const GoldCardManager = {
         // 1. SFONDO ORO UNIFORME (Identico al retro)
         const diagGrd = ctx.createLinearGradient(0, 0, 1024, 646);
         if (isPink) {
-            diagGrd.addColorStop(0, "#a3626b");   // Rose Darker
-            diagGrd.addColorStop(0.5, "#eeccd4"); // Rose Mid
-            diagGrd.addColorStop(1, "#945059");   // Rose Darkest
+            diagGrd.addColorStop(0, "#96505b");   // Deep Rose Dark
+            diagGrd.addColorStop(0.5, "#e6bbc5"); // Muted Rose Mid
+            diagGrd.addColorStop(1, "#85404b");   // Deep Rose Darkest
         } else {
             diagGrd.addColorStop(0, "#b88a4d");   // Bronzo scuro
             diagGrd.addColorStop(0.5, "#d4af37"); // Oro classico
@@ -303,9 +305,9 @@ const GoldCardManager = {
         // 1. SFONDO ORO (Identico al fronte)
         const grd = ctx.createLinearGradient(0, 0, 1024, 646);
         if (isPink) {
-            grd.addColorStop(0, "#a3626b");
-            grd.addColorStop(0.5, "#eeccd4");
-            grd.addColorStop(1, "#945059");
+            grd.addColorStop(0, "#96505b");
+            grd.addColorStop(0.5, "#e6bbc5");
+            grd.addColorStop(1, "#85404b");
         } else {
             grd.addColorStop(0, "#b88a4d");
             grd.addColorStop(0.5, "#d4af37");
