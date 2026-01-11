@@ -1991,13 +1991,6 @@ function next() {
                 playSound('gold');
             }
 
-            // 4. CONCORRI PER IL GOLD (Endgame + Lacune)
-            // Se siamo in Endgame, non siamo perfetti e ci sono ancora domande da fare
-            if (isEndgameReached() && uniqueCorrect.size < totalExist && !state.isPerfect) {
-                offerGoldRetry(lang, lvl);
-                return; // Esce per non cancellare i progressi
-            }
-
             // Ripristina stato di activeProgress e savedQuizzes per questo livello
             if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
             // MODIFICA: Non azzeriamo activeProgress qui. Rimane al massimo (es. 10) per mostrare la barra piena.
@@ -2515,22 +2508,6 @@ input, select, textarea { font-size: 16px !important; }
                 </div>
             </div>
         </div>
-
-        ${(isEndgameReached() && !state.isPerfect) ? (() => {
-            const candidate = getNextGoldCandidate();
-            if (!candidate) return '';
-            return `
-            <div class="glass-card" style="border:1px solid var(--gold-border); background:rgba(212,175,55,0.1); cursor:pointer" 
-                onclick="offerGoldRetry('${candidate.lang}', ${candidate.lvl})">
-                <div style="display:flex; justify-content:space-between; align-items:center">
-                    <div>
-                        <strong class="gold-glow-text">Concorri per il Gold</strong>
-                        <div style="font-size:11px; opacity:0.8">Completa ${candidate.lang} L${candidate.lvl}</div>
-                    </div>
-                    <div class="btn-apple" style="width:auto; margin:0; padding:8px 16px; font-size:13px; background:var(--gold-gradient); color:#000; font-weight:700">Vai →</div>
-                </div>
-            </div>`;
-        })() : ''}
 
       <div class="glass-card" id="card-prog" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
     <div style="font-weight:600">Progressi generali</div>
@@ -4018,115 +3995,4 @@ function closeGoldCardModal() {
     const modal = document.getElementById('gold-card-modal');
     if (modal) modal.style.display = 'none';
     GoldCardManager.dispose(); // Pulisce la memoria WebGL
-}
-
-function getNextGoldCandidate() {
-    const langs = Object.keys(domandaRepo);
-    for (const lang of langs) {
-        for (let i = 1; i <= 5; i++) {
-            if (i === 5) continue; // Skip L5 (linear)
-            const seg = computeProgressSegments(lang, i);
-            if ((state.progress[lang] || 0) >= i && (seg.greenCount + seg.goldCount) < seg.totalExist) {
-                return { lang: lang, lvl: i };
-            }
-        }
-    }
-    return null;
-}
-
-function offerGoldRetry(lang, lvl) {
-    openModal(
-        "Concorri per il Gold",
-        "Vuoi rimuovere le risposte errate e non studiate dai progressi per concentrarti solo su quelle corrette? Lo storico rimarrà intatto.",
-        () => {
-            const pin = state.currentPin;
-            const u = dbUsers[pin];
-            if (!u) return;
-
-            // Helper per archiviare
-            const archiveInArray = (arr) => {
-                if (Array.isArray(arr)) {
-                    arr.forEach(h => {
-                        if (Number(h.lvl || h.level || 0) === Number(lvl) && !h.ok) {
-                            h.archived = true;
-                        }
-                    });
-                }
-            };
-
-            // 1. Aggiorna state.history (che è la fonte di verità per saveMasterDB)
-            if (state.history) {
-                Object.keys(state.history).forEach(key => {
-                    if (key === lang || key.startsWith(lang + '_')) {
-                        archiveInArray(state.history[key]);
-                    }
-                });
-            }
-
-            // 2. Aggiorna dbUsers.history (per sicurezza immediata se referenziato altrove)
-            if (u.history) {
-                Object.keys(u.history).forEach(key => {
-                    if (key === lang || key.startsWith(lang + '_')) {
-                        archiveInArray(u.history[key]);
-                    }
-                });
-            }
-            
-            const sk = `${lang}_${lvl}`;
-            
-            // 3. Pulizia ActiveProgress e SavedQuizzes (State + DB)
-            // Fondamentale rimuovere da entrambi per evitare ripristini indesiderati
-            if (state.activeProgress) delete state.activeProgress[sk];
-            if (u.activeProgress) delete u.activeProgress[sk];
-            if (u.savedQuizzes) delete u.savedQuizzes[sk];
-
-            // 4. Salvataggio
-            saveMasterDB();
-            
-            // 5. Refresh UI
-            calcStats();
-            showHome(); // Ricarica la home per aggiornare le barre
-        }
-    );
-    setTimeout(() => {
-        const btnCancel = document.querySelector('#universal-modal .btn-cancel');
-        if(btnCancel) btnCancel.innerText = "Più tardi";
-        const btnConfirm = document.querySelector('#universal-modal .btn-destruct');
-        if(btnConfirm) btnConfirm.innerText = "Conferma";
-    }, 50);
-}
-
-function startGoldRetry(lang, lvl) {
-    const key = "L" + lvl;
-    const allQuestions = domandaRepo[lang][key];
-    if (!allQuestions) return;
-
-    const u = dbUsers[state.currentPin];
-    let historyAgg = [];
-    const keyLvl = `${lang}_${lvl}`;
-    if (u.history[keyLvl]) historyAgg = historyAgg.concat(u.history[keyLvl].filter(h => !h.archived));
-    if (u.history[lang]) historyAgg = historyAgg.concat(u.history[lang].filter(h => Number(h.lvl||h.level) === lvl && !h.archived));
-    
-    const uniqueCorrect = new Set(historyAgg.filter(h => h.ok).map(h => h.q));
-    const missing = allQuestions.filter(raw => !uniqueCorrect.has(raw.split('|')[0]));
-    
-    if (missing.length === 0) { showLevels(lang); return; }
-    
-    const selection = missing.map(r => {
-        const p = r.split("|");
-        let opts = [{ t: p[1], id: 0 }, { t: p[2], id: 1 }, { t: p[3], id: 2 }];
-        opts.sort(() => 0.5 - Math.random());
-        return { q: p[0], options: opts.map(o => o.t), correct: opts.findIndex(o => o.id === 0), exp: p[5] };
-    });
-    
-    const storageKey = `${lang}_${lvl}`;
-    if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
-    dbUsers[state.currentPin].savedQuizzes[storageKey] = selection;
-    if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
-    dbUsers[state.currentPin].activeProgress[storageKey] = 0;
-    
-    saveMasterDB();
-    
-    session = { lang: lang, lvl: lvl, q: selection, idx: 0, correctCount: 0, isGoldRound: false, isRetry: true, baseOffset: uniqueCorrect.size, totalExist: allQuestions.length };
-    renderQ();
 }
