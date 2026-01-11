@@ -1157,8 +1157,8 @@ function showLevels(lang) {
             // Aggrega storico sia dalle chiavi per-livello che dallo storico per lingua (utile per L5)
             let historyAgg = [];
             if (u && u.history) {
-                if (Array.isArray(u.history[key])) historyAgg = historyAgg.concat(u.history[key]);
-                if (Array.isArray(u.history[lang])) historyAgg = historyAgg.concat(u.history[lang].filter(h => Number(h.lvl || h.level || 0) === i));
+                if (Array.isArray(u.history[key])) historyAgg = historyAgg.concat(u.history[key].filter(h => !h.archived));
+                if (Array.isArray(u.history[lang])) historyAgg = historyAgg.concat(u.history[lang].filter(h => Number(h.lvl || h.level || 0) === i && !h.archived));
             }
             // MODIFICA: Contiamo i tentativi unici (risposte date) per la barra, e le corrette per il Gold
             const uniqueAttempts = new Set(historyAgg.map(h => h.q));
@@ -1268,31 +1268,30 @@ function startStep(lang, lvl) {
         const historyLang = state.history ? state.history[lang] || [] : [];
         const historyLivello = historyLang.filter(h => Number(h.lvl || h.level || 0) === lvl);
         const giaIndovinate = new Set(historyLivello.filter(h => h.ok).map(h => h.q));
+        const baseOffset = giaIndovinate.size; // Salviamo quante ne abbiamo già indovinate
 
         // 2. Filtriamo il database: se il livello è già superato, prendiamo solo le "nuove"
         const comp = state.progress[lang] || 0;
         let sorgente = [...stringhe];
-        // FIX ENDGAME: Avvia fase Gold solo se il livello è finito E siamo in Endgame (tutti i linguaggi finiti)
-        if (comp >= lvl && isEndgameReached()) {
-            // LOGICA RIGIDA: Prima le 10 base, poi le 5 gold.
-            const baseSet = stringhe.slice(0, 10);
-            const goldSet = stringhe.slice(10);
-            
-            // Contiamo quante delle base sono state indovinate
-            let baseCorrectCount = 0;
-            baseSet.forEach(s => { 
-                if (giaIndovinate.has(s.split('|')[0])) baseCorrectCount++; 
-            });
+        
+        // LOGICA RIGIDA: Prima le 10 base, poi le 5 gold.
+        const baseSet = stringhe.slice(0, 10);
+        const goldSet = stringhe.slice(10);
+        
+        // Contiamo quante delle base sono state indovinate
+        let baseCorrectCount = 0;
+        baseSet.forEach(s => { 
+            if (giaIndovinate.has(s.split('|')[0])) baseCorrectCount++; 
+        });
 
-            if (baseCorrectCount < 10) {
-                // Se mancano domande base, proponiamo SOLO quelle mancanti
-                sorgente = baseSet.filter(s => !giaIndovinate.has(s.split("|")[0]));
-                isGoldRound = false; // Forza barra verde (stato parziale)
-            } else {
-                // Se le base sono finite, proponiamo le gold mancanti
-                sorgente = goldSet.filter(s => !giaIndovinate.has(s.split("|")[0]));
-                if (sorgente.length > 0) isGoldRound = true; // Attiva barra gold
-            }
+        if (baseCorrectCount < 10) {
+            // Se mancano domande base, proponiamo SOLO quelle mancanti
+            sorgente = baseSet.filter(s => !giaIndovinate.has(s.split("|")[0]));
+            isGoldRound = false; // Forza barra verde (stato parziale)
+        } else {
+            // Se le base sono finite, proponiamo le gold mancanti
+            sorgente = goldSet.filter(s => !giaIndovinate.has(s.split("|")[0]));
+            if (sorgente.length > 0) isGoldRound = true; // Attiva barra gold
             
             // Fallback di sicurezza
             if (sorgente.length === 0) sorgente = stringhe.filter(s => !giaIndovinate.has(s.split("|")[0]));
@@ -1325,7 +1324,7 @@ function startStep(lang, lvl) {
         savedIdx = dbUsers[state.currentPin].activeProgress?.[storageKey] || 0;
     }
 
-    session = { lang: lang, lvl: lvl, q: selezione, idx: savedIdx, correctCount: 0, isGoldRound: isGoldRound };
+    session = { lang: lang, lvl: lvl, q: selezione, idx: savedIdx, correctCount: 0, isGoldRound: isGoldRound, baseOffset: baseOffset };
     saveMasterDB();
     renderQ();
 }
@@ -1668,7 +1667,10 @@ function renderQ() {
 
         // Fase Oro: Verde pieno, Oro avanza
         greenFill = 100;
-        goldFill = state.isPerfect ? 100 : (session.idx / session.q.length) * 100; 
+        // Calcolo avanzamento Gold basato sullo storico + sessione corrente
+        const goldCorrect = Math.max(0, (session.baseOffset || 0) - 10);
+        const currentGold = goldCorrect + session.idx;
+        goldFill = state.isPerfect ? 100 : (currentGold / 5) * 100; 
 
         htmlBar = `
         <div class="progress-split" style="height:8px; margin-bottom:15px; background:rgba(120,120,128,0.1); border-radius:8px; overflow:hidden;">
@@ -1681,13 +1683,10 @@ function renderQ() {
         </div>`;
     } else {
         // Barra classica per livelli standard o fase normale di livelli Gold
-        let progress = (session.idx / session.q.length) * 100;
+        // Calcolo basato su (già indovinate + corrente) / 10
+        const current = (session.baseOffset || 0) + session.idx;
+        let progress = (current / 10) * 100;
         
-        // FIX: Se il livello è già completato, la barra resta piena (100%)
-        if ((state.progress[session.lang] || 0) >= session.lvl) {
-            progress = 100;
-        }
-
         // Se è un livello Gold in fase normale, usiamo il verde per coerenza
         const barColor = (totalExist > 10) ? 'var(--apple-green)' : 'var(--accent)';
         htmlBar = `
@@ -1718,7 +1717,7 @@ function renderQ() {
 
      // Calcolo testo contatore dinamico
     let textCurrent = session.idx + 1;
-    let textTotal = 10; // Base
+    let textTotal = session.isGoldRound ? 15 : 10; // Base o Gold
     let counterStyle = "opacity:0.5"; // Stile standard
 
     if (session.isGoldRound) {
@@ -1726,10 +1725,10 @@ function renderQ() {
         textCurrent = 10 + session.idx + 1;
         textTotal = 15; // Target Gold
         counterStyle = "color:#d4af37; font-weight:bold; text-shadow:0 0 10px rgba(212,175,55,0.3)";
-    } else if (session.isRetry) {
+    } else {
+        // Fase Base (o Retry Base)
         textCurrent = (session.baseOffset || 0) + session.idx + 1;
-        textTotal = 15;
-        counterStyle = "color:#d4af37; font-weight:bold;";
+        // counterStyle resta standard
     }
 
     // FIX: Se l'utente è già Perfect (Gold), forziamo il contatore al massimo per evitare "16/15"
@@ -4072,8 +4071,8 @@ function startGoldRetry(lang, lvl) {
     const u = dbUsers[state.currentPin];
     let historyAgg = [];
     const keyLvl = `${lang}_${lvl}`;
-    if (u.history[keyLvl]) historyAgg = historyAgg.concat(u.history[keyLvl]);
-    if (u.history[lang]) historyAgg = historyAgg.concat(u.history[lang].filter(h => Number(h.lvl||h.level) === lvl));
+    if (u.history[keyLvl]) historyAgg = historyAgg.concat(u.history[keyLvl].filter(h => !h.archived));
+    if (u.history[lang]) historyAgg = historyAgg.concat(u.history[lang].filter(h => Number(h.lvl||h.level) === lvl && !h.archived));
     
     const uniqueCorrect = new Set(historyAgg.filter(h => h.ok).map(h => h.q));
     const missing = allQuestions.filter(raw => !uniqueCorrect.has(raw.split('|')[0]));
@@ -4094,6 +4093,10 @@ function startGoldRetry(lang, lvl) {
     dbUsers[state.currentPin].activeProgress[storageKey] = 0;
     
     saveMasterDB();
+    
+    session = { lang: lang, lvl: lvl, q: selection, idx: 0, correctCount: 0, isGoldRound: false, isRetry: true, baseOffset: uniqueCorrect.size, totalExist: allQuestions.length };
+    renderQ();
+}   saveMasterDB();
     
     session = { lang: lang, lvl: lvl, q: selection, idx: 0, correctCount: 0, isGoldRound: false, isRetry: true, baseOffset: uniqueCorrect.size, totalExist: allQuestions.length };
     renderQ();
