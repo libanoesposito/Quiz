@@ -1134,9 +1134,10 @@ function showLevels(lang) {
         if (state.mode === 'admin' || state.mode === 'guest') isLocked = false;
 
         // 2. RECUPERO PROGRESSI
-        let currentIdx = 0;
+        let currentIdx = null; // Default null per distinguere da 0
         if (state.mode === 'user' && dbUsers[state.currentPin]?.activeProgress) {
-            currentIdx = dbUsers[state.currentPin].activeProgress[`${lang}_${i}`] || 0;
+            const val = dbUsers[state.currentPin].activeProgress[`${lang}_${i}`];
+            if (val !== undefined) currentIdx = val;
         }
 
         let totalExist = 0;
@@ -1179,7 +1180,7 @@ function showLevels(lang) {
         if (totalExist < displayTotal) displayTotal = totalExist;
 
         // MODIFICA: La barra mostra sempre i tentativi (avanzamento), a meno che non siamo in sessione attiva
-        let displayCurrent = isGoldPhase ? userAttemptsUniques : (currentIdx > 0 ? currentIdx : Math.min(userAttemptsUniques, 10));
+        let displayCurrent = isGoldPhase ? userAttemptsUniques : (currentIdx !== null ? currentIdx : Math.min(userAttemptsUniques, 10));
 
         // Se l'utente è Perfect, forziamo il completamento visivo
         if (state.isPerfect) displayCurrent = displayTotal;
@@ -1299,6 +1300,10 @@ function startStep(lang, lvl) {
         if (state.mode === 'user') {
             if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
             dbUsers[state.currentPin].savedQuizzes[storageKey] = selezione;
+            
+            // FIX: Inizializza activeProgress a 0 per mostrare barra vuota nei livelli
+            if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
+            dbUsers[state.currentPin].activeProgress[storageKey] = 0;
         }
         // Pulizia meta per nuova sessione
         if (state.mode === 'user' && dbUsers[state.currentPin].quizMeta && dbUsers[state.currentPin].quizMeta[storageKey]) {
@@ -1768,9 +1773,12 @@ function restartLevel() {
     if (dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[sk];
     // Rimuove anche il marcatore Gold per ripartire dalla barra normale
     if (dbUsers[state.currentPin].quizMeta) delete dbUsers[state.currentPin].quizMeta[sk];
-    // FIX: Rimuove anche dallo state, altrimenti saveMasterDB lo ripristina
-    if (state.activeProgress) delete state.activeProgress[sk];
-    if (dbUsers[state.currentPin].activeProgress) delete dbUsers[state.currentPin].activeProgress[sk];
+    
+    // FIX: Imposta a 0 invece di cancellare, così showLevels sa che è un restart (barra vuota)
+    if (!state.activeProgress) state.activeProgress = {};
+    state.activeProgress[sk] = 0;
+    if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
+    dbUsers[state.currentPin].activeProgress[sk] = 0;
     
     saveMasterDB();
     startStep(l, v);
