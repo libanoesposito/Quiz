@@ -2122,7 +2122,7 @@ function computeProgressSegments(lang, level) {
     // comp indica quanti livelli completati per la lingua
     const comp = state.progress[lang] || 0;
     // FASE ORO: Attiva SOLO se Endgame raggiunto (tutti i linguaggi finiti) o utente perfetto
-    const isGoldPhase = isEndgameReached() || !!state.isPerfect || (userCorrect > baseline);
+    const isGoldPhase = isEndgameReached() || !!state.isPerfect || (userCorrect >= baseline);
 
     if (!isGoldPhase) {
         const greenCount = Math.min(userCorrect, baseline);
