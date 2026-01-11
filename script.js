@@ -2385,6 +2385,7 @@ input, select, textarea { font-size: 16px !important; }
                 <div style="position:relative; width:100%; height:14px; font-size:9px; font-weight:700; margin-bottom:0px">
                     ${(pctGreen > 0 && (pctBlue > 0 || pctRed > 0)) ? `<div style="position:absolute; left:${posGreen}%; transform:translateX(-50%); color:var(--apple-green); bottom:0;">${Math.round(posGreen)}%</div>` : ''}
                     ${(pctBlue > 0 && pctRed > 0) ? `<div style="position:absolute; left:${posBlue}%; transform:translateX(-50%); color:#0a84ff; bottom:0;">${Math.round(posBlue)}%</div>` : ''}
+                    ${(pctRed > 0) ? `<div style="position:absolute; left:${posRed}%; transform:translateX(-50%); color:#ff3b30; bottom:0;">${Math.round(posRed)}%</div>` : ''}
                 </div>
 
                 <div style="width:100%; height:8px; background:rgba(120,120,128,0.1); border-radius:6px; overflow:hidden; display:flex; margin-top:4px">
@@ -2741,16 +2742,32 @@ function renderRipasso() {
         </div>`;
     };
 
-    let html = `<div style="padding-bottom: 20px;">`;
+    let html = `<div style="padding-bottom: 20px; width:100%">`;
 
     if (ripasso.wrong.length) {
-        html += `<h3 style="font-size:14px; opacity:0.6; margin: 10px 0;">SBAGLIATE DI RECENTE</h3>`;
-        html += ripasso.wrong.map(d => createCard(d, 'wrong')).join('');
+        html += `
+        <div class="glass-card" onclick="toggleCard(this)" style="cursor:pointer">
+            <div style="font-weight:600; display:flex; justify-content:space-between; align-items:center">
+                <span>SBAGLIATE DI RECENTE</span>
+                <span style="font-size:12px; opacity:0.6; background:rgba(255,59,48,0.1); color:#ff3b30; padding:2px 8px; border-radius:10px">${ripasso.wrong.length}</span>
+            </div>
+            <div class="card-content" style="display:none; flex-direction:column; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">
+                ${ripasso.wrong.map(d => createCard(d, 'wrong')).join('')}
+            </div>
+        </div>`;
     }
 
     if (ripasso.notStudied.length) {
-        html += `<h3 style="font-size:14px; opacity:0.6; margin: 25px 0 10px 0;">DOMANDE "NON STUDIATE"</h3>`;
-        html += ripasso.notStudied.map(d => createCard(d, 'notStudied')).join('');
+        html += `
+        <div class="glass-card" onclick="toggleCard(this)" style="cursor:pointer">
+            <div style="font-weight:600; display:flex; justify-content:space-between; align-items:center">
+                <span>DOMANDE "NON STUDIATE"</span>
+                <span style="font-size:12px; opacity:0.6; background:rgba(10,132,255,0.1); color:#0a84ff; padding:2px 8px; border-radius:10px">${ripasso.notStudied.length}</span>
+            </div>
+            <div class="card-content" style="display:none; flex-direction:column; margin-top:15px; border-top:1px solid rgba(120,120,120,0.2); padding-top:15px;">
+                ${ripasso.notStudied.map(d => createCard(d, 'notStudied')).join('')}
+            </div>
+        </div>`;
     }
 
     html += `</div>`;
