@@ -1368,18 +1368,6 @@ function renderL5(lang, index = null) {
         return;
     }
 
-    // STOP 2: Se abbiamo finito le 10 Base ma non siamo in Endgame
-    // Nota: index 10 è la prima domanda Gold (11esima). Quindi se index >= 10 stop.
-    if (index >= 10 && !isEndgameReached() && !state.isPerfect && !state.isTester) {
-        container.innerHTML = `
-            <div class="glass-card" style="text-align:center; padding:40px;">
-                <h2 style="color:#34c759">Livello 5 Base Completato!</h2>
-                <p>Hai superato le 10 sfide base. Completa il livello 5 di <b>tutti i linguaggi</b> per sbloccare la fase Oro e le sfide avanzate.</p>
-                <button class="btn-apple" onclick="showLevels('${lang}')" style="margin-top:20px">Torna ai Livelli</button>
-            </div>`;
-        return;
-    }
-
     const sfida = sfide[index];
     
     // --- LOGICA BARRA E CONTATORE ---
@@ -1509,18 +1497,9 @@ function checkL5(lang, index) {
             }
 
             // CONTROLLO SUONI (Livello o Gold)
-            if (index === 9 || index === challenges5[lang].length - 1) {
-                // Se abbiamo finito il livello 5, controlliamo se siamo diventati Gold
-                if (!state.isPerfect) {
-                    const stats = calcStats();
-                    if (stats.isPerfect) {
-                        // Diventato Gold ora! (gestito nel blocco successivo)
-                    } else {
-                        playSound('level');
-                    }
-                } else {
-                    playSound('level');
-                }
+            if (index === 9) playSound('level');
+            if (index === 14 && !state.isPerfect) {
+                playSound('gold');
             }
 
             // STORICO
