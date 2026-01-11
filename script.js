@@ -2025,7 +2025,6 @@ function next() {
                 
                 session.q = selezioneRestante;
                 session.idx = 0;
-                session.correctCount = 0;
                 session.isGoldRound = true;
                 saveMasterDB();
                 renderQ();
