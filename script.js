@@ -376,6 +376,15 @@ window.onload = async () => {
             if (lastSection === 'levels' && lastLang) { showLevels(lastLang); return; }
             if (lastSection === 'admin') { renderAdminPanel(); return; }
             if (lastSection === 'classifica') { renderGlobalClassifica(); return; }
+            
+            if (lastSection === 'quiz') {
+                const qLang = localStorage.getItem('quizLang');
+                const qLvl = localStorage.getItem('quizLevel');
+                if (qLang && qLvl) {
+                    startStep(qLang, parseInt(qLvl));
+                    return;
+                }
+            }
 
             // Solo se NON esiste nulla da ripristinare
             showHome();
@@ -1241,6 +1250,8 @@ function showLevels(lang) {
 
 function startStep(lang, lvl) {
     localStorage.setItem('currentSection', 'quiz');
+    localStorage.setItem('quizLang', lang);
+    localStorage.setItem('quizLevel', lvl);
     history.pushState({ view: 'quiz' }, '', `#quiz-${lang}-${lvl}`);
     // Mostra sempre tasto esci
     updateNav(true, "showLevels('" + lang + "')");
@@ -1384,7 +1395,10 @@ function renderL5(lang, index = null) {
             <div class="glass-card" style="text-align:center; padding:40px;">
                 <h2 style="color:#34c759">🏆 Esame Completato!</h2>
                 <p>Hai superato tutte le sfide di programmazione per ${lang}.</p>
-                <button class="btn-apple" onclick="showLevels('${lang}')" style="margin-top:20px">Torna ai Livelli</button>
+                <div style="display:flex; gap:10px; margin-top:25px; justify-content:center">
+                    <button class="btn-apple" onclick="restartL5('${lang}')">Ricomincia</button>
+                    <button class="btn-apple btn-primary" onclick="showLevels('${lang}')">Torna ai Livelli</button>
+                </div>
             </div>`;
         return;
     }
@@ -1472,6 +1486,20 @@ ${htmlBar}
     `;
 }
 
+function restartL5(lang) {
+    const sk = `${lang}_5`;
+    if (state.mode === 'user') {
+        if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
+        dbUsers[state.currentPin].activeProgress[sk] = 0;
+        
+        // Pulizia extra per coerenza
+        if (dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[sk];
+        if (dbUsers[state.currentPin].quizMeta) delete dbUsers[state.currentPin].quizMeta[sk];
+        
+        saveMasterDB();
+    }
+    renderL5(lang, 0);
+}
 
 
 function checkL5(lang, index) {
@@ -1510,11 +1538,7 @@ function checkL5(lang, index) {
                 if (!dbUsers[state.currentPin].progress) dbUsers[state.currentPin].progress = {};
                 dbUsers[state.currentPin].progress[lang] = 5;
                 
-                // Se abbiamo finito tutto (ultima domanda), azzeriamo activeProgress
-                if (index === challenges5[lang].length - 1) {
-                    dbUsers[state.currentPin].activeProgress[storageKey] = 0;
-                    if (dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[storageKey];
-                }
+                // MODIFICA: Non azzeriamo activeProgress qui. Rimane al massimo per mostrare la schermata "Completato" se si rientra.
             }
 
             // CONTROLLO SUONI (Livello o Gold)
@@ -1749,7 +1773,7 @@ function renderQ() {
             ${data.options.map((o, i) => {
                 // Fix: escape anche backslash e newline per evitare SyntaxError
                 const safeOption = o.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n').replace(/\r/g, '');
-                return `<button id="btn-opt-${i}" class="btn-apple" onclick="check(${i === data.correct}, '${safeOption}')">${o}</button>`;
+                return `<button id="btn-opt-${i}" class="btn-apple" onclick="check(${i === data.correct}, '${safeOption}', ${i})">${o}</button>`;
             }).join('')}
         </div>
         <div id="fb"></div>
@@ -1825,7 +1849,7 @@ function markNotStudied(idx) {
     next();
 }
 
-function check(isOk, userAnsText) {
+function check(isOk, userAnsText, optIndex) {
     const data = session.q[session.idx];
     if(state.mode === 'user') {
         if(!state.history[session.lang]) state.history[session.lang] = [];
@@ -1890,6 +1914,11 @@ function check(isOk, userAnsText) {
     if (!isOk) {
         const correctBtn = document.getElementById(`btn-opt-${data.correct}`);
         if (correctBtn) correctBtn.classList.add('correct-highlight');
+        
+        if (optIndex !== undefined && optIndex !== null) {
+            const wrongBtn = document.getElementById(`btn-opt-${optIndex}`);
+            if (wrongBtn) wrongBtn.classList.add('wrong');
+        }
     }
 
     // Fix: check for elements existence to prevent crash during rapid navigation
@@ -1999,6 +2028,8 @@ function next() {
 function logout() {
     localStorage.removeItem('currentSection'); 
     localStorage.removeItem('currentLang');
+    localStorage.removeItem('quizLang');
+    localStorage.removeItem('quizLevel');
     // 1. Rimuove il PIN dalla memoria per evitare il login automatico al refresh
     localStorage.removeItem('sessionPin');
     
