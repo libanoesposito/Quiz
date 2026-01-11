@@ -1274,12 +1274,28 @@ function startStep(lang, lvl) {
         let sorgente = [...stringhe];
         // FIX ENDGAME: Avvia fase Gold solo se il livello è finito E siamo in Endgame (tutti i linguaggi finiti)
         if (comp >= lvl && isEndgameReached()) {
-            const rimanenti = stringhe.filter(s => !giaIndovinate.has(s.split("|")[0]));
-            if (rimanenti.length > 0) {
-                sorgente = rimanenti;
-                // Se stiamo caricando domande rimanenti e il totale supera 15, siamo nel round Gold
-                if (stringhe.length > 10) isGoldRound = true;
+            // LOGICA RIGIDA: Prima le 10 base, poi le 5 gold.
+            const baseSet = stringhe.slice(0, 10);
+            const goldSet = stringhe.slice(10);
+            
+            // Contiamo quante delle base sono state indovinate
+            let baseCorrectCount = 0;
+            baseSet.forEach(s => { 
+                if (giaIndovinate.has(s.split('|')[0])) baseCorrectCount++; 
+            });
+
+            if (baseCorrectCount < 10) {
+                // Se mancano domande base, proponiamo SOLO quelle mancanti
+                sorgente = baseSet.filter(s => !giaIndovinate.has(s.split("|")[0]));
+                isGoldRound = false; // Forza barra verde (stato parziale)
+            } else {
+                // Se le base sono finite, proponiamo le gold mancanti
+                sorgente = goldSet.filter(s => !giaIndovinate.has(s.split("|")[0]));
+                if (sorgente.length > 0) isGoldRound = true; // Attiva barra gold
             }
+            
+            // Fallback di sicurezza
+            if (sorgente.length === 0) sorgente = stringhe.filter(s => !giaIndovinate.has(s.split("|")[0]));
         }
 
         // 3. Mescoliamo e creiamo la selezione (massimo 10 per base)
@@ -2149,7 +2165,8 @@ function computeProgressSegments(lang, level) {
     // comp indica quanti livelli completati per la lingua
     const comp = state.progress[lang] || 0;
     // FASE ORO: Attiva SOLO se Endgame raggiunto (tutti i linguaggi finiti) o utente perfetto
-    const isGoldPhase = isEndgameReached() || !!state.isPerfect || (userCorrect >= baseline);
+    // MODIFICA: Attiva solo se abbiamo superato la baseline (10) o siamo già perfetti. Non basta l'endgame.
+    const isGoldPhase = !!state.isPerfect || (userCorrect >= baseline);
 
     if (!isGoldPhase) {
         const greenCount = Math.min(userCorrect, baseline);
@@ -4035,7 +4052,7 @@ function offerGoldRetry(lang, lvl) {
     );
     setTimeout(() => {
         const btnCancel = document.querySelector('#universal-modal .btn-cancel');
-        if(btnCancel) btnCancel.innerText = "Prova più tardi";
+        if(btnCancel) btnCancel.innerText = "Più tardi";
     }, 50);
 }
 
