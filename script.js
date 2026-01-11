@@ -834,7 +834,7 @@ async function registerUser() {
         localStorage.setItem('quiz_master_db', JSON.stringify(dbUsers));
 
         // --- FIX PER NON IMPALLARE IL SITO ---
-        currentUser = newUser;
+        state.currentUser = name;
         state.mode = 'user';           // Imposta il modo su user per sbloccare i tasti
         state.currentPin = pin;        // Associa il pin allo stato globale
         state.progress = {};           // Reset progressi locale per nuovo utente
