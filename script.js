@@ -1143,8 +1143,14 @@ function showLevels(lang) {
         let userCorrectUniques = 0;
         let userAttemptsUniques = 0;
 
-        if (domandaRepo[lang] && domandaRepo[lang]["L" + i]) {
-            totalExist = domandaRepo[lang]["L" + i].length;
+        // FIX: Gestione unificata L1-L4 (domandaRepo) e L5 (challenges5) per calcolo barra
+        let sourceArr = (domandaRepo[lang] && domandaRepo[lang]["L" + i]) ? domandaRepo[lang]["L" + i] : null;
+        if (i === 5 && typeof challenges5 !== 'undefined' && challenges5[lang]) {
+            sourceArr = challenges5[lang];
+        }
+
+        if (sourceArr) {
+            totalExist = sourceArr.length;
             const key = `${lang}_${i}`;
 
             const u = dbUsers[state.currentPin];
