@@ -919,7 +919,7 @@ const challenges5 = {
 { task: "Split stringa", logic: "'a,b,c'.split(',')", output: "['a','b','c']", userStatus: null },
 { task: "Join lista", logic: "','.join(['a','b'])", output: "a,b", userStatus: null },
 { task: "Controllo if semplice", logic: "if 5>3: print('ok')", output: "ok", userStatus: null },
-{ task: "While 1-3", logic: "i=1\nwhile i<=3: print(i); i+=1", output: "1\n2\n3", userStatus: null },
+{ task: "While 1-3", logic: "i=1\nwhile i<=3: print(i)\ni+=1", output: "1\n2\n3", userStatus: null },
 { task: "Funzione somma", logic: "def f(a,b): return a+b", output: "funzione", userStatus: null },
 { task: "Lambda x2", logic: "lambda x: x*2", output: "funzione", userStatus: null },
         { task: "Stampa numeri da 5 a 1", logic: "for i in range(5,0,-1): print(i)", output: "5\n4\n3\n2\n1", userStatus: null },
