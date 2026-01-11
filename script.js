@@ -1723,7 +1723,7 @@ function renderQ() {
         textTotal = totalExist;
     } else if (session.isRetry) {
         textCurrent = (session.baseOffset || 0) + session.idx + 1;
-        textTotal = session.totalExist || 15;
+        textTotal = 15;
         counterStyle = "color:#d4af37; font-weight:bold;";
     }
 
@@ -1935,7 +1935,7 @@ function next() {
             // 2. TRANSIZIONE ORO (Attiva dopo le 10 base)
             // FIX ENDGAME: Passa a Gold solo se Endgame raggiunto
             // FIX 15: Si ferma se abbiamo già raggiunto 15 domande (10+5)
-            if (greenComplete && isEndgameReached() && uniqueCorrect.size < 15 && uniqueCorrect.size < totalExist) {
+            if (greenComplete && uniqueCorrect.size < 15 && uniqueCorrect.size < totalExist) {
                 const allStrings = domandaRepo[lang][`L${lvl}`] || [];
                 const remaining = allStrings.filter(s => !uniqueCorrect.has(s.split('|')[0]));
                 const rimescolate = remaining.sort(() => 0.5 - Math.random());
@@ -1978,7 +1978,7 @@ function next() {
             // Salva lo stato aggiornato (progress, history, activeProgress)
             saveMasterDB();
         }
-        showLevels(session.lang); 
+        renderQ(); 
     }
 }
 
