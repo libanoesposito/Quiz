@@ -1321,13 +1321,16 @@ function startStep(lang, lvl) {
     }
 
     let savedIdx = 0;
+    let savedCorrect = 0; // FIX: Variabile per recuperare il conteggio corrette
     if (state.mode === 'user') {
         // Leggiamo sempre il progresso salvato. Se è 10 (livello finito), savedIdx sarà 10
         // e renderQ mostrerà la schermata "Livello Completato" invece della domanda 1.
         savedIdx = dbUsers[state.currentPin].activeProgress?.[storageKey] || 0;
+        // FIX: Recuperiamo anche quante ne ha indovinate in questa sessione specifica
+        savedCorrect = dbUsers[state.currentPin].quizSessionStats?.[storageKey]?.correctCount || 0;
     }
 
-    session = { lang: lang, lvl: lvl, q: selezione, idx: savedIdx, correctCount: 0, isGoldRound: isGoldRound, baseOffset: baseOffset };
+    session = { lang: lang, lvl: lvl, q: selezione, idx: savedIdx, correctCount: savedCorrect, isGoldRound: isGoldRound, baseOffset: baseOffset };
     saveMasterDB();
     renderQ();
 }
@@ -1747,12 +1750,9 @@ function renderQ() {
         textTotal = session.q.length;
     }
 
-    // FIX: Se l'utente è già Perfect (Gold), forziamo il contatore al massimo per evitare "16/15"
-    if (state.isPerfect) {
-        textCurrent = 15;
-        textTotal = 15;
-        counterStyle = "color:#d4af37; font-weight:bold; text-shadow:0 0 10px rgba(212,175,55,0.3)";
-    } else if (textCurrent > textTotal) {
+    // FIX RIMOSSO: Non forziamo 15/15 se l'utente sta rigiocando (sessione attiva).
+    // Mostriamo il progresso reale della sessione corrente.
+    if (textCurrent > textTotal) {
         // Safety cap
         textCurrent = textTotal;
     }
@@ -1792,6 +1792,8 @@ function restartLevel() {
     if (dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[sk];
     // Rimuove anche il marcatore Gold per ripartire dalla barra normale
     if (dbUsers[state.currentPin].quizMeta) delete dbUsers[state.currentPin].quizMeta[sk];
+    // FIX: Rimuove le statistiche della sessione (contatore corrette)
+    if (dbUsers[state.currentPin].quizSessionStats) delete dbUsers[state.currentPin].quizSessionStats[sk];
     
     // FIX: Imposta a 0 invece di cancellare, così showLevels sa che è un restart (barra vuota)
     if (!state.activeProgress) state.activeProgress = {};
@@ -1870,6 +1872,13 @@ function check(isOk, userAnsText, optIndex) {
             if (isOk) session.correctCount = (session.correctCount || 0) + 1;
         }
         
+        // FIX: SALVATAGGIO PERSISTENTE DEL CONTATORE SESSIONE
+        // Questo permette di ricaricare la pagina senza perdere il conto per il Gold Round
+        const storageKey = `${session.lang}_${session.lvl}`;
+        if (!dbUsers[state.currentPin].quizSessionStats) dbUsers[state.currentPin].quizSessionStats = {};
+        if (!dbUsers[state.currentPin].quizSessionStats[storageKey]) dbUsers[state.currentPin].quizSessionStats[storageKey] = {};
+        dbUsers[state.currentPin].quizSessionStats[storageKey].correctCount = session.correctCount;
+        
         // --- LOGICA GOLD ---
         // Se l'utente non è ancora gold, controlla se lo diventa
         if (!state.isPerfect) {
@@ -1890,7 +1899,6 @@ function check(isOk, userAnsText, optIndex) {
         // ---------------------------
         // Aggiorna progresso attivo (salva indice successivo) così la barra resta nello stato corretto
         try {
-            const storageKey = `${session.lang}_${session.lvl}`;
             if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
             dbUsers[state.currentPin].activeProgress[storageKey] = session.idx + 1;
         } catch (e) { /* ignore */ }
@@ -2018,6 +2026,8 @@ function next() {
             // MODIFICA: Non azzeriamo activeProgress qui. Rimane al massimo (es. 10) per mostrare la barra piena.
             // Verrà resettato solo entrando in una nuova sessione in startStep.
             if (dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[sk];
+            // Pulizia statistiche sessione al termine
+            if (dbUsers[state.currentPin].quizSessionStats) delete dbUsers[state.currentPin].quizSessionStats[sk];
             // Salva lo stato aggiornato (progress, history, activeProgress)
             saveMasterDB();
         }
