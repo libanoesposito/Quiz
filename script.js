@@ -3790,10 +3790,6 @@ async function renderGlobalClassifica() {
     const isUtentePerfetto = data.perfect > 0; 
     const isMe = doc.id === state.currentPin;
     const isMeAndPerfect = isMe && isUtentePerfetto;
-    if (isMe) {
-    state.isPerfect = isUtentePerfetto; 
-    initTheme(); 
-    }
 
     // Definiamo le classi e i colori in base allo stato
     let cardClass = "review-card";
