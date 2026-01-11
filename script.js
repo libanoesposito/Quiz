@@ -4033,10 +4033,28 @@ function offerGoldRetry(lang, lvl) {
         "Concorri per il Gold",
         "Vuoi rimuovere le risposte errate e non studiate dai progressi per concentrarti solo su quelle corrette? Lo storico rimarrà intatto.",
         () => {
-            // FIX: Modifichiamo state.history perché saveMasterDB sovrascrive dbUsers con state
+            const u = dbUsers[state.currentPin];
+            if (!u || !u.history) return;
+
+            // 1. Aggiorna TUTTE le occorrenze nello storico (sia array lingua 'HTML' che livello 'HTML_1')
+            Object.keys(u.history).forEach(key => {
+                // Controlla se la chiave riguarda questa lingua (es. "Python" o "Python_1")
+                if (key === lang || key.startsWith(lang + '_')) {
+                    const arr = u.history[key];
+                    if (Array.isArray(arr)) {
+                        arr.forEach(h => {
+                            // Archivia se corrisponde al livello E non è corretta (sbagliata o non studiata)
+                            if (Number(h.lvl || h.level || 0) === Number(lvl) && !h.ok) {
+                                h.archived = true;
+                            }
+                        });
+                    }
+                }
+            });
+
+            // 2. Sincronizza anche state.history per coerenza immediata
             if (state.history && state.history[lang]) {
                 state.history[lang].forEach(h => {
-                    // Archivia solo le risposte errate del livello corrente
                     if (Number(h.lvl || h.level || 0) === Number(lvl) && !h.ok) {
                         h.archived = true;
                     }
@@ -4052,6 +4070,10 @@ function offerGoldRetry(lang, lvl) {
             if (dbUsers[state.currentPin].activeProgress) delete dbUsers[state.currentPin].activeProgress[sk];
 
             saveMasterDB();
+            
+            // Forza ricalcolo statistiche per aggiornare subito le barre nel profilo
+            calcStats();
+            
             showHome();
         }
     );
