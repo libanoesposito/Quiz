@@ -974,7 +974,7 @@ const challenges5 = {
 { task: "Uppercase stringa", logic: "\"ciao\".toUpperCase()", output: "CIAO", userStatus: null },
 { task: "Lowercase stringa", logic: "\"CIAO\".toLowerCase()", output: "ciao", userStatus: null },
         { task: "Somma array {1,2,3}", logic: "int[] a={1,2,3}; int s=0; for(int x:a) s+=x; System.out.println(s);", output: "6", userStatus: null },
-        { task: "For each su {1,2}", logic: "for(int x: new int[]{1,2})", output: "loop", userStatus: null },
+        { task: "For each su {1,2}", logic: "for(int x: new int[]{1,2}) System.out.println(x);", output: "1\n2", userStatus: null },
 { task: "Boolean true", logic: "boolean x=true;", output: "true", userStatus: null },
 { task: "Confronto ==", logic: "a==b", output: "boolean", userStatus: null },
 { task: "Confronto !=", logic: "a!=b", output: "boolean", userStatus: null },
