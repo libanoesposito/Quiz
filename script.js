@@ -4034,26 +4034,51 @@ function startGoldRetry(lang, lvl) {
     if (u.history[keyLvl]) historyAgg = historyAgg.concat(u.history[keyLvl]);
     if (u.history[lang]) historyAgg = historyAgg.concat(u.history[lang].filter(h => Number(h.lvl||h.level) === lvl));
     
-    const uniqueCorrect = new Set(historyAgg.filter(h => h.ok).map(h => h.q));
-    const missing = allQuestions.filter(raw => !uniqueCorrect.has(raw.split('|')[0]));
-    
-    if (missing.length === 0) { showLevels(lang); return; }
-    
-    const selection = missing.map(r => {
-        const p = r.split("|");
-        let opts = [{ t: p[1], id: 0 }, { t: p[2], id: 1 }, { t: p[3], id: 2 }];
-        opts.sort(() => 0.5 - Math.random());
-        return { q: p[0], options: opts.map(o => o.t), correct: opts.findIndex(o => o.id === 0), exp: p[5] };
-    });
-    
-    const storageKey = `${lang}_${lvl}`;
-    if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
-    dbUsers[state.currentPin].savedQuizzes[storageKey] = selection;
-    if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
-    dbUsers[state.currentPin].activeProgress[storageKey] = 0;
-    
-    saveMasterDB();
-    
-    session = { lang: lang, lvl: lvl, q: selection, idx: 0, correctCount: 0, isGoldRound: false, isRetry: true, baseOffset: uniqueCorrect.size, totalExist: allQuestions.length };
-    renderQ();
+    // --- 1. Calcola domande già corrette ---
+const uniqueCorrect = new Set(historyAgg.filter(h => h.ok).map(h => h.q));
+
+// --- 2. Filtra solo le domande mancanti ---
+const missing = allQuestions.filter(raw => !uniqueCorrect.has(raw.split('|')[0]));
+if (missing.length === 0) { 
+    showLevels(lang); 
+    return; 
+}
+
+// --- 3. Crea la sessione solo con le mancanti ---
+const selection = missing.map(r => {
+    const p = r.split("|");
+    let opts = [{ t: p[1], id: 0 }, { t: p[2], id: 1 }, { t: p[3], id: 2 }];
+    opts.sort(() => 0.5 - Math.random());
+    return { 
+        q: p[0], 
+        options: opts.map(o => o.t), 
+        correct: opts.findIndex(o => o.id === 0), 
+        exp: p[5] 
+    };
+});
+
+// --- 4. Salva quiz e progressi come prima ---
+const storageKey = `${lang}_${lvl}`;
+if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
+dbUsers[state.currentPin].savedQuizzes[storageKey] = selection;
+if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
+dbUsers[state.currentPin].activeProgress[storageKey] = 0;
+
+saveMasterDB();
+
+// --- 5. Inizializza la sessione Gold Retry ---
+session = {
+    lang: lang,
+    lvl: lvl,
+    q: selection,                    // solo domande mancanti
+    idx: 0,                          // indice nella sessione
+    correctCount: uniqueCorrect.size,// conteggio corrette già ottenute
+    isGoldRound: false,
+    isRetry: true,
+    baseOffset: uniqueCorrect.size,  // per barre/numerazioni
+    totalExist: allQuestions.length  // totale domande livello
+};
+
+// --- 6. Renderizza le domande ---
+renderQ();
 }
