@@ -290,6 +290,13 @@ const TESTER_PIN = "1111";
 
 
 window.initApp = async () => {
+    // AUTENTICAZIONE ANONIMA (Necessaria per le regole di sicurezza Firebase)
+    try {
+        if (firebase.auth && !firebase.auth().currentUser) {
+            await firebase.auth().signInAnonymously();
+        }
+    } catch (e) { console.error("Errore Auth Anonima:", e); }
+
     const savedPinRaw = localStorage.getItem('sessionPin');
     
     // Pulizia estrema del valore recuperato
