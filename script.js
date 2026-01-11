@@ -1,4 +1,4 @@
-const firebaseConfig = {
+var firebaseConfig = {
   apiKey: "AIzaSyDw0pvrsSoMYjs3mQOp5rfpehMe-b5VgcU",
   authDomain: "quizmaster-d9834.firebaseapp.com",
   projectId: "quizmaster-d9834",
@@ -8,8 +8,10 @@ const firebaseConfig = {
 };
 
 // Inizializzazione Firebase (Assicurati di aver caricato gli script SDK nell'HTML)
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+var db = firebase.firestore();
 
 // Funzione di hashing per sicurezza PIN (SHA-256)
 async function sha256(message) {
