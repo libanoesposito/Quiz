@@ -1254,6 +1254,8 @@ function startStep(lang, lvl) {
     let isGoldRound = false;
 
     let selezione;
+    let isNewSession = false; // Flag per forzare l'inizio da 0 se generiamo nuove domande
+
     if (state.mode === 'user' && dbUsers[state.currentPin].savedQuizzes?.[storageKey] && Array.isArray(dbUsers[state.currentPin].savedQuizzes[storageKey]) && dbUsers[state.currentPin].savedQuizzes[storageKey].length > 0) {
         selezione = dbUsers[state.currentPin].savedQuizzes[storageKey];
         // FIX PERSISTENZA: Se carichiamo un quiz salvato, dobbiamo capire se era un round Gold
@@ -1317,11 +1319,15 @@ function startStep(lang, lvl) {
             if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
             dbUsers[state.currentPin].savedQuizzes[storageKey] = selezione;
         }
+        isNewSession = true; // Abbiamo creato nuove domande, quindi dobbiamo partire dall'inizio
     }
 
     let savedIdx = 0;
     if (state.mode === 'user') {
-        savedIdx = dbUsers[state.currentPin].activeProgress?.[storageKey] || 0;
+        // Se è una nuova sessione, ignoriamo activeProgress vecchio e partiamo da 0
+        if (!isNewSession) {
+            savedIdx = dbUsers[state.currentPin].activeProgress?.[storageKey] || 0;
+        }
     }
 
     session = { lang: lang, lvl: lvl, q: selezione, idx: savedIdx, correctCount: 0, isGoldRound: isGoldRound, baseOffset: baseOffset };
@@ -4033,48 +4039,53 @@ function offerGoldRetry(lang, lvl) {
         "Concorri per il Gold",
         "Vuoi rimuovere le risposte errate e non studiate dai progressi per concentrarti solo su quelle corrette? Lo storico rimarrà intatto.",
         () => {
-            const u = dbUsers[state.currentPin];
-            if (!u || !u.history) return;
+            const pin = state.currentPin;
+            const u = dbUsers[pin];
+            if (!u) return;
 
-            // 1. Aggiorna TUTTE le occorrenze nello storico (sia array lingua 'HTML' che livello 'HTML_1')
-            Object.keys(u.history).forEach(key => {
-                // Controlla se la chiave riguarda questa lingua (es. "Python" o "Python_1")
-                if (key === lang || key.startsWith(lang + '_')) {
-                    const arr = u.history[key];
-                    if (Array.isArray(arr)) {
-                        arr.forEach(h => {
-                            // Archivia se corrisponde al livello E non è corretta (sbagliata o non studiata)
-                            if (Number(h.lvl || h.level || 0) === Number(lvl) && !h.ok) {
-                                h.archived = true;
-                            }
-                        });
-                    }
+            // Helper per archiviare
+            const archiveInArray = (arr) => {
+                if (Array.isArray(arr)) {
+                    arr.forEach(h => {
+                        if (Number(h.lvl || h.level || 0) === Number(lvl) && !h.ok) {
+                            h.archived = true;
+                        }
+                    });
                 }
-            });
+            };
 
-            // 2. Sincronizza anche state.history per coerenza immediata
-            if (state.history && state.history[lang]) {
-                state.history[lang].forEach(h => {
-                    if (Number(h.lvl || h.level || 0) === Number(lvl) && !h.ok) {
-                        h.archived = true;
+            // 1. Aggiorna state.history (che è la fonte di verità per saveMasterDB)
+            if (state.history) {
+                Object.keys(state.history).forEach(key => {
+                    if (key === lang || key.startsWith(lang + '_')) {
+                        archiveInArray(state.history[key]);
+                    }
+                });
+            }
+
+            // 2. Aggiorna dbUsers.history (per sicurezza immediata se referenziato altrove)
+            if (u.history) {
+                Object.keys(u.history).forEach(key => {
+                    if (key === lang || key.startsWith(lang + '_')) {
+                        archiveInArray(u.history[key]);
                     }
                 });
             }
             
-            // Pulizia sessioni salvate per forzare nuove domande
             const sk = `${lang}_${lvl}`;
-            if (dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[sk];
             
-            // FIX: Delete from state
+            // 3. Pulizia ActiveProgress e SavedQuizzes (State + DB)
+            // Fondamentale rimuovere da entrambi per evitare ripristini indesiderati
             if (state.activeProgress) delete state.activeProgress[sk];
-            if (dbUsers[state.currentPin].activeProgress) delete dbUsers[state.currentPin].activeProgress[sk];
+            if (u.activeProgress) delete u.activeProgress[sk];
+            if (u.savedQuizzes) delete u.savedQuizzes[sk];
 
+            // 4. Salvataggio
             saveMasterDB();
             
-            // Forza ricalcolo statistiche per aggiornare subito le barre nel profilo
+            // 5. Refresh UI
             calcStats();
-            
-            showHome();
+            showHome(); // Ricarica la home per aggiornare le barre
         }
     );
     setTimeout(() => {
