@@ -1775,6 +1775,8 @@ function restartLevel() {
     
     // Rimuove il quiz salvato e i progressi attivi per forzare la generazione di nuove domande
     if (dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[sk];
+    // FIX: Rimuove anche dallo state, altrimenti saveMasterDB lo ripristina
+    if (state.activeProgress) delete state.activeProgress[sk];
     if (dbUsers[state.currentPin].activeProgress) delete dbUsers[state.currentPin].activeProgress[sk];
     
     saveMasterDB();
@@ -4029,30 +4031,36 @@ function getNextGoldCandidate() {
 
 function offerGoldRetry(lang, lvl) {
     openModal(
-        "Ottimizza Percorso",
+        "Concorri per il Gold",
         "Vuoi rimuovere le risposte errate e non studiate dai progressi per concentrarti solo su quelle corrette? Lo storico rimarrà intatto.",
         () => {
-            const u = dbUsers[state.currentPin];
-            if (u && u.history) {
-                // Pulisce storico lingua principale per questo livello
-                if (u.history[lang]) {
-                    u.history[lang].forEach(h => {
-                        if (Number(h.lvl || h.level || 0) === Number(lvl) && !h.ok) h.archived = true;
-                    });
-                }
-                // Pulisce storico chiave specifica livello
-                const key = `${lang}_${lvl}`;
-                if (u.history[key]) {
-                    u.history[key].forEach(h => { if (!h.ok) h.archived = true; });
-                }
-                saveMasterDB();
+            // FIX: Modifichiamo state.history perché saveMasterDB sovrascrive dbUsers con state
+            if (state.history && state.history[lang]) {
+                state.history[lang].forEach(h => {
+                    // Archivia solo le risposte errate del livello corrente
+                    if (Number(h.lvl || h.level || 0) === Number(lvl) && !h.ok) {
+                        h.archived = true;
+                    }
+                });
             }
+            
+            // Pulizia sessioni salvate per forzare nuove domande
+            const sk = `${lang}_${lvl}`;
+            if (dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[sk];
+            
+            // FIX: Delete from state
+            if (state.activeProgress) delete state.activeProgress[sk];
+            if (dbUsers[state.currentPin].activeProgress) delete dbUsers[state.currentPin].activeProgress[sk];
+
+            saveMasterDB();
             showHome();
         }
     );
     setTimeout(() => {
         const btnCancel = document.querySelector('#universal-modal .btn-cancel');
         if(btnCancel) btnCancel.innerText = "Più tardi";
+        const btnConfirm = document.querySelector('#universal-modal .btn-destruct');
+        if(btnConfirm) btnConfirm.innerText = "Conferma";
     }, 50);
 }
 
