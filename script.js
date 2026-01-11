@@ -1174,9 +1174,17 @@ function showLevels(lang) {
         const seg = computeProgressSegments(lang, i);
         seg.isGoldPhase = isGoldPhase; // Sincronizza visualizzazione
 
-        let displayTotal = isGoldPhase ? totalExist : 10;
+        // FIX: Il target visualizzato deve essere 15 (Gold) o 10 (Base), non il totale del DB (es. 40)
+        let displayTotal = isGoldPhase ? 15 : 10;
+        if (totalExist < displayTotal) displayTotal = totalExist;
+
         // MODIFICA: La barra mostra sempre i tentativi (avanzamento), a meno che non siamo in sessione attiva
         let displayCurrent = isGoldPhase ? userAttemptsUniques : (currentIdx > 0 ? currentIdx : Math.min(userAttemptsUniques, 10));
+
+        // Se l'utente è Perfect, forziamo il completamento visivo
+        if (state.isPerfect) displayCurrent = displayTotal;
+        // Altrimenti cappiamo al target visualizzato
+        else if (displayCurrent > displayTotal) displayCurrent = displayTotal;
 
         seg.displayCurrent = displayCurrent;
         seg.displayTotal = displayTotal;
