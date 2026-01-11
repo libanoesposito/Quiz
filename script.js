@@ -1322,6 +1322,7 @@ function startStep(lang, lvl) {
         const rimescolate = sorgente.sort(() => 0.5 - Math.random());
         selezione = rimescolate.slice(0, 10).map(r => {
             const p = r.split("|");
+            const correctIdx = parseInt(p[4], 10); // FIX: Legge l'indice corretto dal DB
             
             // Mescolamento opzioni (già risolto)
             let opts = [{ t: p[1], id: 0 }, { t: p[2], id: 1 }, { t: p[3], id: 2 }];
@@ -1330,7 +1331,7 @@ function startStep(lang, lvl) {
             return { 
                 q: p[0], 
                 options: opts.map(o => o.t), 
-                correct: opts.findIndex(o => o.id === 0), 
+                correct: opts.findIndex(o => o.id === correctIdx), // FIX: Confronta con l'indice reale
                 exp: p[5] 
             };
         });
@@ -1522,7 +1523,7 @@ function checkL5(lang, index) {
     const cleanUser = userCode.replace(/\s+/g, '');
     const cleanLogic = sfida.logic.replace(/\s+/g, '');
 
-    if (cleanUser.includes(cleanLogic)) {
+    if (cleanUser === cleanLogic) {
         // --- CASO SUCCESSO ---
         consoleRes.innerText = sfida.output;
         consoleRes.style.color = "#34c759";
@@ -1968,9 +1969,10 @@ function next() {
                 const rimescolate = remaining.sort(() => 0.5 - Math.random());
                 const selezioneRestante = rimescolate.slice(0, 5).map(r => { // GOLD: 5 Domande
                     const p = r.split('|');
+                    const correctIdx = parseInt(p[4], 10); // FIX: Legge l'indice corretto dal DB
                     let opts = [{ t: p[1], id: 0 }, { t: p[2], id: 1 }, { t: p[3], id: 2 }];
                     opts.sort(() => 0.5 - Math.random());
-                    return { q: p[0], options: opts.map(o => o.t), correct: opts.findIndex(o => o.id === 0), exp: p[5] };
+                    return { q: p[0], options: opts.map(o => o.t), correct: opts.findIndex(o => o.id === correctIdx), exp: p[5] };
                 });
 
                 if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
