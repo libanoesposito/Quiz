@@ -1256,6 +1256,12 @@ function startStep(lang, lvl) {
     let selezione;
     let isNewSession = false; // Flag per forzare l'inizio da 0 se generiamo nuove domande
 
+    // FIX: Calcoliamo baseOffset e giaIndovinate QUI, fuori dall'if/else, così sono visibili ovunque
+    const historyLang = state.history ? state.history[lang] || [] : [];
+    const historyLivello = historyLang.filter(h => Number(h.lvl || h.level || 0) === lvl);
+    const giaIndovinate = new Set(historyLivello.filter(h => h.ok).map(h => h.q));
+    const baseOffset = giaIndovinate.size; 
+
     if (state.mode === 'user' && dbUsers[state.currentPin].savedQuizzes?.[storageKey] && Array.isArray(dbUsers[state.currentPin].savedQuizzes[storageKey]) && dbUsers[state.currentPin].savedQuizzes[storageKey].length > 0) {
         selezione = dbUsers[state.currentPin].savedQuizzes[storageKey];
         // FIX PERSISTENZA: Se carichiamo un quiz salvato, dobbiamo capire se era un round Gold
@@ -1266,12 +1272,6 @@ function startStep(lang, lvl) {
              isGoldRound = true;
         }
     } else {
-        // 1. Identifichiamo le domande già indovinate per non ripeterle nella fase Oro
-        const historyLang = state.history ? state.history[lang] || [] : [];
-        const historyLivello = historyLang.filter(h => Number(h.lvl || h.level || 0) === lvl);
-        const giaIndovinate = new Set(historyLivello.filter(h => h.ok).map(h => h.q));
-        const baseOffset = giaIndovinate.size; // Salviamo quante ne abbiamo già indovinate
-
         // 2. Filtriamo il database: se il livello è già superato, prendiamo solo le "nuove"
         const comp = state.progress[lang] || 0;
         let sorgente = [...stringhe];
