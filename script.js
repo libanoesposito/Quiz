@@ -1272,32 +1272,15 @@ function startStep(lang, lvl) {
              isGoldRound = true;
         }
     } else {
-        // 2. Filtriamo il database: se il livello è già superato, prendiamo solo le "nuove"
-        const comp = state.progress[lang] || 0;
-        let sorgente = [...stringhe];
+        // 2. Filtriamo il database: prendiamo TUTTE le domande non ancora indovinate
+        // Questo permette di pescare dal pool di 40 domande senza blocchi
+        let sorgente = stringhe.filter(s => !giaIndovinate.has(s.split("|")[0]));
         
-        // LOGICA RIGIDA: Prima le 10 base, poi le 5 gold.
-        const baseSet = stringhe.slice(0, 10);
-        const goldSet = stringhe.slice(10);
-        
-        // Contiamo quante delle base sono state indovinate
-        let baseCorrectCount = 0;
-        baseSet.forEach(s => { 
-            if (giaIndovinate.has(s.split('|')[0])) baseCorrectCount++; 
-        });
+        // Se le abbiamo finite tutte, ricarichiamo tutto (fallback)
+        if (sorgente.length === 0) sorgente = [...stringhe];
 
-        if (baseCorrectCount < 10) {
-            // Se mancano domande base, proponiamo SOLO quelle mancanti
-            sorgente = baseSet.filter(s => !giaIndovinate.has(s.split("|")[0]));
-            isGoldRound = false; // Forza barra verde (stato parziale)
-        } else {
-            // Se le base sono finite, proponiamo le gold mancanti
-            sorgente = goldSet.filter(s => !giaIndovinate.has(s.split("|")[0]));
-            if (sorgente.length > 0) isGoldRound = true; // Attiva barra gold
-            
-            // Fallback di sicurezza
-            if (sorgente.length === 0) sorgente = stringhe.filter(s => !giaIndovinate.has(s.split("|")[0]));
-        }
+        // In una nuova sessione (Restart), partiamo sempre dalla fase Base
+        isGoldRound = false; 
 
         // 3. Mescoliamo e creiamo la selezione (massimo 10 per base)
         const rimescolate = sorgente.sort(() => 0.5 - Math.random());
@@ -1673,10 +1656,8 @@ function renderQ() {
 
         // Fase Oro: Verde pieno, Oro avanza
         greenFill = 100;
-        // Calcolo avanzamento Gold basato sullo storico + sessione corrente
-        const goldCorrect = Math.max(0, (session.baseOffset || 0) - 10);
-        const currentGold = goldCorrect + session.idx;
-        goldFill = state.isPerfect ? 100 : (currentGold / 5) * 100; 
+        // MODIFICA: Avanzamento Gold basato ESCLUSIVAMENTE sulla sessione corrente (0-5)
+        goldFill = state.isPerfect ? 100 : (session.idx / 5) * 100; 
 
         htmlBar = `
         <div class="progress-split" style="height:8px; margin-bottom:15px; background:rgba(120,120,128,0.1); border-radius:8px; overflow:hidden;">
@@ -1689,9 +1670,11 @@ function renderQ() {
         </div>`;
     } else {
         // Barra classica per livelli standard o fase normale di livelli Gold
-        // Calcolo basato su (già indovinate + corrente) / 10
-        const current = (session.baseOffset || 0) + session.idx;
-        let progress = (current / 10) * 100;
+        // MODIFICA: Calcolo relativo alla sessione corrente (es. 1/4 se restano 4 domande)
+        // Questo soddisfa la richiesta "la barra deve azzerarsi" al ricominciare
+        const totalInSession = session.q.length;
+        const currentInSession = session.idx;
+        let progress = (currentInSession / totalInSession) * 100;
         
         // Se è un livello Gold in fase normale, usiamo il verde per coerenza
         const barColor = (totalExist > 10) ? 'var(--apple-green)' : 'var(--accent)';
@@ -1732,9 +1715,9 @@ function renderQ() {
         textTotal = 15; // Target Gold
         counterStyle = "color:#d4af37; font-weight:bold; text-shadow:0 0 10px rgba(212,175,55,0.3)";
     } else {
-        // Fase Base (o Retry Base)
-        textCurrent = (session.baseOffset || 0) + session.idx + 1;
-        // counterStyle resta standard
+        // Fase Base (o Retry Base): Mostra progresso relativo alla sessione (es. 1/4)
+        textCurrent = session.idx + 1;
+        textTotal = session.q.length;
     }
 
     // FIX: Se l'utente è già Perfect (Gold), forziamo il contatore al massimo per evitare "16/15"
@@ -1941,9 +1924,6 @@ function next() {
             if (domandaRepo[lang] && domandaRepo[lang][`L${lvl}`]) totalExist = domandaRepo[lang][`L${lvl}`].length; 
 
             const baseline = 10; // Base completamento
-            // Green Complete: sessione baseline finita con successo
-            const wasBaseline = session.q && session.q.length === baseline;
-            const greenComplete = wasBaseline && session.correctCount === session.q.length;
 
             // 1. COMPLETAMENTO VERDE (Sblocco Livello + Suono Level)
             // MODIFICA: Il livello si completa SEMPRE se il quiz è finito (session.idx >= length),
@@ -1961,9 +1941,9 @@ function next() {
             }
 
             // 2. TRANSIZIONE ORO (Attiva dopo le 10 base)
-            // FIX ENDGAME: Passa a Gold solo se Endgame raggiunto
-            // FIX 15: Si ferma se abbiamo già raggiunto 15 domande (10+5)
-            if (greenComplete && uniqueCorrect.size < 15 && uniqueCorrect.size < totalExist) {
+            // MODIFICA: Trigger Gold basato su 10 risposte corrette NELLA SESSIONE CORRENTE
+            // "sempre 10 corrette deve dare per far comparire la barra per il gold"
+            if (session.correctCount >= 10 && !session.isGoldRound) {
                 const allStrings = domandaRepo[lang][`L${lvl}`] || [];
                 const remaining = allStrings.filter(s => !uniqueCorrect.has(s.split('|')[0]));
                 const rimescolate = remaining.sort(() => 0.5 - Math.random());
