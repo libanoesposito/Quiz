@@ -1753,10 +1753,16 @@ function renderQ() {
 
 // Funzione per ricominciare il livello da zero
 function restartLevel() {
-    session.idx = 0;
-    session.correctCount = 0;
+    const l = session.lang;
+    const v = session.lvl;
+    const sk = `${l}_${v}`;
+    
+    // Rimuove il quiz salvato e i progressi attivi per forzare la generazione di nuove domande
+    if (dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[sk];
+    if (dbUsers[state.currentPin].activeProgress) delete dbUsers[state.currentPin].activeProgress[sk];
+    
     saveMasterDB();
-    renderQ();
+    startStep(l, v);
 }
 
 function markNotStudied(idx) {
@@ -4014,7 +4020,7 @@ function offerGoldRetry(lang, lvl) {
                 // Pulisce storico lingua principale per questo livello
                 if (u.history[lang]) {
                     u.history[lang].forEach(h => {
-                        if (Number(h.lvl || h.level) === lvl && !h.ok) h.archived = true;
+                        if (Number(h.lvl || h.level || 0) === Number(lvl) && !h.ok) h.archived = true;
                     });
                 }
                 // Pulisce storico chiave specifica livello
