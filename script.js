@@ -4096,8 +4096,4 @@ function startGoldRetry(lang, lvl) {
     
     session = { lang: lang, lvl: lvl, q: selection, idx: 0, correctCount: 0, isGoldRound: false, isRetry: true, baseOffset: uniqueCorrect.size, totalExist: allQuestions.length };
     renderQ();
-}   saveMasterDB();
-    
-    session = { lang: lang, lvl: lvl, q: selection, idx: 0, correctCount: 0, isGoldRound: false, isRetry: true, baseOffset: uniqueCorrect.size, totalExist: allQuestions.length };
-    renderQ();
 }
