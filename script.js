@@ -2383,9 +2383,9 @@ input, select, textarea { font-size: 16px !important; }
                 
                 <!-- Etichette percentuali sopra la barra (tranne l'ultima se arriva al 100%) -->
                 <div style="position:relative; width:100%; height:14px; font-size:9px; font-weight:700; margin-bottom:0px">
-                    ${(pctGreen > 0 && (pctBlue > 0 || pctRed > 0)) ? `<div style="position:absolute; left:${posGreen}%; transform:translateX(-50%); color:var(--apple-green); bottom:0;">${Math.round(posGreen)}%</div>` : ''}
-                    ${(pctBlue > 0 && pctRed > 0) ? `<div style="position:absolute; left:${posBlue}%; transform:translateX(-50%); color:#0a84ff; bottom:0;">${Math.round(posBlue)}%</div>` : ''}
-                    ${(pctRed > 0) ? `<div style="position:absolute; left:${posRed}%; transform:translateX(-50%); color:#ff3b30; bottom:0;">${Math.round(posRed)}%</div>` : ''}
+                    ${(pctGreen > 0 && (pctBlue > 0 || pctRed > 0)) ? `<div style="position:absolute; left:${posGreen}%; transform:translateX(${posGreen > 85 ? '-100%' : '-50%'}); color:var(--apple-green); bottom:0;">${Math.round(posGreen)}%</div>` : ''}
+                    ${(pctBlue > 0 && pctRed > 0) ? `<div style="position:absolute; left:${posBlue}%; transform:translateX(${posBlue > 85 ? '-100%' : '-50%'}); color:#0a84ff; bottom:0;">${Math.round(posBlue)}%</div>` : ''}
+                    ${(pctRed > 0) ? `<div style="position:absolute; left:${posRed}%; transform:translateX(${posRed > 85 ? '-100%' : '-50%'}); color:#ff3b30; bottom:0;">${Math.round(posRed)}%</div>` : ''}
                 </div>
 
                 <div style="width:100%; height:8px; background:rgba(120,120,128,0.1); border-radius:6px; overflow:hidden; display:flex; margin-top:4px">
