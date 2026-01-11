@@ -3859,7 +3859,7 @@ async function renderGlobalClassifica() {
                     ${data.name} ${crown}
                 </div>
                 <div style="display:inline-block; margin-top:4px; padding: 2px 8px; background: rgba(255,255,255,0.1); border-radius: 20px; font-size:10px; font-weight:700; text-transform:uppercase; color:${isMeAndPerfect ? '#bf953f' : 'rgba(255,255,255,0.6)'}">
-                    ${data.perfect || 0} PERFETTI
+                    ${data.perfect || 0} PERFETTE
                 </div>
             </div>
         </div>
