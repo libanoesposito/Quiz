@@ -178,12 +178,10 @@ function triggerGoldTransition() {
     document.body.appendChild(overlay);
 
     // Cambia il tema a metà dell'esplosione (quando lo schermo è coperto)
-    setTimeout(() => { initTheme(); }, 800); 
     // Cambia il tema quando lo schermo è completamente sfocato (circa 1s)
     setTimeout(() => { initTheme(); }, 1000); 
 
     // Rimuovi overlay alla fine
-    setTimeout(() => { overlay.remove(); }, 3500);
     setTimeout(() => { overlay.remove(); }, 3100);
 }
 
@@ -351,8 +349,6 @@ window.onload = async () => {
                 state.history = cloudUser.history || {};
                 state.ripasso = cloudUser.ripasso || { wrong: [], notStudied: [] };
                 state.activeProgress = cloudUser.activeProgress || {};
-
-                               state.activeProgress = cloudUser.activeProgress || {};
 
                                 // --- GESTIONE TEMA (Logica Unificata) ---
                 const stats = calcStats(); 
@@ -1676,7 +1672,13 @@ function renderQ() {
         </div>`;
     } else {
         // Barra classica per livelli standard o fase normale di livelli Gold
-        const progress = (session.idx / session.q.length) * 100;
+        let progress = (session.idx / session.q.length) * 100;
+        
+        // FIX: Se il livello è già completato, la barra resta piena (100%)
+        if ((state.progress[session.lang] || 0) >= session.lvl) {
+            progress = 100;
+        }
+
         // Se è un livello Gold in fase normale, usiamo il verde per coerenza
         const barColor = (totalExist > 10) ? 'var(--apple-green)' : 'var(--accent)';
         htmlBar = `
@@ -1687,6 +1689,23 @@ function renderQ() {
 
     const container = document.getElementById('content-area');
     if (!container) return;
+
+    // GESTIONE LIVELLO COMPLETATO (Barra Piena)
+    if (session.idx >= session.q.length) {
+        container.innerHTML = `
+            <div class="glass-card" style="text-align:center; padding:30px;">
+                <h2 style="color:var(--apple-green); margin-bottom:10px">Livello Completato!</h2>
+                <div style="width:100%; height:6px; background:rgba(120,120,128,0.1); border-radius:10px; margin:20px 0; overflow:hidden">
+                    <div style="width:100%; height:100%; background:var(--apple-green); border-radius:10px"></div>
+                </div>
+                <p style="opacity:0.8; font-size:14px">Hai risposto a tutte le domande di questa sessione.</p>
+                <div style="display:flex; gap:10px; margin-top:25px; justify-content:center">
+                    <button class="btn-apple" onclick="restartLevel()">Ricomincia</button>
+                    <button class="btn-apple btn-primary" onclick="showLevels('${session.lang}')">Torna ai livelli</button>
+                </div>
+            </div>`;
+        return;
+    }
 
      // Calcolo testo contatore dinamico
     let textCurrent = session.idx + 1;
@@ -1702,6 +1721,10 @@ function renderQ() {
         // Se Tester Perfetto, mostra sempre il totale assoluto del livello (es. 20/20)
         textCurrent = totalExist;
         textTotal = totalExist;
+    } else if (session.isRetry) {
+        textCurrent = (session.baseOffset || 0) + session.idx + 1;
+        textTotal = session.totalExist || 15;
+        counterStyle = "color:#d4af37; font-weight:bold;";
     }
 
     // Intestazione Livello
@@ -1727,6 +1750,14 @@ function renderQ() {
         <div style="margin-top:10px; text-align:right">
             <button class="btn-apple btn-info" onclick="markNotStudied(${session.idx})">Non l'ho studiato</button>
         </div>`;
+}
+
+// Funzione per ricominciare il livello da zero
+function restartLevel() {
+    session.idx = 0;
+    session.correctCount = 0;
+    saveMasterDB();
+    renderQ();
 }
 
 function markNotStudied(idx) {
@@ -1932,9 +1963,17 @@ function next() {
                 playSound('gold');
             }
 
+            // 4. CONCORRI PER IL GOLD (Endgame + Lacune)
+            // Se siamo in Endgame, non siamo perfetti e ci sono ancora domande da fare
+            if (isEndgameReached() && uniqueCorrect.size < totalExist && !state.isPerfect) {
+                offerGoldRetry(lang, lvl);
+                return; // Esce per non cancellare i progressi
+            }
+
             // Ripristina stato di activeProgress e savedQuizzes per questo livello
             if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
-            dbUsers[state.currentPin].activeProgress[sk] = 0;
+            // MODIFICA: Non azzeriamo activeProgress qui. Rimane al massimo (es. 10) per mostrare la barra piena.
+            // Verrà resettato solo entrando in una nuova sessione in startStep.
             if (dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[sk];
             // Salva lo stato aggiornato (progress, history, activeProgress)
             saveMasterDB();
@@ -2311,13 +2350,29 @@ input, select, textarea { font-size: 16px !important; }
             
             // Aggiorna il contatore globale per la barra superiore (sommario)
             totalMarkedNotStudied += countBlue;
+
+            // LOGICA 100% FISSO PER LIVELLI COMPLETATI
+            // Se il livello è completato nel progresso utente, la barra deve essere piena (target = somma elementi)
+            const isLevelDone = (u.progress[lang] || 0) >= i;
+            const totalCount = countGreen + countBlue + countRed;
+            let target = 15; // Target standard
+
+            if (isLevelDone) {
+                // Se completato, il target diventa esattamente quello che abbiamo, così la somma fa 100%
+                target = totalCount > 0 ? totalCount : 1;
+            }
             
-            const target = 15; // Target fisso per livello
             const pctGreen = Math.min((countGreen / target) * 100, 100);
             const pctBlue = Math.min((countBlue / target) * 100, 100 - pctGreen);
             const pctRed = Math.min((countRed / target) * 100, 100 - pctGreen - pctBlue);
             
-            const totalPercent = Math.min(Math.round(((countGreen + countBlue + countRed) / target) * 100), 100);
+            // Percentuale totale visualizzata nel testo (se completato forza 100%)
+            const totalPercent = isLevelDone ? 100 : Math.min(Math.round(((countGreen + countBlue + countRed) / target) * 100), 100);
+
+            // Posizioni cumulative per le etichette (fine di ogni barra)
+            const posGreen = pctGreen;
+            const posBlue = pctGreen + pctBlue;
+            const posRed = pctGreen + pctBlue + pctRed;
 
             progHtml += `
             <div style="margin-bottom:10px">
@@ -2325,6 +2380,13 @@ input, select, textarea { font-size: 16px !important; }
                     <span>Livello ${i}</span>
                     <span style="opacity:0.7">${totalPercent}%</span>
                 </div>
+                
+                <!-- Etichette percentuali sopra la barra (tranne l'ultima se arriva al 100%) -->
+                <div style="position:relative; width:100%; height:14px; font-size:9px; font-weight:700; margin-bottom:0px">
+                    ${(pctGreen > 0 && (pctBlue > 0 || pctRed > 0)) ? `<div style="position:absolute; left:${posGreen}%; transform:translateX(-50%); color:var(--apple-green); bottom:0;">${Math.round(posGreen)}%</div>` : ''}
+                    ${(pctBlue > 0 && pctRed > 0) ? `<div style="position:absolute; left:${posBlue}%; transform:translateX(-50%); color:#0a84ff; bottom:0;">${Math.round(posBlue)}%</div>` : ''}
+                </div>
+
                 <div style="width:100%; height:8px; background:rgba(120,120,128,0.1); border-radius:6px; overflow:hidden; display:flex; margin-top:4px">
                     <div style="width:${pctGreen}%; height:100%; background:var(--apple-green)"></div>
                     <div style="width:${pctBlue}%; height:100%; background:#0a84ff"></div>
@@ -2415,6 +2477,22 @@ input, select, textarea { font-size: 16px !important; }
                 </div>
             </div>
         </div>
+
+        ${(isEndgameReached() && !state.isPerfect) ? (() => {
+            const candidate = getNextGoldCandidate();
+            if (!candidate) return '';
+            return `
+            <div class="glass-card" style="border:1px solid var(--gold-border); background:rgba(212,175,55,0.1); cursor:pointer" 
+                onclick="offerGoldRetry('${candidate.lang}', ${candidate.lvl})">
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <div>
+                        <strong class="gold-glow-text">Concorri per il Gold</strong>
+                        <div style="font-size:11px; opacity:0.8">Completa ${candidate.lang} L${candidate.lvl}</div>
+                    </div>
+                    <div class="btn-apple" style="width:auto; margin:0; padding:8px 16px; font-size:13px; background:var(--gold-gradient); color:#000; font-weight:700">Vai →</div>
+                </div>
+            </div>`;
+        })() : ''}
 
       <div class="glass-card" id="card-prog" onclick="toggleGeneralProgress(this)" style="cursor:pointer">
     <div style="font-weight:600">Progressi generali</div>
@@ -3886,4 +3964,73 @@ function closeGoldCardModal() {
     const modal = document.getElementById('gold-card-modal');
     if (modal) modal.style.display = 'none';
     GoldCardManager.dispose(); // Pulisce la memoria WebGL
+}
+
+function getNextGoldCandidate() {
+    const langs = Object.keys(domandaRepo);
+    for (const lang of langs) {
+        for (let i = 1; i <= 5; i++) {
+            if (i === 5) continue; // Skip L5 (linear)
+            const seg = computeProgressSegments(lang, i);
+            if ((state.progress[lang] || 0) >= i && (seg.greenCount + seg.goldCount) < seg.totalExist) {
+                return { lang: lang, lvl: i };
+            }
+        }
+    }
+    return null;
+}
+
+function offerGoldRetry(lang, lvl) {
+    openModal(
+        "Concorri per il Gold",
+        `<div style="text-align:left">
+            <p>Hai completato il livello, ma non hai ottenuto il punteggio massimo.</p>
+            <p><strong>Vuoi riprovare subito solo le domande mancanti?</strong></p>
+            <ul style="font-size:13px; opacity:0.8; padding-left:20px">
+                <li>Il livello riparte dal numero di risposte corrette attuali.</li>
+                <li>Non perdi i progressi acquisiti.</li>
+                <li>Colma le lacune per ottenere il Gold.</li>
+            </ul>
+        </div>`,
+        () => { startGoldRetry(lang, lvl); }
+    );
+    setTimeout(() => {
+        const btnCancel = document.querySelector('#universal-modal .btn-cancel');
+        if(btnCancel) btnCancel.innerText = "Prova più tardi";
+    }, 50);
+}
+
+function startGoldRetry(lang, lvl) {
+    const key = "L" + lvl;
+    const allQuestions = domandaRepo[lang][key];
+    if (!allQuestions) return;
+
+    const u = dbUsers[state.currentPin];
+    let historyAgg = [];
+    const keyLvl = `${lang}_${lvl}`;
+    if (u.history[keyLvl]) historyAgg = historyAgg.concat(u.history[keyLvl]);
+    if (u.history[lang]) historyAgg = historyAgg.concat(u.history[lang].filter(h => Number(h.lvl||h.level) === lvl));
+    
+    const uniqueCorrect = new Set(historyAgg.filter(h => h.ok).map(h => h.q));
+    const missing = allQuestions.filter(raw => !uniqueCorrect.has(raw.split('|')[0]));
+    
+    if (missing.length === 0) { showLevels(lang); return; }
+    
+    const selection = missing.map(r => {
+        const p = r.split("|");
+        let opts = [{ t: p[1], id: 0 }, { t: p[2], id: 1 }, { t: p[3], id: 2 }];
+        opts.sort(() => 0.5 - Math.random());
+        return { q: p[0], options: opts.map(o => o.t), correct: opts.findIndex(o => o.id === 0), exp: p[5] };
+    });
+    
+    const storageKey = `${lang}_${lvl}`;
+    if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
+    dbUsers[state.currentPin].savedQuizzes[storageKey] = selection;
+    if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
+    dbUsers[state.currentPin].activeProgress[storageKey] = 0;
+    
+    saveMasterDB();
+    
+    session = { lang: lang, lvl: lvl, q: selection, idx: 0, correctCount: 0, isGoldRound: false, isRetry: true, baseOffset: uniqueCorrect.size, totalExist: allQuestions.length };
+    renderQ();
 }
