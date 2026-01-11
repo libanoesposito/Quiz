@@ -320,54 +320,74 @@ window.onload = async () => {
         }
         
         const hashedSaved = await sha256(savedPin);
+        let isAuthenticated = false;
 
-        // 1. CHIAMATA AL CLOUD: Cerchiamo l'utente su Firebase
-        const doc = await db.collection("utenti").doc(savedPin).get();
-
-        if (doc.exists) {
-            const cloudUser = doc.data();
-
-            // Se l'account è segnato come eliminato nel cloud, fermati
-            if (cloudUser.deleted) {
-                localStorage.removeItem('sessionPin');
-                renderLogin();
-                return;
-            }
-
-            // 2. SINCRONIZZAZIONE: Aggiorniamo dbUsers locale con i dati freschi dal cloud
-            dbUsers[savedPin] = cloudUser;
-            
+        // 1. GESTIONE SPECIALE ADMIN/TESTER (Accesso garantito anche senza doc cloud)
+        if (hashedSaved === ADMIN_HASH) {
+            state.mode = 'admin';
+            state.currentUser = "Creatore";
             state.currentPin = savedPin;
-            state.currentUser = cloudUser.name;
-            
-            if (hashedSaved === ADMIN_HASH) {
-                state.mode = 'admin';
-                state.currentUser = "Creatore";
-            } else {
+            isAuthenticated = true;
+            // Sync opzionale: se esistono dati admin salvati, li carichiamo
+            try {
+                const doc = await db.collection("utenti").doc(savedPin).get();
+                if (doc.exists) dbUsers[savedPin] = doc.data();
+            } catch(e) {}
+        } 
+        else if (hashedSaved === TESTER_HASH) {
+            state.mode = 'user';
+            state.currentUser = "Tester";
+            state.currentPin = savedPin;
+            state.isTester = true;
+            isAuthenticated = true;
+            // Sync opzionale Tester
+            try {
+                const doc = await db.collection("utenti").doc(savedPin).get();
+                if (doc.exists) {
+                    const cloudUser = doc.data();
+                    dbUsers[savedPin] = Object.assign({}, dbUsers[savedPin], cloudUser);
+                    state.isPerfect = !!(cloudUser.goldMode || cloudUser.testerGold);
+                }
+            } catch(e) {}
+            if (!dbUsers[savedPin]) dbUsers[savedPin] = { name: 'Tester', progress: {}, history: {}, activeProgress: {}, ripasso: { wrong: [], notStudied: [] } };
+        }
+        else {
+            // 2. UTENTI NORMALI: Richiedono esistenza su Cloud
+            const doc = await db.collection("utenti").doc(savedPin).get();
+
+            if (doc.exists) {
+                const cloudUser = doc.data();
+                if (cloudUser.deleted) {
+                    localStorage.removeItem('sessionPin');
+                    renderLogin();
+                    return;
+                }
+                dbUsers[savedPin] = cloudUser;
+                state.currentPin = savedPin;
+                state.currentUser = cloudUser.name;
                 state.mode = 'user';
                 state.progress = cloudUser.progress || {};
                 state.history = cloudUser.history || {};
                 state.ripasso = cloudUser.ripasso || { wrong: [], notStudied: [] };
                 state.activeProgress = cloudUser.activeProgress || {};
-
-                                // --- GESTIONE TEMA (Logica Unificata) ---
+                
                 const stats = calcStats(); 
-                state.isPerfect = stats.isPerfect; 
+                state.isPerfect = cloudUser.goldMode || stats.isPerfect;
+                isAuthenticated = true;
+            }
+        }
 
-                // gestione tema rimandata: verrà inizializzata dopo il caricamento dello stato gold
+        if (isAuthenticated) {
+            // 3. CARICA STATO GOLD (Ridondante ma sicuro)
+            if (dbUsers[savedPin]) {
+                const goldModeCloud = dbUsers[savedPin].goldMode || dbUsers[savedPin].testerGold || false;
+                state.isPerfect = goldModeCloud || state.isPerfect;
+            }
+            if (state.isTester) {
+                localStorage.setItem('testerGold', state.isPerfect ? 'true' : 'false');
             }
 
-            // 3. CARICA STATO GOLD DA FIREBASE
-            const goldModeCloud = cloudUser.goldMode || cloudUser.testerGold || false;
-
-            // Salva negli state globali
-            state.isPerfect = goldModeCloud || state.isPerfect;
-            if (hashedSaved === TESTER_HASH) {
-                state.isTester = true;
-                localStorage.setItem('testerGold', (cloudUser.testerGold || cloudUser.goldMode) ? 'true' : 'false');
-            }
-
-            // 4. RIPRISTINO POSIZIONE
+            // 4. RIPRISTINO POSIZIONE (Ora funziona anche per Admin)
             const lastSection = localStorage.getItem('currentSection');
             const lastLang = localStorage.getItem('currentLang');
 
@@ -391,11 +411,8 @@ window.onload = async () => {
 
             // Mostra/nascondi il toggle tester (fulmine) se necessario
             try { renderTesterToggle(); } catch(e) {}
-
-            // debug instrumentation removed
-
         } else {
-            // PIN nel localStorage ma non esiste su Firebase
+            // PIN nel localStorage ma non valido/inesistente
             localStorage.removeItem('sessionPin');
             renderLogin();
         }
