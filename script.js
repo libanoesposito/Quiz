@@ -287,7 +287,7 @@ const TESTER_HASH = "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5
 const TESTER_PIN = "1111";
 
 
-window.onload = async () => {
+const initApp = async () => {
     const savedPinRaw = localStorage.getItem('sessionPin');
     
     // Pulizia estrema del valore recuperato
@@ -427,6 +427,13 @@ window.onload = async () => {
         }
     }
 };
+
+// Avvio applicazione robusto (DOMContentLoaded invece di onload)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
 
 // Ripristina toggleDebugPerfect per il tester (PIN 1111)
 async function toggleDebugPerfect() {
