@@ -2601,9 +2601,21 @@ window.toggleGeneralProgress = function(card) {
 window.toggleGeneralContent = function(id, card) {
     const content = document.getElementById(id);
     const isHidden = content.style.display === 'none';
-    document.querySelectorAll('#security-content, #history-content').forEach(c => c.style.display = 'none');
-    content.style.display = isHidden ? 'flex' : 'none';
-    if (isHidden && card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Chiudi tutti gli altri e rimuovi la classe open
+    document.querySelectorAll('#security-content, #history-content').forEach(c => {
+        c.style.display = 'none';
+        if(c.parentElement) c.parentElement.classList.remove('open');
+    });
+
+    // Apri il target
+    if (isHidden) {
+        content.style.display = 'flex';
+        // FIX: Forziamo visibilità immediata per evitare problemi con animazioni CSS
+        content.style.maxHeight = 'none';
+        if (card) card.classList.add('open'); 
+        if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 };
 
 let historyScrollTimer;
