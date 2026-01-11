@@ -2040,6 +2040,7 @@ function calcStats() {
     let answeredUnique = 0; // Nuovo contatore per percentuale avanzamento
     Object.values(state.history || {}).forEach(arr => {
         arr.forEach(h => {
+            if (h.archived) return;
             tot++;
             if (h.ok) ok++;
         });
@@ -2119,9 +2120,9 @@ function computeProgressSegments(lang, level) {
     // Aggrega le voci dallo storico sia per-key livello (es. CODING_5) sia dallo storico per lingua (es. CODING)
     let historyLevel = [];
     if (u && u.history) {
-        if (Array.isArray(u.history[key])) historyLevel = historyLevel.concat(u.history[key]);
+        if (Array.isArray(u.history[key])) historyLevel = historyLevel.concat(u.history[key].filter(h => !h.archived));
         if (Array.isArray(u.history[lang])) {
-            historyLevel = historyLevel.concat(u.history[lang].filter(h => Number(h.lvl || h.level || 0) === Number(level)));
+            historyLevel = historyLevel.concat(u.history[lang].filter(h => Number(h.lvl || h.level || 0) === Number(level) && !h.archived));
         }
     }
     const uniqueCorrect = new Set(historyLevel.filter(h => h && h.ok).map(h => h.q));
@@ -2324,7 +2325,7 @@ input, select, textarea { font-size: 16px !important; }
         progHtml += `<div style="margin-bottom:15px"><h4>${lang}</h4>`;
         for (let i = 1; i <= 5; i++) {
             // Calcolo statistiche uniche per la barra sovrapposta
-            const historyLevel = (u.history && u.history[lang]) ? u.history[lang].filter(h => Number(h.lvl || h.level) === i) : [];
+            const historyLevel = (u.history && u.history[lang]) ? u.history[lang].filter(h => Number(h.lvl || h.level) === i && !h.archived) : [];
             
             const uniqueCorrect = new Set();
             const uniqueNotStudied = new Set();
@@ -4005,43 +4006,27 @@ function getNextGoldCandidate() {
 
 function offerGoldRetry(lang, lvl) {
     openModal(
-        "Concorri per il Gold",
-        `<div style="text-align:left">
-            <p>Hai completato il livello, ma non hai ottenuto il punteggio massimo.</p>
-            <p><strong>Vuoi ripulire le risposte sbagliate e non studiate e mantenere solo le corrette?</strong></p>
-            <ul style="font-size:13px; opacity:0.8; padding-left:20px">
-                <li>Le domande corrette rimangono.</li>
-                <li>Le barre e i contatori si aggiornano di conseguenza.</li>
-                <li>Lo storico e il ripasso rimangono intatti.</li>
-            </ul>
-        </div>`,
+        "Ottimizza Percorso",
+        "Vuoi rimuovere le risposte errate e non studiate dai progressi per concentrarti solo su quelle corrette? Lo storico rimarrà intatto.",
         () => {
             const u = dbUsers[state.currentPin];
-            const keyLvl = `${lang}_${lvl}`;
-
-            // 1. Recupera tutte le domande del livello dallo storico
-            let historyAgg = [];
-            if (u.history[keyLvl]) historyAgg = u.history[keyLvl];
-            if (u.history[lang]) historyAgg = historyAgg.concat(u.history[lang].filter(h => Number(h.lvl||h.level) === lvl));
-
-            // 2. Mantieni solo le domande corrette
-            const correctQs = historyAgg.filter(h => h.ok).map(h => h.q);
-
-            // 3. Aggiorna progress globale e barre
-            state.progress[lang] = correctQs.length;            // barre e contatori livello
-            if (!u.savedQuizzes) u.savedQuizzes = {};
-            u.savedQuizzes[keyLvl] = [];                        // rimuove sbagliate/non studiate
-            if (!u.activeProgress) u.activeProgress = {};
-            u.activeProgress[keyLvl] = 0;                       // reset sessione attiva
-
-            // 4. Salva DB
-            saveMasterDB();
-
-            // 5. Mostra la home
+            if (u && u.history) {
+                // Pulisce storico lingua principale per questo livello
+                if (u.history[lang]) {
+                    u.history[lang].forEach(h => {
+                        if (Number(h.lvl || h.level) === lvl && !h.ok) h.archived = true;
+                    });
+                }
+                // Pulisce storico chiave specifica livello
+                const key = `${lang}_${lvl}`;
+                if (u.history[key]) {
+                    u.history[key].forEach(h => { if (!h.ok) h.archived = true; });
+                }
+                saveMasterDB();
+            }
             showHome();
         }
     );
-
     setTimeout(() => {
         const btnCancel = document.querySelector('#universal-modal .btn-cancel');
         if(btnCancel) btnCancel.innerText = "Prova più tardi";
@@ -4059,51 +4044,26 @@ function startGoldRetry(lang, lvl) {
     if (u.history[keyLvl]) historyAgg = historyAgg.concat(u.history[keyLvl]);
     if (u.history[lang]) historyAgg = historyAgg.concat(u.history[lang].filter(h => Number(h.lvl||h.level) === lvl));
     
-    // --- 1. Calcola domande già corrette ---
-const uniqueCorrect = new Set(historyAgg.filter(h => h.ok).map(h => h.q));
-
-// --- 2. Filtra solo le domande mancanti ---
-const missing = allQuestions.filter(raw => !uniqueCorrect.has(raw.split('|')[0]));
-if (missing.length === 0) { 
-    showLevels(lang); 
-    return; 
-}
-
-// --- 3. Crea la sessione solo con le mancanti ---
-const selection = missing.map(r => {
-    const p = r.split("|");
-    let opts = [{ t: p[1], id: 0 }, { t: p[2], id: 1 }, { t: p[3], id: 2 }];
-    opts.sort(() => 0.5 - Math.random());
-    return { 
-        q: p[0], 
-        options: opts.map(o => o.t), 
-        correct: opts.findIndex(o => o.id === 0), 
-        exp: p[5] 
-    };
-});
-
-// --- 4. Salva quiz e progressi come prima ---
-const storageKey = `${lang}_${lvl}`;
-if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
-dbUsers[state.currentPin].savedQuizzes[storageKey] = selection;
-if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
-dbUsers[state.currentPin].activeProgress[storageKey] = 0;
-
-saveMasterDB();
-
-// --- 5. Inizializza la sessione Gold Retry ---
-session = {
-    lang: lang,
-    lvl: lvl,
-    q: selection,                    // solo domande mancanti
-    idx: 0,                          // indice nella sessione
-    correctCount: uniqueCorrect.size,// conteggio corrette già ottenute
-    isGoldRound: false,
-    isRetry: true,
-    baseOffset: uniqueCorrect.size,  // per barre/numerazioni
-    totalExist: allQuestions.length  // totale domande livello
-};
-
-// --- 6. Renderizza le domande ---
-renderQ();
+    const uniqueCorrect = new Set(historyAgg.filter(h => h.ok).map(h => h.q));
+    const missing = allQuestions.filter(raw => !uniqueCorrect.has(raw.split('|')[0]));
+    
+    if (missing.length === 0) { showLevels(lang); return; }
+    
+    const selection = missing.map(r => {
+        const p = r.split("|");
+        let opts = [{ t: p[1], id: 0 }, { t: p[2], id: 1 }, { t: p[3], id: 2 }];
+        opts.sort(() => 0.5 - Math.random());
+        return { q: p[0], options: opts.map(o => o.t), correct: opts.findIndex(o => o.id === 0), exp: p[5] };
+    });
+    
+    const storageKey = `${lang}_${lvl}`;
+    if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
+    dbUsers[state.currentPin].savedQuizzes[storageKey] = selection;
+    if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
+    dbUsers[state.currentPin].activeProgress[storageKey] = 0;
+    
+    saveMasterDB();
+    
+    session = { lang: lang, lvl: lvl, q: selection, idx: 0, correctCount: 0, isGoldRound: false, isRetry: true, baseOffset: uniqueCorrect.size, totalExist: allQuestions.length };
+    renderQ();
 }
