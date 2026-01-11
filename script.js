@@ -4008,15 +4008,40 @@ function offerGoldRetry(lang, lvl) {
         "Concorri per il Gold",
         `<div style="text-align:left">
             <p>Hai completato il livello, ma non hai ottenuto il punteggio massimo.</p>
-            <p><strong>Vuoi riprovare subito solo le domande mancanti?</strong></p>
+            <p><strong>Vuoi ripulire le risposte sbagliate e non studiate e mantenere solo le corrette?</strong></p>
             <ul style="font-size:13px; opacity:0.8; padding-left:20px">
-                <li>Il livello riparte dal numero di risposte corrette attuali.</li>
-                <li>Non perdi i progressi acquisiti.</li>
-                <li>Colma le lacune per ottenere il Gold.</li>
+                <li>Le domande corrette rimangono.</li>
+                <li>Le barre e i contatori si aggiornano di conseguenza.</li>
+                <li>Lo storico e il ripasso rimangono intatti.</li>
             </ul>
         </div>`,
-        () => { startGoldRetry(lang, lvl); }
+        () => {
+            const u = dbUsers[state.currentPin];
+            const keyLvl = `${lang}_${lvl}`;
+
+            // 1. Recupera tutte le domande del livello dallo storico
+            let historyAgg = [];
+            if (u.history[keyLvl]) historyAgg = u.history[keyLvl];
+            if (u.history[lang]) historyAgg = historyAgg.concat(u.history[lang].filter(h => Number(h.lvl||h.level) === lvl));
+
+            // 2. Mantieni solo le domande corrette
+            const correctQs = historyAgg.filter(h => h.ok).map(h => h.q);
+
+            // 3. Aggiorna progress globale e barre
+            state.progress[lang] = correctQs.length;            // barre e contatori livello
+            if (!u.savedQuizzes) u.savedQuizzes = {};
+            u.savedQuizzes[keyLvl] = [];                        // rimuove sbagliate/non studiate
+            if (!u.activeProgress) u.activeProgress = {};
+            u.activeProgress[keyLvl] = 0;                       // reset sessione attiva
+
+            // 4. Salva DB
+            saveMasterDB();
+
+            // 5. Mostra la home
+            showHome();
+        }
     );
+
     setTimeout(() => {
         const btnCancel = document.querySelector('#universal-modal .btn-cancel');
         if(btnCancel) btnCancel.innerText = "Prova più tardi";
