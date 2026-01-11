@@ -1644,7 +1644,7 @@ function renderQ() {
 
         // Fase Oro: Verde pieno, Oro avanza
         greenFill = 100;
-        goldFill = (state.isTester && state.isPerfect) ? 100 : (session.idx / session.q.length) * 100; 
+        goldFill = state.isPerfect ? 100 : (session.idx / session.q.length) * 100; 
 
         htmlBar = `
         <div class="progress-split" style="height:8px; margin-bottom:15px; background:rgba(120,120,128,0.1); border-radius:8px; overflow:hidden;">
@@ -1702,14 +1702,20 @@ function renderQ() {
         textCurrent = 10 + session.idx + 1;
         textTotal = 15; // Target Gold
         counterStyle = "color:#d4af37; font-weight:bold; text-shadow:0 0 10px rgba(212,175,55,0.3)";
-    } else if (state.isTester && state.isPerfect) {
-        // Se Tester Perfetto, mostra sempre il totale assoluto del livello (es. 20/20)
-        textCurrent = totalExist;
-        textTotal = totalExist;
     } else if (session.isRetry) {
         textCurrent = (session.baseOffset || 0) + session.idx + 1;
         textTotal = 15;
         counterStyle = "color:#d4af37; font-weight:bold;";
+    }
+
+    // FIX: Se l'utente è già Perfect (Gold), forziamo il contatore al massimo per evitare "16/15"
+    if (state.isPerfect) {
+        textCurrent = 15;
+        textTotal = 15;
+        counterStyle = "color:#d4af37; font-weight:bold; text-shadow:0 0 10px rgba(212,175,55,0.3)";
+    } else if (textCurrent > textTotal) {
+        // Safety cap
+        textCurrent = textTotal;
     }
 
     // Intestazione Livello
@@ -2329,7 +2335,11 @@ input, select, textarea { font-size: 16px !important; }
                 if (!h.ok && !h.isNotStudied && !uniqueCorrect.has(h.q) && !uniqueNotStudied.has(h.q)) uniqueWrong.add(h.q);
             });
 
-            const countGreen = uniqueCorrect.size;
+            const countCorrectTotal = uniqueCorrect.size;
+            // FIX: Separiamo le corrette in Base (Verde) e Extra (Oro)
+            const countGreen = Math.min(countCorrectTotal, 10);
+            const countGold = Math.max(0, countCorrectTotal - 10);
+
             const countBlue = uniqueNotStudied.size;
             const countRed = uniqueWrong.size;
             
@@ -2339,7 +2349,7 @@ input, select, textarea { font-size: 16px !important; }
             // LOGICA 100% FISSO PER LIVELLI COMPLETATI
             // Se il livello è completato nel progresso utente, la barra deve essere piena (target = somma elementi)
             const isLevelDone = (u.progress[lang] || 0) >= i;
-            const totalCount = countGreen + countBlue + countRed;
+            const totalCount = countGreen + countGold + countBlue + countRed;
             let target = 15; // Target standard
 
             if (isLevelDone) {
@@ -2347,17 +2357,19 @@ input, select, textarea { font-size: 16px !important; }
                 target = totalCount > 0 ? totalCount : 1;
             }
             
-            const pctGreen = Math.min((countGreen / target) * 100, 100);
-            const pctBlue = Math.min((countBlue / target) * 100, 100 - pctGreen);
-            const pctRed = Math.min((countRed / target) * 100, 100 - pctGreen - pctBlue);
+            const pctGreen = (countGreen / target) * 100;
+            const pctGold = (countGold / target) * 100;
+            const pctBlue = (countBlue / target) * 100;
+            const pctRed = (countRed / target) * 100;
             
             // Percentuale totale visualizzata nel testo (se completato forza 100%)
-            const totalPercent = isLevelDone ? 100 : Math.min(Math.round(((countGreen + countBlue + countRed) / target) * 100), 100);
+            const totalPercent = isLevelDone ? 100 : Math.min(Math.round(((countGreen + countGold + countBlue + countRed) / target) * 100), 100);
 
             // Posizioni cumulative per le etichette (fine di ogni barra)
             const posGreen = pctGreen;
-            const posBlue = pctGreen + pctBlue;
-            const posRed = pctGreen + pctBlue + pctRed;
+            const posGold = pctGreen + pctGold;
+            const posBlue = posGold + pctBlue;
+            const posRed = posBlue + pctRed;
 
             progHtml += `
             <div style="margin-bottom:10px">
@@ -2368,13 +2380,14 @@ input, select, textarea { font-size: 16px !important; }
                 
                 <!-- Etichette percentuali sopra la barra (tranne l'ultima se arriva al 100%) -->
                 <div style="position:relative; width:100%; height:14px; font-size:9px; font-weight:700; margin-bottom:0px">
-                    ${(pctGreen > 0 && (pctBlue > 0 || pctRed > 0)) ? `<div style="position:absolute; left:${posGreen}%; transform:translateX(${posGreen > 85 ? '-100%' : '-50%'}); color:var(--apple-green); bottom:0;">${Math.round(posGreen)}%</div>` : ''}
+                    ${(pctGreen > 0 && (pctGold > 0 || pctBlue > 0 || pctRed > 0)) ? `<div style="position:absolute; left:${posGreen}%; transform:translateX(${posGreen > 85 ? '-100%' : '-50%'}); color:var(--apple-green); bottom:0;">${Math.round(posGreen)}%</div>` : ''}
+                    ${(pctGold > 0 && (pctBlue > 0 || pctRed > 0)) ? `<div style="position:absolute; left:${posGold}%; transform:translateX(${posGold > 85 ? '-100%' : '-50%'}); color:#d4af37; bottom:0;">${Math.round(posGold)}%</div>` : ''}
                     ${(pctBlue > 0 && pctRed > 0) ? `<div style="position:absolute; left:${posBlue}%; transform:translateX(${posBlue > 85 ? '-100%' : '-50%'}); color:#0a84ff; bottom:0;">${Math.round(posBlue)}%</div>` : ''}
-                    ${(pctRed > 0) ? `<div style="position:absolute; left:${posRed}%; transform:translateX(${posRed > 85 ? '-100%' : '-50%'}); color:#ff3b30; bottom:0;">${Math.round(posRed)}%</div>` : ''}
                 </div>
 
                 <div style="width:100%; height:8px; background:rgba(120,120,128,0.1); border-radius:6px; overflow:hidden; display:flex; margin-top:4px">
                     <div style="width:${pctGreen}%; height:100%; background:var(--apple-green)"></div>
+                    ${pctGold > 0 ? `<div class="progress-seg-gold active" style="width:${pctGold}%; height:100%"></div>` : ''}
                     <div style="width:${pctBlue}%; height:100%; background:#0a84ff"></div>
                     <div style="width:${pctRed}%; height:100%; background:#ff3b30"></div>
                 </div>
