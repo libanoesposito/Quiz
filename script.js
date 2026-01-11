@@ -1361,32 +1361,6 @@ function startStep(lang, lvl) {
     renderQ();
 }
 
-function updateEditor(text) {
-    let resultElement = document.getElementById("highlighting-content");
-    // Protezione per i caratteri HTML e aggiunta spazio finale per il cursore a fine riga
-    resultElement.textContent = text + (text.endsWith("\n") ? " " : "");
-    // Chiamata alla libreria Prism per colorare il testo
-    Prism.highlightElement(resultElement);
-}
-
-function syncScroll(el) {
-    let resultElement = document.getElementById("highlighting");
-    resultElement.scrollTop = el.scrollTop;
-    resultElement.scrollLeft = el.scrollLeft;
-}
-
-function handleTab(e, el) {
-    if (e.key === "Tab") {
-        e.preventDefault();
-        let start = el.selectionStart;
-        let end = el.selectionEnd;
-        // Inserisce 4 spazi invece di cambiare focus
-        el.value = el.value.substring(0, start) + "    " + el.value.substring(end);
-        el.selectionStart = el.selectionEnd = start + 4;
-        updateEditor(el.value);
-    }
-}
-
 function renderL5(lang, index = null) {
     // Se non specifichiamo l'indice, proviamo a caricarlo dal DB
     if (index === null && state.mode === 'user') {
@@ -1657,32 +1631,6 @@ function checkL5(lang, index) {
 }
 
 
-
-
-function handleInput(el, lang) {
-    // Salviamo la posizione del cursore (Selection)
-    const selection = window.getSelection();
-    const range = selection.getRangeAt(0);
-    const offset = range.startOffset;
-
-    // Applichiamo Prism al testo
-    Prism.highlightElement(el);
-
-    // Ripristiniamo il cursore (Logica per riposizionamento preciso)
-    // Nota: contenteditable perde il focus se non resettiamo correttamente il range
-    const newRange = document.createRange();
-    newRange.setStart(el.childNodes[0] || el, offset);
-    newRange.collapse(true);
-    selection.removeAllRanges();
-    selection.addRange(newRange);
-}
-
-function handleSpecialKeys(e) {
-    if (e.key === "Tab") {
-        e.preventDefault();
-        document.execCommand("insertText", false, "    ");
-    }
-}
 
 
 function renderQ() {
