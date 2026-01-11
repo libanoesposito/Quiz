@@ -1265,11 +1265,9 @@ function startStep(lang, lvl) {
     if (state.mode === 'user' && dbUsers[state.currentPin].savedQuizzes?.[storageKey] && Array.isArray(dbUsers[state.currentPin].savedQuizzes[storageKey]) && dbUsers[state.currentPin].savedQuizzes[storageKey].length > 0) {
         selezione = dbUsers[state.currentPin].savedQuizzes[storageKey];
         // FIX PERSISTENZA: Se carichiamo un quiz salvato, dobbiamo capire se era un round Gold
-        // Se il livello è già segnato come completato (>= lvl), allora stiamo facendo la fase Gold/Ripasso
-        const comp = state.progress[lang] || 0;
-        if (comp >= lvl) {
-             // Se stiamo riprendendo un livello già fatto, è un Gold Round
-             isGoldRound = true;
+        // MODIFICA: Non guardiamo più i progressi passati, ma solo se questa sessione specifica ha guadagnato l'oro
+        if (dbUsers[state.currentPin].quizMeta?.[storageKey]?.isGold) {
+            isGoldRound = true;
         }
     } else {
         // 2. Filtriamo il database: prendiamo TUTTE le domande non ancora indovinate
@@ -1302,6 +1300,11 @@ function startStep(lang, lvl) {
             if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
             dbUsers[state.currentPin].savedQuizzes[storageKey] = selezione;
         }
+        // Pulizia meta per nuova sessione
+        if (state.mode === 'user' && dbUsers[state.currentPin].quizMeta && dbUsers[state.currentPin].quizMeta[storageKey]) {
+            delete dbUsers[state.currentPin].quizMeta[storageKey];
+        }
+        
         isNewSession = true; // Abbiamo creato nuove domande, quindi dobbiamo partire dall'inizio
     }
 
@@ -1763,6 +1766,8 @@ function restartLevel() {
     
     // Rimuove il quiz salvato e i progressi attivi per forzare la generazione di nuove domande
     if (dbUsers[state.currentPin].savedQuizzes) delete dbUsers[state.currentPin].savedQuizzes[sk];
+    // Rimuove anche il marcatore Gold per ripartire dalla barra normale
+    if (dbUsers[state.currentPin].quizMeta) delete dbUsers[state.currentPin].quizMeta[sk];
     // FIX: Rimuove anche dallo state, altrimenti saveMasterDB lo ripristina
     if (state.activeProgress) delete state.activeProgress[sk];
     if (dbUsers[state.currentPin].activeProgress) delete dbUsers[state.currentPin].activeProgress[sk];
@@ -1956,6 +1961,11 @@ function next() {
 
                 if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
                 dbUsers[state.currentPin].savedQuizzes[sk] = selezioneRestante;
+                
+                // SALVA STATO GOLD PER QUESTA SESSIONE
+                if (!dbUsers[state.currentPin].quizMeta) dbUsers[state.currentPin].quizMeta = {};
+                dbUsers[state.currentPin].quizMeta[sk] = { isGold: true };
+                
                 session.q = selezioneRestante;
                 session.idx = 0;
                 session.correctCount = 0;
