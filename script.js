@@ -1300,10 +1300,6 @@ function startStep(lang, lvl) {
         if (state.mode === 'user') {
             if (!dbUsers[state.currentPin].savedQuizzes) dbUsers[state.currentPin].savedQuizzes = {};
             dbUsers[state.currentPin].savedQuizzes[storageKey] = selezione;
-            
-            // FIX: Inizializza activeProgress a 0 per mostrare barra vuota nei livelli
-            if (!dbUsers[state.currentPin].activeProgress) dbUsers[state.currentPin].activeProgress = {};
-            dbUsers[state.currentPin].activeProgress[storageKey] = 0;
         }
         // Pulizia meta per nuova sessione
         if (state.mode === 'user' && dbUsers[state.currentPin].quizMeta && dbUsers[state.currentPin].quizMeta[storageKey]) {
@@ -1315,10 +1311,9 @@ function startStep(lang, lvl) {
 
     let savedIdx = 0;
     if (state.mode === 'user') {
-        // Se è una nuova sessione, ignoriamo activeProgress vecchio e partiamo da 0
-        if (!isNewSession) {
-            savedIdx = dbUsers[state.currentPin].activeProgress?.[storageKey] || 0;
-        }
+        // Leggiamo sempre il progresso salvato. Se è 10 (livello finito), savedIdx sarà 10
+        // e renderQ mostrerà la schermata "Livello Completato" invece della domanda 1.
+        savedIdx = dbUsers[state.currentPin].activeProgress?.[storageKey] || 0;
     }
 
     session = { lang: lang, lvl: lvl, q: selezione, idx: savedIdx, correctCount: 0, isGoldRound: isGoldRound, baseOffset: baseOffset };
