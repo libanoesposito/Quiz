@@ -1145,6 +1145,7 @@ function showLevels(lang) {
 
         let totalExist = 0;
         let userCorrectUniques = 0;
+        let userAttemptsUniques = 0;
 
         if (domandaRepo[lang] && domandaRepo[lang]["L" + i]) {
             totalExist = domandaRepo[lang]["L" + i].length;
@@ -1157,23 +1158,26 @@ function showLevels(lang) {
                 if (Array.isArray(u.history[key])) historyAgg = historyAgg.concat(u.history[key]);
                 if (Array.isArray(u.history[lang])) historyAgg = historyAgg.concat(u.history[lang].filter(h => Number(h.lvl || h.level || 0) === i));
             }
+            // MODIFICA: Contiamo i tentativi unici (risposte date) per la barra, e le corrette per il Gold
+            const uniqueAttempts = new Set(historyAgg.map(h => h.q));
             const uniqueCorrect = new Set(historyAgg.filter(h => h && h.ok).map(h => h.q));
+            
             userCorrectUniques = uniqueCorrect.size;
+            userAttemptsUniques = uniqueAttempts.size;
         }
 
-        // 3. LOGICA ORO (Attiva se il livello è stato superato oppure l'utente è globale GOLD)
-        // 3. LOGICA ORO (Attiva solo se ha completato le 10)
-        let isGoldPhase = (comp >= i) || !!state.isPerfect;
+        // 3. LOGICA ORO: Si attiva SOLO se hai 10 corrette o sei Perfect.
+        let isGoldPhase = (userCorrectUniques >= 10) || !!state.isPerfect;
 
         const seg = computeProgressSegments(lang, i);
-        let displayTotal = isGoldPhase ? totalExist : 10;
-        let displayCurrent = isGoldPhase ? userCorrectUniques : currentIdx;
+        seg.isGoldPhase = isGoldPhase; // Sincronizza visualizzazione
 
-        // FIX: Se siamo nella fase standard (Verde), forziamo la barra a usare l'indice corrente (Sessione)
-        // invece delle corrette totali (Mastery), così l'utente vede l'avanzamento 1/10, 2/10 etc.
-        if (!isGoldPhase) {
-            seg.displayCurrent = currentIdx;
-        }
+        let displayTotal = isGoldPhase ? totalExist : 10;
+        // MODIFICA: La barra mostra sempre i tentativi (avanzamento), a meno che non siamo in sessione attiva
+        let displayCurrent = isGoldPhase ? userAttemptsUniques : (currentIdx > 0 ? currentIdx : Math.min(userAttemptsUniques, 10));
+
+        seg.displayCurrent = displayCurrent;
+        seg.displayTotal = displayTotal;
 
         // Calcolo percentuali per i segmenti (verde / oro)
         // Nota: seg è già calcolato sopra, ma displayCurrent in seg era basato sullo storico.
@@ -1883,8 +1887,9 @@ function next() {
             const greenComplete = wasBaseline && session.correctCount === session.q.length;
 
             // 1. COMPLETAMENTO VERDE (Sblocco Livello + Suono Level)
-            // Se abbiamo finito la baseline (15) oppure tutte le domande se erano meno di 15
-            if (greenComplete || (uniqueCorrect.size >= totalExist && totalExist <= baseline)) {
+            // MODIFICA: Il livello si completa SEMPRE se il quiz è finito (session.idx >= length),
+            // indipendentemente dalle risposte corrette.
+            if (true) { 
                 // Aggiorna progresso se non già fatto
                 if ((state.progress[lang] || 0) < lvl) {
                     state.progress[lang] = lvl;
@@ -1994,6 +1999,7 @@ function ensureUserId() {
 function calcStats() {
     let tot = 0;
     let ok = 0;
+    let answeredUnique = 0; // Nuovo contatore per percentuale avanzamento
     Object.values(state.history || {}).forEach(arr => {
         arr.forEach(h => {
             tot++;
@@ -2013,6 +2019,9 @@ function calcStats() {
             totalLevelsCount++;
             if(u) {
                 const seg = computeProgressSegments(lang, i);
+                // Sommiamo i segmenti (che ora rappresentano risposte date)
+                answeredUnique += (seg.greenCount + seg.goldCount);
+                
                 // Target fisso a 15 (10 Base + 5 Gold) come richiesto
                 const target = Math.min(15, seg.totalExist || 15);
                 if((seg.greenCount + seg.goldCount) >= target) perfectLevelsCount++;
@@ -2036,7 +2045,8 @@ function calcStats() {
         total: tot,
         correct: ok,
         wrong: tot - ok,
-        perc: tot ? Math.round((ok / tot) * 100) : 0
+        // MODIFICA: La percentuale è basata su (Domande Fatte / Totale Database)
+        perc: totalDomandeDatabase ? Math.round((answeredUnique / totalDomandeDatabase) * 100) : 0
     };
 
     // 🏆 UNA VOLTA RAGGIUNTO IL GOLD, NON SI PERDE PIÙ
@@ -2307,7 +2317,7 @@ input, select, textarea { font-size: 16px !important; }
             const pctBlue = Math.min((countBlue / target) * 100, 100 - pctGreen);
             const pctRed = Math.min((countRed / target) * 100, 100 - pctGreen - pctBlue);
             
-            const totalPercent = Math.round(((countGreen + countBlue + countRed) / target) * 100);
+            const totalPercent = Math.min(Math.round(((countGreen + countBlue + countRed) / target) * 100), 100);
 
             progHtml += `
             <div style="margin-bottom:10px">
