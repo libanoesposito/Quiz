@@ -43,7 +43,7 @@ function resolveQuestionFromRepo(h, base, lvl) {
         } catch (e) { /* ignore */ }
     }
     // Se qRaw corrisponde esattamente al campo parts[0] di qualche domanda, restituisci quel testo
-    if (domandaRepo) {
+    if (typeof domandaRepo !== 'undefined' && domandaRepo) {
         for (const lang of Object.keys(domandaRepo)) {
             for (const livKey of Object.keys(domandaRepo[lang] || {})) {
                 const list = domandaRepo[lang][livKey] || [];
@@ -2085,6 +2085,7 @@ function ensureUserId() {
 }
 
 function calcStats() {
+    try {
     if (typeof domandaRepo === 'undefined') return { total: 0, correct: 0, wrong: 0, perc: 0, isPerfect: false };
 
     let tot = 0;
@@ -2155,6 +2156,7 @@ function calcStats() {
     stats.goldCorrect  = Math.max(ok - totalDomandeDatabase, 0);  // oro: extra perfetto
    
     return stats;
+    } catch(e) { return { total: 0, correct: 0, wrong: 0, perc: 0, isPerfect: false }; }
 }
 
 // Helper per verificare se tutti i linguaggi sono completati (Endgame)
