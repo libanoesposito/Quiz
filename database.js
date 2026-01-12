@@ -1,7 +1,7 @@
 const domandaRepo = {
     Python: {
         L1: [
-            "Qual è il comando per stampare 'Ciao' a video?|print('Ciao')|echo 'Ciao'|console.log('Ciao')|0|La funzione print() stampa il testo a video. 'echo' è usato in PHP/Bash e 'console.log' in JavaScript.",
+            "Qual è il comando per stampare 'Ciao' a video?|print('Ciao')|echo 'Ciao'|console.log('Ciao')|0|La funzione print() stampa il testo a video.",
             "Qual è la sintassi per assegnare il valore 5 alla variabile x?|x = 5|x == 5|5 -> x|0|In Python l'operatore '=' viene utilizzato per assegnare un valore a una variabile. '==' serve per il confronto.",
             "A quale tipo di dato appartiene il numero 3.14?|float|int|str|0|3.14 è un numero con la virgola (floating point), quindi è di tipo float. 'int' è per numeri interi.",
             "Quale simbolo si usa per iniziare un commento?|#|//|/*|0|In Python i commenti a riga singola iniziano con il simbolo #. Il codice dopo # viene ignorato dall'interprete.",
