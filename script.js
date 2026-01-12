@@ -220,6 +220,8 @@ async function updateGlobalLeaderboard() {
     let pts = 0;
     let perfects = 0;
 
+    if (typeof domandaRepo === 'undefined') return;
+
     Object.keys(domandaRepo).forEach(lang => {
         for (let lvl = 1; lvl <= 5; lvl++) {
             // Salta il livello 5 se non esistono sfide per questo linguaggio
@@ -885,9 +887,10 @@ async function registerUser() {
         localStorage.setItem('sessionPin', pin);
 
         await db.collection("classifica").doc(pin).set({ 
-            name: name, 
-            score: 0, 
-            userId: nextId 
+            name: name,
+            points: 0,
+            perfect: 0,
+            userId: nextId
         });
 
         closeModal();
@@ -1053,6 +1056,15 @@ function setGuest() {
 async function showHome() {
     localStorage.setItem('currentSection', 'home');
     history.pushState({ view: 'home' }, '', window.location.href);
+    
+    if (typeof domandaRepo === 'undefined') {
+        document.getElementById('content-area').innerHTML = `<div style="text-align:center; padding:50px">
+            <h3 style="color:#ff3b30">Errore Database</h3>
+            <p>Il file delle domande non è stato caricato correttamente. Controlla la console per i dettagli.</p>
+        </div>`;
+        return;
+    }
+
     calcStats(); // Aggiorna state.isPerfect basandosi sulla history attuale
     // mostra icona tester se sei il tester
     try { renderTesterDebug(); } catch(e) {}
@@ -2073,6 +2085,8 @@ function ensureUserId() {
 }
 
 function calcStats() {
+    if (typeof domandaRepo === 'undefined') return { total: 0, correct: 0, wrong: 0, perc: 0, isPerfect: false };
+
     let tot = 0;
     let ok = 0;
     let answeredUnique = 0; // Nuovo contatore per percentuale avanzamento
@@ -3859,7 +3873,7 @@ async function renderGlobalClassifica() {
                     ${data.name} ${crown}
                 </div>
                 <div style="display:inline-block; margin-top:4px; padding: 2px 8px; background: rgba(255,255,255,0.1); border-radius: 20px; font-size:10px; font-weight:700; text-transform:uppercase; color:${isMeAndPerfect ? '#bf953f' : 'rgba(255,255,255,0.6)'}">
-                    ${data.perfect || 0} LIVELLI PERFETTI
+                    ${data.perfect || 0} PERFETTI
                 </div>
             </div>
         </div>
