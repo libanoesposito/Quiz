@@ -898,7 +898,12 @@ const domandaRepo = {
 const challenges5 = {
     Python: [
         { task: "Conta da 1 a 3", logic: "for i in range(1, 4): print(i)", output: "1\n2\n3", userStatus: null },
-        { task: "Stampa numeri pari fino a 6", logic: "for i in range(0, 7): if i % 2 == 0: print(i)", output: "2\n4\n6", userStatus: null },
+        {
+  task: "Stampa numeri pari fino a 6",
+  logic: "for i in range(1, 7):\n    if i % 2 == 0:\n        print(i)",
+  output: "2\n4\n6",
+  userStatus: null
+},
         { task: "Somma numeri da 1 a 5", logic: "sum(range(1,6))", output: "15", userStatus: null },
         { task: "Crea una lista di quadrati 1-5", logic: "[i*i for i in range(1,6)]", output: "[1, 4, 9, 16, 25]", userStatus: null },
         { task: "Stampa 'Ciao' 3 volte usando ciclo", logic: "for i in range(3): print('Ciao')", output: "Ciao\nCiao\nCiao", userStatus: null },
