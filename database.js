@@ -898,7 +898,7 @@ const domandaRepo = {
 const challenges5 = {
     Python: [
         { task: "Conta da 1 a 3", logic: "for i in range(1, 4): print(i)", output: "1\n2\n3", userStatus: null },
-        { task: "Stampa numeri pari fino a 6", logic: "for i in range(2,7,2): print(i)", output: "2\n4\n6", userStatus: null },
+        { task: "Stampa numeri pari fino a 6", logic: "for i in range(0, 7): if i % 2 == 0: print(i)", output: "2\n4\n6", userStatus: null },
         { task: "Somma numeri da 1 a 5", logic: "sum(range(1,6))", output: "15", userStatus: null },
         { task: "Crea una lista di quadrati 1-5", logic: "[i*i for i in range(1,6)]", output: "[1, 4, 9, 16, 25]", userStatus: null },
         { task: "Stampa 'Ciao' 3 volte usando ciclo", logic: "for i in range(3): print('Ciao')", output: "Ciao\nCiao\nCiao", userStatus: null },
@@ -961,7 +961,7 @@ const challenges5 = {
         { task: "Filtra numeri pari da [1,2,3,4,5]", logic: "[1,2,3,4,5].filter(x=>x%2===0)", output: "[2,4]", userStatus: null }
     ],
     Java: [
-        { task: "Main che stampa 'Ciao'", logic: "System.out.println(\"Ciao\")", output: "Ciao", userStatus: null },
+        { task: "Main che stampa 'Ciao'", logic: "System.out.println("Ciao")", output: "Ciao", userStatus: null },
         { task: "Conta da 1 a 3", logic: "for(int i=1;i<=3;i++) System.out.println(i);", output: "1\n2\n3", userStatus: null },
         { task: "Somma numeri 1-5", logic: "int sum=0;for(int i=1;i<=5;i++) sum+=i; System.out.println(sum);", output: "15", userStatus: null },
         { task: "Stampa numeri pari 1-6", logic: "for(int i=2;i<=6;i+=2) System.out.println(i);", output: "2\n4\n6", userStatus: null },
