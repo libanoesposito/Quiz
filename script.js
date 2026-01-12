@@ -2429,11 +2429,11 @@ input, select, textarea { font-size: 16px !important; }
             // Percentuale totale visualizzata nel testo (se completato forza 100%)
             const totalPercent = isLevelDone ? 100 : Math.min(Math.round(((countGreen + countGold + countBlue + countRed) / target) * 100), 100);
 
-            // Posizioni cumulative per le etichette (fine di ogni barra)
-            const posGreen = pctGreen;
-            const posGold = pctGreen + pctGold;
-            const posBlue = posGold + pctBlue;
-            const posRed = posBlue + pctRed;
+            // Centri per le etichette (per mostrare la percentuale del singolo segmento)
+            const centerGreen = pctGreen / 2;
+            const centerGold = pctGreen + (pctGold / 2);
+            const centerBlue = pctGreen + pctGold + (pctBlue / 2);
+            const centerRed = pctGreen + pctGold + pctBlue + (pctRed / 2);
 
             progHtml += `
             <div style="margin-bottom:10px">
@@ -2442,12 +2442,12 @@ input, select, textarea { font-size: 16px !important; }
                     <span style="opacity:0.7">${totalPercent}%</span>
                 </div>
                 
-                <!-- Etichette percentuali sopra la barra (tranne l'ultima se arriva al 100%) -->
+                <!-- Etichette percentuali CENTRATE sul segmento -->
                 <div style="position:relative; width:100%; height:14px; font-size:9px; font-weight:700; margin-bottom:0px">
-                    ${(pctGreen > 0 && (pctGold > 0 || pctBlue > 0 || pctRed > 0)) ? `<div style="position:absolute; left:${posGreen}%; transform:translateX(${posGreen > 85 ? '-100%' : '-50%'}); color:var(--apple-green); bottom:0;">${Math.round(posGreen)}%</div>` : ''}
-                    ${(pctGold > 0 && (pctBlue > 0 || pctRed > 0)) ? `<div style="position:absolute; left:${posGold}%; transform:translateX(${posGold > 85 ? '-100%' : '-50%'}); color:#d4af37; bottom:0;">${Math.round(posGold)}%</div>` : ''}
-                    ${(pctBlue > 0 && pctRed > 0) ? `<div style="position:absolute; left:${posBlue}%; transform:translateX(${posBlue > 85 ? '-100%' : '-50%'}); color:#0a84ff; bottom:0;">${Math.round(posBlue)}%</div>` : ''}
-                    ${(pctRed > 0) ? `<div style="position:absolute; left:${posRed}%; transform:translateX(${posRed > 85 ? '-100%' : '-50%'}); color:#ff3b30; bottom:0;">${Math.round(posRed)}%</div>` : ''}
+                    ${(pctGreen > 8) ? `<div style="position:absolute; left:${centerGreen}%; transform:translateX(-50%); color:var(--apple-green); bottom:0;">${Math.round(pctGreen)}%</div>` : ''}
+                    ${(pctGold > 8) ? `<div style="position:absolute; left:${centerGold}%; transform:translateX(-50%); color:#d4af37; bottom:0;">${Math.round(pctGold)}%</div>` : ''}
+                    ${(pctBlue > 8) ? `<div style="position:absolute; left:${centerBlue}%; transform:translateX(-50%); color:#0a84ff; bottom:0;">${Math.round(pctBlue)}%</div>` : ''}
+                    ${(pctRed > 8) ? `<div style="position:absolute; left:${centerRed}%; transform:translateX(-50%); color:#ff3b30; bottom:0;">${Math.round(pctRed)}%</div>` : ''}
                 </div>
 
                 <div style="width:100%; height:8px; background:rgba(120,120,128,0.1); border-radius:6px; overflow:hidden; display:flex; margin-top:4px">
